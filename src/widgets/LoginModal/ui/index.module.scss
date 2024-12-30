@@ -1,0 +1,65 @@
+@use './../../../shared/ui/styles/variables.scss';
+
+$colorMutedText: variables.$colorMutedText;
+
+.modalContainer {
+    height: '644px';
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    &__formContainer {
+        max-width: 500px;
+        padding: 30px;
+        &__appLogo {
+            text-align: center;
+            margin-bottom: 100px;
+            h1 {
+                font-weight: 800;
+                font-size: 3rem;
+                margin: 0;
+            }
+            span {
+                position: relative;
+                font-weight: 800;
+                font-size: 1.2rem;
+                letter-spacing: 4px;
+                &::after {
+                    content: '';
+                    position: absolute;
+                    width: 34px;
+                    height: 9px;
+                    left: -68px;
+                    top: 50%;
+                    transform: translate(50%, -50%);
+                    background-color: black;
+                }
+                &::before {
+                    content: '';
+                    position: absolute;
+                    width: 34px;
+                    height: 9px;
+                    right: -30px;
+                    top: 50%;
+                    transform: translate(50%, -50%);
+                    background-color: black;
+                }
+            }
+        }
+        &__form {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            form {
+                label {
+                    color: $colorMutedText;
+                    font-weight: 600;
+                }
+            }
+        }
+    }
+    &__Background {
+        img {
+            max-width: 500px;
+            height: auto;
+        }
+    }
+}

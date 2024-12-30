@@ -1,0 +1,12 @@
+@use './variables';
+
+body {
+    margin: 0;
+    background-color: variables.$colorBackground;
+    color: variables.$colorText;
+    font-family: Arial, sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+}
