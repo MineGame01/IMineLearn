@@ -16,23 +16,19 @@ export const HomePage: React.FC = () => {
             <main className={classNames('container')}>
                 <h1>Auth Data: </h1>
                 <ul>
-                    {Object.keys(userData).map(key => {
-
-                        // @ts-ignore
+                    {Object.keys(userData).map((key) => {
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-expect-error
                         return <li key={key}>{` ${key}: ${userData[key]}`}</li>
                     })}
                 </ul>
                 <div>
                     <h1>Posts: </h1>
                     <div>
-                        {postsIds.map((postId) => {
-                            return <Post key={postId} id={postId} />
-                        })}
+                        <Post id={postsIds[0]} />
                     </div>
                     <div>
-                        {postsIds.map((postId) => {
-                            return <PostPreview key={postId} id={postId} />
-                        })}
+                        <PostPreview id={postsIds[0]} />
                     </div>
                 </div>
             </main>

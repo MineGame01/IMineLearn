@@ -35,9 +35,9 @@ export const useAppFetch = <
         }
 
         if (!data) {
-            request()
+            void request()
         }
-    }, [data, endpoint, bodyRequest])
+    }, [data, endpoint, bodyRequest, authAccessToken])
 
     return { data, error, isLoading }
 }

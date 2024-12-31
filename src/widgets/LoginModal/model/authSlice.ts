@@ -1,4 +1,9 @@
-import { authUser, IAuthSliceInitialState, TAuthAccessToken, TAuthError } from '@/entities/LoginModal'
+import {
+    authUser,
+    IAuthSliceInitialState,
+    TAuthAccessToken,
+    TAuthError,
+} from '@/entities/LoginModal'
 import { createSelector, createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { TState } from '@/app/model'
 
@@ -38,7 +43,7 @@ const AuthSlice = createSlice({
             state.error = null
         },
         setAuthLoading(state, action: PayloadAction<boolean>) {
-            state.isLoading = action.payload;
+            state.isLoading = action.payload
         },
         updateAccessToken(state, action: PayloadAction<TAuthAccessToken>) {
             state.accessToken = action.payload
@@ -48,7 +53,8 @@ const AuthSlice = createSlice({
 
 export const AuthReducer = AuthSlice.reducer
 
-export const { updateAccessToken, setAuthData, setAuthError, clearAuthError, setAuthLoading } = AuthSlice.actions
+export const { updateAccessToken, setAuthData, setAuthError, clearAuthError, setAuthLoading } =
+    AuthSlice.actions
 
 export const selectAuthAccessToken = (state: TState) => {
     return state.auth.accessToken
@@ -66,11 +72,11 @@ export const selectAuthError = (state: TState) => {
     return state.auth.error
 }
 
-export const selectAuthUserInfo = createSelector([
-    (state: TState) => state.auth,
-    selectAuthUserId
-], (auth, id) => {
-    const { isAdmin, username, bio, email, createAt } = auth
+export const selectAuthUserInfo = createSelector(
+    [(state: TState) => state.auth, selectAuthUserId],
+    (auth, id) => {
+        const { isAdmin, username, bio, email, createAt } = auth
 
-    return { id, isAdmin, username, bio, email, createAt }
-})
+        return { id, isAdmin, username, bio, email, createAt }
+    },
+)

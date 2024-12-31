@@ -12,14 +12,12 @@ export const App: React.FC = () => {
         const request = async () => {
             dispatch(authLogin(null, null, 'checkSession'))
 
-            supabaseClient.auth.onAuthStateChange(
-                (_event, session) => {
-                    const accessToken = session?.access_token
-                    if (accessToken) {
-                        dispatch(updateAccessToken(accessToken))
-                    }
-                },
-            )
+            supabaseClient.auth.onAuthStateChange((_event, session) => {
+                const accessToken = session?.access_token
+                if (accessToken) {
+                    dispatch(updateAccessToken(accessToken))
+                }
+            })
         }
 
         void request()

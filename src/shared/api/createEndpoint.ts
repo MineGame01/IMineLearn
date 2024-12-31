@@ -5,7 +5,11 @@ export const createEndpoint = <GDataResponses extends object | null, GBodyReques
     rpcUrl: string,
 ): TEndpoint<GDataResponses, GBodyRequest> => {
     return async (bodyRequest, accessToken) => {
-        const data = await fetchRequest<GDataResponses, typeof bodyRequest>(rpcUrl, bodyRequest, accessToken)
+        const data = await fetchRequest<GDataResponses, typeof bodyRequest>(
+            rpcUrl,
+            bodyRequest,
+            accessToken,
+        )
         return data
     }
 }

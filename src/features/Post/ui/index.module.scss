@@ -10,31 +10,33 @@ $colorHtml: variables.$colorHtml;
 $colorCss: variables.$colorCss;
 $colorMutedText: variables.$colorMutedText;
 
-.post {
-    margin: 10px;
-    background-color: $colorSecondaryBackground;
-    border: 1.5px solid $colorBorder;
+.postPreview {
+    @include beforeBackground.BeforeBackground($colorMutedText, 0%);
 
-    &.postPreview {
-        @include beforeBackground.BeforeBackground($colorMutedText, 0%);
+    cursor: pointer;
+    position: relative;
+    margin: 0;
 
-        cursor: pointer;
-        position: relative;
-        margin: 0;
-        transition: transform $timeoutAnimation ease-in-out;
+    &::before {
+        content: '';
+        transition: opacity $timeoutAnimation ease-in-out;
+    }
 
+    &:hover {
         &::before {
             content: '';
-            transition: opacity $timeoutAnimation ease-in-out;
-        }
-
-        &:hover {
-            &::before {
-                content: '';
-                opacity: 25%;
-            }
+            opacity: 25%;
         }
     }
+
+    &Container {
+        grid-template-areas: 'postCreator postContent';
+    }
+}
+
+.post {
+    background-color: $colorSecondaryBackground;
+    border: 1.5px solid $colorBorder;
 
     &Container {
         display: grid;
@@ -44,9 +46,7 @@ $colorMutedText: variables.$colorMutedText;
             'commentList commentList';
         grid-template-columns: 10% 1fr;
 
-        &.postPreviewContainer {
-            grid-template-areas: 'postCreator postContent';
-        }
+
     }
 
     &__creator {

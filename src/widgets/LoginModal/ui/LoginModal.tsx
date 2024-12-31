@@ -7,7 +7,10 @@ import LoginModalBackgroundPNG from './../assets/designPhotoForum1.png'
 import { useAppDispatch, useAppSelector } from '@/app/model'
 import { authLogin, selectAuthError, selectAuthLoading } from '@widgets/LoginModal'
 
-export const LoginModal: React.FC<{ isOpen: ModalProps["open"], onClose: ModalProps["onClose"] }> = ({ isOpen, onClose }) => {
+export const LoginModal: React.FC<{
+    isOpen: ModalProps['open']
+    onClose: ModalProps['onClose']
+}> = ({ isOpen, onClose }) => {
     const [email, setEmail] = useState<string>('')
     const [password, setPassword] = useState<string>('')
     const [typeAuth, setTypeAuth] = useState<'login' | 'registration'>('login')
@@ -53,23 +56,25 @@ export const LoginModal: React.FC<{ isOpen: ModalProps["open"], onClose: ModalPr
         <Dialog
             sx={{
                 '.MuiDialog-paper': {
-                    overflow: "hidden",
+                    overflow: 'hidden',
                     backgroundColor: StyleApp.background.colors.colorSecondaryBackground,
                 },
             }}
-            aria-labelledby={"login-modal-title"}
-            aria-describedby={"login-modal-form"}
+            aria-labelledby={'login-modal-title'}
+            aria-describedby={'login-modal-form'}
             maxWidth={'xl'}
             open={isOpen}
             onClose={onClose}
         >
             <section className={classNames(StyleSCSS.modalContainer)}>
-                <h1 className="hiden" id={"login-modal-title"}>Login modal</h1>
+                <h1 className="hiden" id={'login-modal-title'}>
+                    Login modal
+                </h1>
                 <div
                     className={classNames(StyleSCSS.modalContainer__formContainer, {
                         [StyleSCSS.modalContainer__formContainerRight]: typeAuth === 'registration',
                     })}
-                    id={"login-modal-form"}
+                    id={'login-modal-form'}
                 >
                     <div className={classNames(StyleSCSS.modalContainer__formContainer__appLogo)}>
                         <h1>IMINELEARN</h1>
@@ -117,8 +122,14 @@ export const LoginModal: React.FC<{ isOpen: ModalProps["open"], onClose: ModalPr
                                 {typeAuth[0].toUpperCase() + typeAuth.slice(1)}
                             </Button>
                         </form>
-                        {authError && <FormHelperText sx={{ textAlign: "center", marginTop: "10px", color: "red" }}>{authError}</FormHelperText>}
-                        {authIsLoading && <LinearProgress sx={{ marginTop: "10px" }} />}
+                        {authError && (
+                            <FormHelperText
+                                sx={{ textAlign: 'center', marginTop: '10px', color: 'red' }}
+                            >
+                                {authError}
+                            </FormHelperText>
+                        )}
+                        {authIsLoading && <LinearProgress sx={{ marginTop: '10px' }} />}
                         <Button
                             onClick={() => {
                                 setTypeAuth((prevTypeAuth) =>
@@ -128,7 +139,9 @@ export const LoginModal: React.FC<{ isOpen: ModalProps["open"], onClose: ModalPr
                             sx={{ textTransform: 'none', marginTop: '10px' }}
                             disabled={authIsLoading}
                         >
-                            {typeAuth === "registration" ? "Do you have an account?" : "Don't have an account?"}
+                            {typeAuth === 'registration'
+                                ? 'Do you have an account?'
+                                : "Don't have an account?"}
                         </Button>
                     </div>
                 </div>

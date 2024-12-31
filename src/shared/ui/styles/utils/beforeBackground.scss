@@ -1,4 +1,6 @@
-@mixin BeforeBackground($background: $colorMutedText, $opacity: 25%) {
+@use "./../variables";
+
+@mixin BeforeBackground($background: variables.$colorMutedText, $opacity: 25%) {
     &::before {
         content: '';
         position: absolute;

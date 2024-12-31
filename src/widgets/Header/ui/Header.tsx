@@ -7,11 +7,11 @@ import { useAppSelector } from '@/app/model'
 import { LoginModal, selectAuthAccessToken } from '@widgets/LoginModal'
 
 export const Header: React.FC = () => {
-    const [isOpenLoginModal, setIsOpenLoginModal] = useState(false);
+    const [isOpenLoginModal, setIsOpenLoginModal] = useState(false)
 
-    const authAccessToken = useAppSelector(selectAuthAccessToken);
+    const authAccessToken = useAppSelector(selectAuthAccessToken)
 
-    const handleClickOpenLoginModal: React.MouseEventHandler = (_unused) => {
+    const handleClickOpenLoginModal: React.MouseEventHandler = () => {
         setIsOpenLoginModal(true)
     }
 
@@ -19,8 +19,10 @@ export const Header: React.FC = () => {
         <header className={classNames(StyleCSS.header)}>
             <div className={classNames(StyleCSS.headerContainer, 'container')}>
                 <HeaderLogo />
-                <Button disabled={Boolean(authAccessToken)} onClick={handleClickOpenLoginModal}>{authAccessToken ? "Logined" : "Login"}</Button>
-                <LoginModal isOpen={isOpenLoginModal} onClose={() => setIsOpenLoginModal(false)}  />
+                <Button disabled={Boolean(authAccessToken)} onClick={handleClickOpenLoginModal}>
+                    {authAccessToken ? 'Logined' : 'Login'}
+                </Button>
+                <LoginModal isOpen={isOpenLoginModal} onClose={() => setIsOpenLoginModal(false)} />
             </div>
         </header>
     )
