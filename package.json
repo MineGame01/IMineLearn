@@ -12,7 +12,7 @@
     "prepare": "husky",
     "commit": "cz",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d build"
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
