@@ -40,7 +40,6 @@ export interface IForumAPI {
             id: TPostId
         },
         {
-            user_id: TAuthUserId
             post_id: TPostId
             content: TPostContent
         }
@@ -50,7 +49,6 @@ export interface IForumAPI {
             new_post_id: TPostTitle
         },
         {
-            user_id: TAuthUserId
             title: TPostTitle
             content: TPostContent
             tags: TPostTags[]
@@ -59,7 +57,6 @@ export interface IForumAPI {
     reactionComment: TEndpoint<
         null,
         {
-            user_id: TAuthUserId
             comment_id: TPostId
             reaction: TReactions
         }
@@ -67,12 +64,11 @@ export interface IForumAPI {
     reactionPost: TEndpoint<
         null,
         {
-            user_id: TAuthUserId
             post_id: TPostId
             reaction: TReactions
         }
     >
-    deletePost: TEndpoint<null, { admin_id: TAuthUserId; post_id: TPostId }>
+    deletePost: TEndpoint<null, { post_id: TPostId }>
     getReactions: TEndpoint<
         {
             reaction: string
@@ -84,7 +80,7 @@ export interface IForumAPI {
             target_id: TPostId
         }
     >
-    deleteComment: TEndpoint<null, { admin_id: TAuthUserId; comment_id: TPostId }>
+    deleteComment: TEndpoint<null, { comment_id: TPostId }>
     getFilteredPost: TEndpoint<
         | IGetFilteredPost['dataResponses']['postArray']
         | IGetFilteredPost['dataResponses']['postOnIdArray'],
@@ -103,14 +99,13 @@ export interface IForumAPI {
             username: TAuthUsername
             bio: TAuthUserBio
             is_admin: boolean
-            create_at: string
-        },
+            created_at: string
+        }[],
         { user_id: TAuthUserId }
     >
     updateUserProfile: TEndpoint<
         null,
         {
-            user_id: TAuthUserId
             new_username: TAuthUsername
             new_bio: TAuthUserBio
         }
@@ -119,7 +114,6 @@ export interface IForumAPI {
     reportContent: TEndpoint<
         null,
         {
-            user_id: TAuthUserId
             target_type: 'post' | 'content'
             target_id: TPostId
             reason: string

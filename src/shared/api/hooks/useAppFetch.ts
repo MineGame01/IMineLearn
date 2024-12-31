@@ -1,5 +1,7 @@
 import { TEndpoint, TErrorResponses } from '@/entities/API'
 import { useEffect, useState } from 'react'
+import { useAppSelector } from '@/app/model'
+import { selectAuthAccessToken } from '@widgets/LoginModal'
 
 export const useAppFetch = <
     GDataResponses extends Awaited<ReturnType<GEndpoint>>,
@@ -13,11 +15,13 @@ export const useAppFetch = <
     const [data, setData] = useState<GDataResponses | null>(null)
     const [error, setError] = useState<TErrorResponses | null>(null)
 
+    const authAccessToken = useAppSelector(selectAuthAccessToken)
+
     useEffect(() => {
         const request = async () => {
             setIsLoading(true)
             try {
-                const data = await endpoint(bodyRequest)
+                const data = await endpoint(bodyRequest, authAccessToken)
                 setData(data)
             } catch (error) {
                 if (error instanceof Error) {

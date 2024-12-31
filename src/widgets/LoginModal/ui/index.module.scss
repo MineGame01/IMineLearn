@@ -3,12 +3,18 @@
 $colorMutedText: variables.$colorMutedText;
 
 .modalContainer {
-    height: '644px';
     display: grid;
     grid-template-columns: 1fr 1fr;
+    position: relative;
+
     &__formContainer {
         max-width: 500px;
         padding: 30px;
+        position: relative;
+        transition: transform 0.2s ease;
+        &Right {
+            transform: translateX(100%);
+        }
         &__appLogo {
             text-align: center;
             margin-bottom: 100px;
@@ -57,9 +63,14 @@ $colorMutedText: variables.$colorMutedText;
         }
     }
     &__Background {
+        position: relative;
+        transition: transform 0.2s ease;
+        &Left {
+            transform: translateX(-100%);
+        }
         img {
             max-width: 500px;
-            height: auto;
+            height: 100%;
         }
     }
 }
