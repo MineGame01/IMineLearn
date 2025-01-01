@@ -34,7 +34,7 @@ export const useAppFetch = <
             }
         }
 
-        if (!data) {
+        if (!data && !isLoading) {
             void request()
         }
     }, [data, endpoint, bodyRequest, authAccessToken])
