@@ -1,2 +1,3 @@
-export * from './styles/StyleApp'
-export * from './Input/Input'
+export * from './Input.tsx'
+export * from './theme'
+export * from './HeadingHidden.tsx'

@@ -1,7 +1,6 @@
-import { supabaseClient } from '@/app/api'
+import { ForumApi, supabaseClient } from '@/app/api'
 import { TStartAppListening } from '@/app/model'
 import { authUser, TAuthUserEmail } from '@/entities/LoginModal'
-import { ForumAPI } from '@/shared/api'
 import { createAction } from '@reduxjs/toolkit'
 import { AuthError, AuthResponse, GoTrueClient, Session, User } from '@supabase/supabase-js'
 import {
@@ -100,10 +99,12 @@ export const authListener = (startAppListening: TStartAppListening) => {
 
                     dispatch(setAuthLoading(true))
 
-                    const userInfo = await ForumAPI.getUserInfo({ user_id: id }, authAccessToken)
+                    const userInfo = await dispatch(
+                        ForumApi.endpoints.getUserInfo.initiate({ user_id: id }),
+                    ).unwrap()
 
-                    if (userInfo[0]) {
-                        const { username, bio, created_at, is_admin } = userInfo[0]
+                    if (userInfo) {
+                        const { username, bio, created_at, is_admin } = userInfo
 
                         data.bio = bio
                         data.username = username

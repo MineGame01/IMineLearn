@@ -6,7 +6,7 @@ import path from 'path'
 export default defineConfig(({ mode }) => {
     return {
         plugins: [react()],
-        base: mode === 'production' ? 'https://minegame01.github.io/IMineLearn' : './',
+        base: mode === 'production' ? 'https://minegame01.github.io/IMineLearn' : '/',
         resolve: {
             alias: {
                 '@': path.resolve(__dirname, './src'),

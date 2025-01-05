@@ -1,6 +1,7 @@
 import {
     authUser,
     IAuthSliceInitialState,
+    IAuthUser,
     TAuthAccessToken,
     TAuthError,
 } from '@/entities/LoginModal'
@@ -18,17 +19,7 @@ const AuthSlice = createSlice({
     name: 'auth',
     initialState: authSliceInitialState,
     reducers: {
-        setAuthData: (
-            state,
-            action: PayloadAction<
-                NonNullable<
-                    Pick<
-                        IAuthSliceInitialState,
-                        'id' | 'username' | 'bio' | 'email' | 'isAdmin' | 'createAt' | 'accessToken'
-                    >
-                >
-            >,
-        ) => {
+        setAuthData: (state, action: PayloadAction<NonNullable<IAuthUser>>) => {
             const data = action.payload
 
             return {
@@ -64,7 +55,7 @@ export const selectAuthUserId = (state: TState) => {
     return state.auth.id
 }
 
-export const selectAuthLoading = (state: TState) => {
+export const selectAuthIsLoading = (state: TState) => {
     return state.auth.isLoading
 }
 

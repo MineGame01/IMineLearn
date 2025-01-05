@@ -1,5 +1,5 @@
 import { addListener, createListenerMiddleware } from '@reduxjs/toolkit'
-import { TDispatch, TState } from './store'
+import { TDispatch, TState } from './type.ts'
 import { authListener } from '@/widgets/LoginModal/model/authListener'
 
 export const listenerMiddleware = createListenerMiddleware()
