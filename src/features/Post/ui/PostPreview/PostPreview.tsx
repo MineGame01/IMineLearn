@@ -6,24 +6,27 @@ import { UserImage } from '@features/Post/ui/Blocks/UserImage.tsx'
 import { UserName } from '@features/Post/ui/Blocks/UserName.tsx'
 import { ContentContainer } from '@features/Post/ui/Blocks/ContentContainer.tsx'
 import { Title } from '@features/Post/ui/Blocks/Title.tsx'
-import { Button, styled } from '@mui/material'
+import { Box, Button, styled } from '@mui/material'
+import { Tag } from '@shared/ui'
 
-const Body = styled(Button)(({ theme }) => ({
-    backgroundColor: theme.background.colors.colorSecondaryBackground,
-    border: `1.5px solid ${theme.border.colors.colorBorder}`,
-
+const Body = styled(Button)({
     display: 'flex',
     width: '100%',
     justifyContent: 'start',
     color: 'initial',
     textTransform: 'none',
-}))
+})
+
+const ContentContainerStyle = styled(ContentContainer)({
+    display: 'flex',
+    alignItems: 'center',
+})
 
 export const PostPreview: FC<{ id: TPostId }> = ({ id }) => {
-    const { data: postData, error: postError } = useGetPostByIdQuery(id)
+    const { data: postData } = useGetPostByIdQuery(id)
 
-    if (postData && !postError) {
-        const { title, userimage, username } = postData
+    if (postData) {
+        const { title, userimage, username, tags } = postData
 
         return (
             <Body href={'#'}>
@@ -31,9 +34,14 @@ export const PostPreview: FC<{ id: TPostId }> = ({ id }) => {
                     <UserImage src={userimage} alt={username} />
                     <UserName name={username} />
                 </CreatorContainer>
-                <ContentContainer style={{ display: 'flex', alignItems: 'center' }}>
+                <ContentContainerStyle>
                     <Title sx={{ fontSize: '1.2rem' }}>{title}</Title>
-                </ContentContainer>
+                    {tags.map((tag, index) => (
+                        <Box key={index} sx={{ marginLeft: '10px' }}>
+                            <Tag tag={tag} />
+                        </Box>
+                    ))}
+                </ContentContainerStyle>
             </Body>
         )
     }

@@ -1,9 +1,10 @@
-import { FC } from 'react'
+import { FC, lazy, Suspense } from 'react'
 import { styled } from '@mui/material'
 import { HeadingHidden } from '@shared/ui'
 import { useGetCommentsByPostIdQuery } from '@/app/api'
 import { TPostId } from '@entities/Post'
-import { Comment } from '@features/Post/ui/Comment/Comment.tsx'
+
+const Comment = lazy(() => import('@features/Post/ui/Comment/Comment.tsx'))
 
 const Body = styled('section')({
     gridArea: 'commentList',
@@ -14,7 +15,7 @@ export const PostComments: FC<{ postId: TPostId; isShowComments: boolean }> = ({
     postId,
     isShowComments,
 }) => {
-    const { data: commentsData, error: commentsError } = useGetCommentsByPostIdQuery({
+    const { data: commentsData } = useGetCommentsByPostIdQuery({
         post_id: postId,
     })
 
@@ -25,11 +26,12 @@ export const PostComments: FC<{ postId: TPostId; isShowComments: boolean }> = ({
     return (
         <Body>
             <HeadingHidden>Comments Post</HeadingHidden>
-            {commentsData &&
-                !commentsError &&
-                commentsData.map((comment) => {
-                    return <Comment key={comment.id} {...comment} />
-                })}
+            <Suspense fallback={'Loading...'}>
+                {commentsData &&
+                    commentsData.map((comment) => {
+                        return <Comment key={comment.id} {...comment} />
+                    })}
+            </Suspense>
         </Body>
     )
 }

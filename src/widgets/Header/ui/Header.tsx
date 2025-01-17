@@ -1,12 +1,11 @@
-import { useState, MouseEventHandler, FC } from 'react'
-import { Button, Container, Link, styled, Typography } from '@mui/material'
+import { useState, FC, useCallback } from 'react'
+import { Button, Container, Link, ModalProps, styled, Typography } from '@mui/material'
 import { useAppSelector } from '@/app/model'
 import { LoginModal, selectAuthAccessToken } from '@widgets/LoginModal'
 
-const Body = styled('header')(({ theme }) => ({
-    backgroundColor: theme.background.colors.colorSecondaryBackground,
+const Body = styled('header')({
     height: '50px',
-}))
+})
 
 const Wrapper = styled(Container)({
     padding: '0 20px',
@@ -21,9 +20,9 @@ export const Header: FC = () => {
 
     const authAccessToken = useAppSelector(selectAuthAccessToken)
 
-    const handleClickOpenLoginModal: MouseEventHandler = () => {
-        setIsOpenLoginModal(true)
-    }
+    const handleCloseModal: ModalProps['onClose'] = useCallback(() => {
+        setIsOpenLoginModal(false)
+    }, [])
 
     return (
         <Body>
@@ -36,11 +35,11 @@ export const Header: FC = () => {
                 <Button
                     variant={'contained'}
                     disabled={Boolean(authAccessToken)}
-                    onClick={handleClickOpenLoginModal}
+                    onClick={() => setIsOpenLoginModal(true)}
                 >
                     {authAccessToken ? 'Logined' : 'Login'}
                 </Button>
-                <LoginModal isOpen={isOpenLoginModal} onClose={() => setIsOpenLoginModal(false)} />
+                <LoginModal isOpen={isOpenLoginModal} onClose={handleCloseModal} />
             </Wrapper>
         </Body>
     )

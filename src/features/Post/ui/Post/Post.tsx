@@ -12,17 +12,15 @@ import { HeadingHidden } from '@shared/ui'
 import { ContentContainer } from '@features/Post/ui/Blocks/ContentContainer.tsx'
 import { CreatorContainer } from '@features/Post/ui/Blocks/CreatorContainer.tsx'
 
-export const Body = styled('article')(({ theme }) => ({
-    backgroundColor: theme.background.colors.colorSecondaryBackground,
-    border: `1.5px solid ${theme.border.colors.colorBorder}`,
-
+export const Body = styled('article')({
     display: 'grid',
     gridTemplateAreas: `
-    'postCreator postContent'
-    'postInteracting postInteracting'
-    'commentList commentList'`,
-    gridTemplateColumns: '10% 1fr',
-}))
+    'postCreator'
+    'postContent'
+    'postInteracting'
+    'commentList'`,
+    gridTemplateColumns: '1fr',
+})
 
 export const Post: FC<{ id: TPostId }> = ({ id }) => {
     const { data: postData, error: postError } = useGetPostByIdQuery(id)
@@ -52,7 +50,7 @@ export const Post: FC<{ id: TPostId }> = ({ id }) => {
                         isShowComments={isShowComments}
                         setIsShowComments={setIsShowComments}
                     />
-                    <PostComments postId={id} isShowComments={isShowComments} />
+                    {isShowComments && <PostComments postId={id} isShowComments={isShowComments} />}
                 </Fragment>
             </Body>
         )

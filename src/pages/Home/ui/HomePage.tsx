@@ -1,10 +1,10 @@
 import React from 'react'
-import { Post, PostPreview } from '@/features/Post'
-
 import { useAppSelector } from '@/app/model'
 import { selectAuthUserInfo } from '@widgets/LoginModal'
 import { Container, Typography } from '@mui/material'
 import { useGetFilteredPostQuery } from '@/app/api'
+import { PostList } from '@features/PostList'
+import { Post } from '@features/Post'
 
 export const HomePage: React.FC = () => {
     const { data } = useGetFilteredPostQuery({ return_ids_only: true })
@@ -28,17 +28,8 @@ export const HomePage: React.FC = () => {
                             )
                         })}
                     </ul>
-                    <div>
-                        <div>
-                            {data.map((id) => (
-                                <Post key={id as string} id={id as string} />
-                            ))}
-                        </div>
-                        <br />
-                        <div>
-                            <PostPreview id={data[0] as string} />
-                        </div>
-                    </div>
+                    <Post id={data[0] as string} />
+                    <PostList postIds={data as string[]} />
                 </Container>
             </main>
         )

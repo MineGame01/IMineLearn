@@ -1,4 +1,4 @@
-import { FC, ReactNode } from 'react'
+import { CSSProperties, FC, ReactNode } from 'react'
 
 import { styled } from '@mui/material'
 import { HeadingHidden } from '@shared/ui'
@@ -9,19 +9,22 @@ const Body = styled('section')({
 
 const Container = styled('div')({
     display: 'flex',
-    flexDirection: 'column',
     alignItems: 'center',
 })
 
 export const CreatorContainer: FC<{
+    children: ReactNode
+    styleBody?: CSSProperties
+    styleContainer?: CSSProperties
     classNameBody?: string
     classNameContainer?: string
-    children: ReactNode
-}> = ({ classNameBody, classNameContainer, children }) => {
+}> = ({ classNameBody, classNameContainer, children, styleBody, styleContainer }) => {
     return (
-        <Body className={classNameBody}>
-            <HeadingHidden>Title Post</HeadingHidden>
-            <Container className={classNameContainer}>{children}</Container>
+        <Body style={styleBody} className={classNameBody}>
+            <HeadingHidden>Creator</HeadingHidden>
+            <Container style={styleContainer} className={classNameContainer}>
+                {children}
+            </Container>
         </Body>
     )
 }

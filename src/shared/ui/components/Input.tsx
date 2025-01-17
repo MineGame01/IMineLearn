@@ -4,7 +4,7 @@ export const Input = styled(InputBase)(({ theme }) => ({
     width: '100%',
     '&.Mui-focused': {
         '& .MuiInputBase-input': {
-            borderColor: theme.text.colors.colorAccent,
+            borderColor: theme.palette.primary.main,
         },
     },
     '&.Mui-error': {

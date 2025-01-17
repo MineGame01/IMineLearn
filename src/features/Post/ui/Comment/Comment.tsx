@@ -1,5 +1,4 @@
-import React from 'react'
-
+import { FC } from 'react'
 import { IComment } from '@entities/Post'
 import { CommentInteracting } from './CommentInteracting.tsx'
 import { styled, Typography } from '@mui/material'
@@ -10,19 +9,18 @@ import { UserName } from '@features/Post/ui/Blocks/UserName.tsx'
 import { CreateData } from '@features/Post/ui/Blocks/CreateData.tsx'
 import { ContentContainer } from '@features/Post/ui/Blocks/ContentContainer.tsx'
 
-const Body = styled('section')(({ theme }) => ({
-    backgroundColor: theme.background.colors.colorSecondaryBackground,
-    border: `1.5px solid ${theme.border.colors.colorBorder}`,
-
+const Body = styled('section')({
+    padding: '20px',
     display: 'grid',
     gridTemplateAreas: `
-    'postCreator postContent'
+    'postCreator postCreator'
+    'postContent postContent'
     'postInteracting postInteracting'
     'commentList commentList'`,
-    gridTemplateColumns: '10% 1fr',
-}))
+    gridTemplateColumns: '1fr 1fr',
+})
 
-export const Comment: React.FC<IComment> = ({ id, content, created_at, username }) => {
+const Comment: FC<IComment> = ({ id, content, created_at, username }) => {
     return (
         <Body>
             <HeadingHidden>Comment</HeadingHidden>
@@ -38,3 +36,5 @@ export const Comment: React.FC<IComment> = ({ id, content, created_at, username 
         </Body>
     )
 }
+
+export default Comment

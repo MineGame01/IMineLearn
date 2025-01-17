@@ -1,6 +1,12 @@
 import { FC } from 'react'
 
-import { Typography } from '@mui/material'
+import { Typography, styled } from '@mui/material'
+
+const CreateDataTitle = styled(Typography)(({ theme }) => ({
+    gridArea: 'createData',
+    color: theme.text.colors.colorMutedText,
+    marginLeft: '10px',
+}))
 
 export const CreateData: FC<{
     dataJSON: string
@@ -15,8 +21,8 @@ export const CreateData: FC<{
     })
 
     return (
-        <Typography variant={'subtitle2'} textAlign={'center'}>
+        <CreateDataTitle variant={'subtitle2'} textAlign={'center'}>
             {timeData}
-        </Typography>
+        </CreateDataTitle>
     )
 }

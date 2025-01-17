@@ -1,51 +1,35 @@
-import { FC, Fragment, useMemo } from 'react'
+import { FC } from 'react'
 import { TPostId } from '@entities/Post'
-import { ForumApi, useGetReactionsQuery } from '@/app/api'
-import { useAppDispatch } from '@/app/model'
-import { OverridableComponent } from '@mui/material/OverridableComponent'
-import { Skeleton, SkeletonTypeMap } from '@mui/material'
+import { useGetReactionsQuery, useReactionCommentMutation } from '@/app/api'
+import { useAppSelector } from '@/app/model'
 import { THandleClickReaction } from '@features/Post/model/THandleClickReaction.ts'
 import { Reactions } from '@features/Post/ui/Blocks/Reactions.tsx'
+import { selectAuthUserId } from '@widgets/LoginModal'
 
 export const CommentReactions: FC<{ commentId: TPostId }> = ({ commentId }) => {
     const { data, isFetching, refetch } = useGetReactionsQuery({
         target_id: commentId,
         target_type: 'comment',
     })
-    const dispatch = useAppDispatch()
-
-    const skeletons = useMemo(() => {
-        const array: OverridableComponent<SkeletonTypeMap<object, 'span'>>[] = []
-        for (let i = 1; i <= 5; i++) {
-            array.push(Skeleton)
-        }
-        return array.map((SkeletonEl, index) => (
-            <SkeletonEl
-                key={index}
-                sx={{ display: 'inline-block', marginLeft: '20px' }}
-                variant={'circular'}
-                width={35}
-                height={35}
-            />
-        ))
-    }, [])
+    const [reactionComment] = useReactionCommentMutation()
+    const authUserId = useAppSelector(selectAuthUserId)
 
     const handleClickReaction: THandleClickReaction = async (_unused, reaction) => {
-        await dispatch(
-            ForumApi.endpoints.reactionComment.initiate({ comment_id: commentId, reaction }),
-        ).unwrap()
-        await dispatch(refetch)
+        try {
+            if (authUserId) {
+                await reactionComment({ comment_id: commentId, reaction }).unwrap()
+                refetch()
+            }
+        } catch (err) {
+            console.error('Error sending reaction comment', err)
+        }
     }
 
-    return (
-        <Fragment>
-            {data && !isFetching ? (
-                <Reactions reactions={data} onReaction={handleClickReaction} />
-            ) : isFetching ? (
-                skeletons.map((skeletons) => skeletons)
-            ) : (
-                <div></div>
-            )}
-        </Fragment>
-    )
+    if (data) {
+        return (
+            <Reactions reactions={data} onReaction={handleClickReaction} isLoading={isFetching} />
+        )
+    } else {
+        return <div></div>
+    }
 }

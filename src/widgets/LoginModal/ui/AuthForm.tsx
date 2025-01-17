@@ -12,13 +12,12 @@ const Form = styled('form')(({ theme }) => ({
     },
 }))
 
-const ButtonSubmitAuth = styled(Button)(({ theme }) => ({
+const ButtonSubmitAuth = styled(Button)({
     fontWeight: '600',
     textTransform: 'none',
     width: '100%',
     marginTop: '20px',
-    backgroundColor: theme.text.colors.colorAccent,
-}))
+})
 
 const IS_EMAIL_REQUIRED = true
 const IS_PASSWORD_REQUIRED = true

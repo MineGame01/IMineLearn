@@ -1,4 +1,4 @@
-import { ForumApi, supabaseClient } from '@/app/api'
+import { ForumApi, IForumApi, supabaseClient } from '@/app/api'
 import { TStartAppListening } from '@/app/model'
 import { authUser, TAuthUserEmail } from '@/entities/LoginModal'
 import { createAction } from '@reduxjs/toolkit'
@@ -99,9 +99,16 @@ export const authListener = (startAppListening: TStartAppListening) => {
 
                     dispatch(setAuthLoading(true))
 
-                    const userInfo = await dispatch(
-                        ForumApi.endpoints.getUserInfo.initiate({ user_id: id }),
-                    ).unwrap()
+                    let userInfo: IForumApi['endpoints']['getUserInfo']['dataResponse'] | null =
+                        null
+
+                    try {
+                        userInfo = await dispatch(
+                            ForumApi.endpoints.getUserInfo.initiate({ user_id: id }),
+                        ).unwrap()
+                    } catch (err) {
+                        console.error('Error get user info!', err)
+                    }
 
                     if (userInfo) {
                         const { username, bio, created_at, is_admin } = userInfo

@@ -6,7 +6,6 @@ declare module '@mui/material/styles' {
             colors: {
                 colorText: string
                 colorMutedText: string
-                colorAccent: string
             }
         }
         tags: {
@@ -40,7 +39,6 @@ declare module '@mui/material/styles' {
             colors?: {
                 colorText?: string
                 colorMutedText?: string
-                colorAccent?: string
             }
         }
         tags?: {
@@ -101,16 +99,15 @@ declare module '@mui/material/styles' {
     }
 }
 
-const COLOR_TEXT = '#333333'
-const COLOR_MUTED_TEXT = '#888888'
-const COLOR_SECONDARY_BACKGROUND = '#f5f5f5'
+const COLOR_TEXT = '#000000'
+const COLOR_SECONDARY_BACKGROUND = '#B3B3B3'
+const COLOR_MUTED_TEXT = '#616161'
 
 export const theme = createTheme({
     text: {
         colors: {
             colorText: COLOR_TEXT,
             colorMutedText: COLOR_MUTED_TEXT,
-            colorAccent: '#007bff',
         },
     },
     tags: {
@@ -138,14 +135,11 @@ export const theme = createTheme({
     animation: {
         timeoutAnimation: '0.1s',
     },
-    typography: { fontFamily: 'Arial, sans-serif' },
+    typography: { fontSize: 16, fontFamily: 'Arial, sans-serif' },
     palette: {
         text: {
             primary: COLOR_TEXT,
             secondary: COLOR_MUTED_TEXT,
-        },
-        background: {
-            paper: COLOR_SECONDARY_BACKGROUND,
         },
     },
     mixins: {

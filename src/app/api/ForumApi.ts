@@ -1,9 +1,9 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 import { SUPABASE_KEY, SUPABASE_URL } from '@/app/api/supabaseClient.ts'
-import { TAuthUserBio, TAuthUserId, TAuthUsername } from '@entities/LoginModal'
-import { IComment, IPost, TPostContent, TPostId, TPostTags, TPostTitle } from '@entities/Post'
+import { IPost, TPostId } from '@entities/Post'
 import { selectAuthAccessToken } from '@widgets/LoginModal'
 import { TState } from '@/app/model'
+import { IForumApi } from '@/app/api/IForumApi.ts'
 
 export const ForumApi = createApi({
     reducerPath: 'api',
@@ -18,19 +18,8 @@ export const ForumApi = createApi({
     }),
     endpoints: (builder) => ({
         getFilteredPost: builder.query<
-            IPost[] | TPostId[],
-            {
-                username?: TAuthUsername
-                tags_filter?: TPostTags[]
-                user_id?: TAuthUserId
-                create_after?: string
-                create_before?: string
-                post_id?: TPostId
-                search?: string
-                return_ids_only?: boolean
-                limit_count?: number
-                offset_count?: number
-            }
+            IForumApi['endpoints']['getFilteredPost']['dataResponse'],
+            IForumApi['endpoints']['getFilteredPost']['bodyRequest']
         >({
             query: (bodyRequest) => {
                 const { username, user_id, ...arg } = bodyRequest
@@ -46,7 +35,10 @@ export const ForumApi = createApi({
                 }
             },
         }),
-        getPostById: builder.query<IPost, TPostId>({
+        getPostById: builder.query<
+            IForumApi['endpoints']['getPostById']['dataResponse'],
+            IForumApi['endpoints']['getPostById']['bodyRequest']
+        >({
             query: (post_id) => ({
                 url: '/rest/v1/rpc/get_post_by_id',
                 method: 'POST',
@@ -59,12 +51,8 @@ export const ForumApi = createApi({
             },
         }),
         getCommentsByPostId: builder.query<
-            IComment[],
-            {
-                post_id: TPostId
-                limit_count?: number
-                offset_count?: number
-            }
+            IForumApi['endpoints']['getCommentsByPostId']['dataResponse'],
+            IForumApi['endpoints']['getCommentsByPostId']['bodyRequest']
         >({
             query: (bodyRequest) => {
                 const { post_id, ...arg } = bodyRequest
@@ -80,16 +68,8 @@ export const ForumApi = createApi({
             },
         }),
         getReactions: builder.query<
-            {
-                reaction: string
-                name: string
-                count: number
-                user_reacted: boolean
-            }[],
-            {
-                target_type: 'post' | 'comment'
-                target_id: TPostId
-            }
+            IForumApi['endpoints']['getReactions']['dataResponse'],
+            IForumApi['endpoints']['getReactions']['bodyRequest']
         >({
             query: (bodyRequest) => ({
                 url: '/rest/v1/rpc/get_reactions',
@@ -98,13 +78,8 @@ export const ForumApi = createApi({
             }),
         }),
         addComment: builder.query<
-            {
-                id: TPostId
-            },
-            {
-                post_id: TPostId
-                content: TPostContent
-            }
+            IForumApi['endpoints']['addComment']['dataResponse'],
+            IForumApi['endpoints']['addComment']['bodyRequest']
         >({
             query: (bodyRequest) => ({
                 url: '/rest/v1/rpc/add_comment',
@@ -113,14 +88,8 @@ export const ForumApi = createApi({
             }),
         }),
         createPost: builder.query<
-            {
-                post_id: TPostId
-            },
-            {
-                title: TPostTitle
-                content: TPostContent
-                tags: TPostTags[]
-            }
+            IForumApi['endpoints']['createPost']['dataResponse'],
+            IForumApi['endpoints']['createPost']['bodyRequest']
         >({
             query: (bodyRequest) => ({
                 url: '/rest/v1/rpc/create_post',
@@ -134,11 +103,8 @@ export const ForumApi = createApi({
             },
         }),
         reactionComment: builder.mutation<
-            void,
-            {
-                comment_id: TPostId
-                reaction: string
-            }
+            IForumApi['endpoints']['reactionComment']['dataResponse'],
+            IForumApi['endpoints']['reactionComment']['bodyRequest']
         >({
             query: (bodyRequest) => ({
                 url: '/rest/v1/rpc/add_or_update_comment_reaction',
@@ -150,11 +116,8 @@ export const ForumApi = createApi({
             }),
         }),
         reactionPost: builder.mutation<
-            void,
-            {
-                post_id: TPostId
-                reaction: string
-            }
+            IForumApi['endpoints']['reactionPost']['dataResponse'],
+            IForumApi['endpoints']['reactionPost']['bodyRequest']
         >({
             query: (bodyRequest) => ({
                 url: '/rest/v1/rpc/add_or_update_post_reaction',
@@ -165,32 +128,28 @@ export const ForumApi = createApi({
                 },
             }),
         }),
-        deleteContent: builder.query<void, { target_id: TPostId; target_type: 'comment' | 'post' }>(
-            {
-                query: ({ target_id, target_type }) => {
-                    const endpoints = {
-                        comment: '/rest/v1/rpc/delete_comment_admin',
-                        post: '/rest/v1/rpc/delete_post_admin',
-                    }
+        deleteContent: builder.query<
+            IForumApi['endpoints']['deleteContent']['dataResponse'],
+            IForumApi['endpoints']['deleteContent']['bodyRequest']
+        >({
+            query: ({ target_id, target_type }) => {
+                const endpoints = {
+                    comment: '/rest/v1/rpc/delete_comment_admin',
+                    post: '/rest/v1/rpc/delete_post_admin',
+                }
 
-                    return {
-                        url: endpoints[target_type],
-                        method: 'POST',
-                        body: {
-                            [target_type === 'comment' ? 'comment_id' : 'post_id']: target_id,
-                        },
-                    }
-                },
+                return {
+                    url: endpoints[target_type],
+                    method: 'POST',
+                    body: {
+                        [target_type === 'comment' ? 'comment_id' : 'post_id']: target_id,
+                    },
+                }
             },
-        ),
+        }),
         getUserInfo: builder.query<
-            {
-                username: TAuthUsername
-                bio: TAuthUserBio
-                is_admin: boolean
-                created_at: string
-            },
-            { user_id: TAuthUserId }
+            IForumApi['endpoints']['getUserInfo']['dataResponse'],
+            IForumApi['endpoints']['getUserInfo']['bodyRequest']
         >({
             query: (bodyRequest) => ({
                 url: '/rest/v1/rpc/get_user_info',
@@ -198,22 +157,14 @@ export const ForumApi = createApi({
                 body: bodyRequest,
             }),
             transformResponse: (
-                dataResponse: {
-                    username: TAuthUsername
-                    bio: TAuthUserBio
-                    is_admin: boolean
-                    created_at: string
-                }[],
+                dataResponse: IForumApi['endpoints']['getUserInfo']['dataResponse'][],
             ) => {
                 return dataResponse[0]
             },
         }),
         updateUserProfile: builder.query<
-            void,
-            {
-                username: TAuthUsername
-                bio: TAuthUserBio
-            }
+            IForumApi['endpoints']['updateUserProfile']['dataResponse'],
+            IForumApi['endpoints']['updateUserProfile']['bodyRequest']
         >({
             query: (bodyRequest) => ({
                 url: '/rest/v1/rpc/update_user_profile',
@@ -224,20 +175,19 @@ export const ForumApi = createApi({
                 },
             }),
         }),
-        getCommentById: builder.query<IComment, { comment_id: TPostId }>({
+        getCommentById: builder.query<
+            IForumApi['endpoints']['getCommentById']['dataResponse'],
+            IForumApi['endpoints']['getCommentById']['bodyRequest']
+        >({
             query: (bodyRequest) => ({
                 url: '/rest/v1/rpc/get_comment_by_id',
                 method: 'POST',
                 body: bodyRequest,
             }),
         }),
-        sendReportContent: builder.query<
-            void,
-            {
-                target_type: 'post' | 'content'
-                target_id: TPostId
-                reason: string
-            }
+        sendReportContent: builder.mutation<
+            IForumApi['endpoints']['sendReportContent']['dataResponse'],
+            IForumApi['endpoints']['sendReportContent']['bodyRequest']
         >({
             query: (bodyRequest) => ({
                 url: '/rest/v1/rpc/report_content',
@@ -253,11 +203,15 @@ export const {
     useGetPostByIdQuery,
     useGetCommentsByPostIdQuery,
     useGetReactionsQuery,
+    useReactionPostMutation,
+    useReactionCommentMutation,
+    useSendReportContentMutation,
+    useLazyGetPostByIdQuery,
+    useLazyGetCommentByIdQuery,
     useAddCommentQuery,
     useGetCommentByIdQuery,
     useCreatePostQuery,
     useDeleteContentQuery,
     useGetUserInfoQuery,
     useUpdateUserProfileQuery,
-    useSendReportContentQuery,
 } = ForumApi
