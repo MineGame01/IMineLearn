@@ -1,5 +1,7 @@
-import { TAuthUserBio, TAuthUserId, TAuthUsername } from '@entities/LoginModal'
-import { IComment, IPost, TPostContent, TPostId, TPostTags, TPostTitle } from '@entities/Post'
+import { IComment, ITopic, TTopicContent, TTopicId, TTopicTitle } from '@entities/Topic';
+import { ICategory, TCategoryId } from '@entities/Category';
+import { IAuthUser, TUserEmail, TUserId, TUserUserName } from '@entities/User';
+import { IReport } from '@entities/Report';
 
 /**
  * Quickly define the desired endpoint properties
@@ -8,106 +10,79 @@ import { IComment, IPost, TPostContent, TPostId, TPostTags, TPostTitle } from '@
  * @typeParam B - Payload type
  * */
 type createEndpoint<R, B> = {
-    dataResponse: R
-    bodyRequest: B
+  dataResponse: R;
+  bodyRequest: B;
+};
+
+interface ILoginCredentials {
+  access_token: string;
+  refresh_token: string;
+  user_id: TUserId;
 }
 
 export interface IForumApi {
-    endpoints: {
-        getUserInfo: createEndpoint<
-            {
-                username: TAuthUsername
-                bio: TAuthUserBio
-                is_admin: boolean
-                created_at: string
-            },
-            { user_id: TAuthUserId }
-        >
-        getFilteredPost: createEndpoint<
-            IPost[] | TPostId[],
-            {
-                username?: TAuthUsername
-                tags_filter?: TPostTags[]
-                user_id?: TAuthUserId
-                create_after?: string
-                create_before?: string
-                post_id?: TPostId
-                search?: string
-                return_ids_only?: boolean
-                limit_count?: number
-                offset_count?: number
-            }
-        >
-        getPostById: createEndpoint<IPost, TPostId>
-        getCommentsByPostId: createEndpoint<
-            IComment[],
-            {
-                post_id: TPostId
-                limit_count?: number
-                offset_count?: number
-            }
-        >
-        getReactions: createEndpoint<
-            {
-                reaction: string
-                name: string
-                count: number
-                user_reacted: boolean
-            }[],
-            {
-                target_type: 'post' | 'comment'
-                target_id: TPostId
-            }
-        >
-        addComment: createEndpoint<
-            {
-                id: TPostId
-            },
-            {
-                post_id: TPostId
-                content: TPostContent
-            }
-        >
-        createPost: createEndpoint<
-            {
-                post_id: TPostId
-            },
-            {
-                title: TPostTitle
-                content: TPostContent
-                tags: TPostTags[]
-            }
-        >
-        reactionComment: createEndpoint<
-            void,
-            {
-                comment_id: TPostId
-                reaction: string
-            }
-        >
-        reactionPost: createEndpoint<
-            void,
-            {
-                post_id: TPostId
-                reaction: string
-            }
-        >
-        deleteContent: createEndpoint<void, { target_id: TPostId; target_type: 'comment' | 'post' }>
-        updateUserProfile: createEndpoint<
-            void,
-            {
-                username: TAuthUsername
-                bio: TAuthUserBio
-            }
-        >
-        getCommentById: createEndpoint<IComment, { comment_id: TPostId }>
-        sendReportContent: createEndpoint<
-            void,
-            {
-                target_type: 'post' | 'comment'
-                target_id: TPostId
-                reason: string
-            }
-        >
-    }
+  endpoints: {
+    getUser: createEndpoint<IAuthUser, { user_id: TUserId }>;
+    getTopicsByCategory: createEndpoint<
+      ITopic[] | TTopicId[],
+      {
+        search?: string;
+        created_after?: string;
+        created_before?: string;
+        category_id: TCategoryId;
+        limit_count?: number;
+        offset_count?: number;
+        return_ids_only?: boolean;
+      }
+    >;
+    getTopicById: createEndpoint<ITopic, TTopicId>;
+    getCommentsByTopicId: createEndpoint<
+      IComment[],
+      {
+        topic_id: TTopicId;
+        limit_count?: number;
+        offset_count?: number;
+        return_ids_only?: boolean;
+      }
+    >;
+    createComment: createEndpoint<
+      null,
+      {
+        topic_id: TTopicId;
+        content: TTopicContent;
+      }
+    >;
+    createTopic: createEndpoint<
+      TTopicId,
+      {
+        category_id: TCategoryId;
+        title: TTopicTitle;
+        content: TTopicContent;
+      }
+    >;
+    deleteTopic: createEndpoint<null, { topic_id: TTopicId }>;
+    getCommentById: createEndpoint<IComment, { comment_id: TTopicId }>;
+    sendReport: createEndpoint<
+      null,
+      Pick<IReport, 'content' | 'reason' | 'target_id' | 'target_type'>
+    >;
+    getCategories: createEndpoint<
+      ICategory[] | ICategory | string[],
+      {
+        category_id?: string;
+        limit_count?: number;
+        offset_count?: number;
+        return_ids_only?: boolean;
+      } | void
+    >;
+    login: createEndpoint<ILoginCredentials, { email: TUserEmail; password: string }>;
+    registration: createEndpoint<
+      ILoginCredentials,
+      { username: TUserUserName; email: TUserEmail; password: string }
+    >;
+    refreshAccessToken: createEndpoint<
+      Pick<ILoginCredentials, 'access_token' | 'user_id'>,
+      Pick<ILoginCredentials, 'refresh_token'>
+    >;
+  };
 }

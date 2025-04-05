@@ -1,1 +1,1 @@
-export * from './ui/ReportModal.tsx'
+export * from './ui/report-modal.tsx';

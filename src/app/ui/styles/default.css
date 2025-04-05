@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+@theme {
+    /* Основные цвета для белой темы */
+    --color-background: #ffffff;       /* Фоновый цвет страницы */
+    --color-surface: #f8f9fa;          /* Фон элементов (карточек, панелей) */
+    --color-text: #212529;             /* Основной цвет текста */
+    --color-muted: #6c757d;            /* Второстепенный (подсказки, неактивный текст) */
+
+    /* Акцентные цвета */
+    --color-accent: #242424;           /* Основной акцент (например, для кнопок) */
+
+    /* Границы и разделители */
+    --color-border: #dee2e6;           /* Цвет границ и разделителей */
+
+    /* Элементы управления */
+    --color-button-bg: var(--color-accent);           /* Фон кнопок */
+    --color-button-text: #ffffff;                     /* Текст на кнопках */
+    --color-input-bg: #ffffff;                        /* Фон для полей ввода */
+    --color-input-border: var(--color-border);         /* Граница полей ввода */
+    --color-input-focus: var(--color-accent);          /* Граница при фокусе */
+
+    /* Модальные окна */
+    --color-modal-bg: #ffffff;         /* Фон модальных окон */
+    --color-modal-border: var(--color-border);  /* Граница модальных окон */
+    --color-modal-shadow: rgba(0, 0, 0, 0.15); /* Тень для модальных окон */
+    --color-modal-backdrop: rgba(0, 0, 0, 0.5); /* Тень на фоне модального окна */
+
+    /* Ссылки */
+    --color-link: var(--color-accent);
+
+    /* Цвета для ошибок */
+    --color-error: #dc3545;            /* Основной цвет для ошибок (красный) */
+    --color-error-bg: #f8d7da;         /* Фон для сообщений об ошибках */
+    --color-error-text: #721c24;       /* Текст ошибок */
+
+    /* Цвета для алертов */
+    --color-alert: #ffc107;            /* Основной цвет для предупреждений (желтый) */
+    --color-alert-bg: #fff3cd;         /* Фон для сообщений предупреждений */
+    --color-alert-text: #856404;       /* Текст предупреждений */
+
+    --radius-border-default: 10px;
+}
+
+body {
+    background-color: var(--color-background);
+}

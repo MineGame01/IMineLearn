@@ -1,8 +1,9 @@
-import { IAuthUser } from '@entities/LoginModal'
+import { IAuthUser } from "@entities/User";
 
-export interface IAuthSliceInitialState extends IAuthUser {
-    isLoading: boolean
-    error: string | null
+export interface IAuthSliceInitialState {
+  user: IAuthUser & { access_token: string | null },
+  isLoading: boolean;
+  error: string | null;
 }
 
-export type TAuthError = IAuthSliceInitialState['error']
+export type TAuthError = IAuthSliceInitialState['error'];

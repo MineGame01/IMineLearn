@@ -1,15 +1,16 @@
-import { ForumApi, IForumApi, supabaseClient } from '@/app/api'
-import { TStartAppListening } from '@/app/model'
-import { authUser, TAuthUserEmail } from '@/entities/LoginModal'
-import { createAction } from '@reduxjs/toolkit'
-import { AuthError, AuthResponse, GoTrueClient, Session, User } from '@supabase/supabase-js'
+'use client';
+import { ForumApi } from '@app/api';
+import { TStartAppListening } from '@app/model';
+import { createAction } from '@reduxjs/toolkit';
 import {
-    clearAuthError,
-    selectAuthAccessToken,
-    setAuthData,
-    setAuthError,
-    setAuthLoading,
-} from './authSlice'
+  clearAuthError,
+  addAuthData,
+  setAuthError as setAuthErrorActionCreator,
+  setAuthLoading,
+  clearAuthData,
+} from './authSlice';
+import { TTypeAuth } from '@widgets/LoginModal/model/TTypeAuth.ts';
+import { TUserEmail, TUserUserName } from '@entities/User';
 
 /**
  * An action creator that is used to perform authorization, registration, and checking of the current session.
@@ -19,139 +20,204 @@ import {
  * @param typeAuth Authorization type
  */
 export const authLogin = createAction(
-    'auth/authLogin',
-    (
-        email: NonNullable<TAuthUserEmail> | null,
-        password: string | null,
-        typeAuth: 'login' | 'registration' | 'checkSession',
-    ) => {
-        return {
-            payload: {
-                email,
-                password,
-                typeAuth,
-            },
-        }
-    },
-)
+  'auth/authLogin',
+  (
+    email: TUserEmail | null,
+    password: string | null,
+    username: TUserUserName | null,
+    typeAuth: TTypeAuth
+  ) => {
+    return {
+      payload: {
+        email,
+        password,
+        username,
+        typeAuth,
+      },
+    };
+  }
+);
+
+const KEY_LOGIN_CREDENTIALS = 'session';
+
+interface ISession {
+  access_token: string;
+  refresh_token?: string;
+}
+
+const getLoginCredentials = (): Required<ISession> | null => {
+  const login_credentials = localStorage.getItem(KEY_LOGIN_CREDENTIALS);
+
+  if (login_credentials) {
+    return JSON.parse(login_credentials);
+  }
+
+  return null;
+};
+
+const setLoginCredentials = (session: ISession) => {
+  const currentSession = getLoginCredentials();
+
+  localStorage.setItem(
+    KEY_LOGIN_CREDENTIALS,
+    JSON.stringify(currentSession ? { ...currentSession, ...session } : session)
+  );
+};
+
+const clearLoginCredentials = () => {
+  localStorage.removeItem(KEY_LOGIN_CREDENTIALS);
+};
+
+let idSubscriptionTimeout: NodeJS.Timeout | null = null;
 
 /**
  * An "authLogin" action listener that performs all the necessary actions for authorization, registration, and session verification.
  */
 export const authListener = (startAppListening: TStartAppListening) => {
-    // Time after which the error will be removed
-    const TIMEOUT_CLEAR_ERROR = 10000
+  // Time after which the error will be removed
+  const TIMEOUT_CLEAR_ERROR = 10000;
 
-    startAppListening({
-        actionCreator: authLogin,
-        effect: async (action, { dispatch, getState }) => {
-            const { email, password, typeAuth } = action.payload
+  startAppListening({
+    actionCreator: authLogin,
+    effect: async (action, { dispatch }) => {
+      const { email, password, username, typeAuth } = action.payload;
 
-            const state = getState()
+      const actionRefreshTokenCreator = ForumApi.endpoints.refreshAccessToken.initiate;
+      const actionGetUserCreator = ForumApi.endpoints.getUser.initiate;
 
-            const authAccessToken = selectAuthAccessToken(state)
+      /**
+       * Used to set the error to state
+       *
+       * Also sets a countdown after which the installed error will be removed.
+       *
+       * @param error Error line
+       * */
+      const setAuthError = (error: string) => {
+        dispatch(setAuthErrorActionCreator(error));
 
-            /**
-             * Used to set the error to state
-             *
-             * Also sets a countdown after which the installed error will be removed.
-             *
-             * @param error Error line
-             * */
-            const setError = (error: string) => {
-                dispatch(setAuthError(error))
+        setTimeout(() => {
+          dispatch(clearAuthError());
+        }, TIMEOUT_CLEAR_ERROR);
+      };
 
-                setTimeout(() => {
-                    dispatch(clearAuthError())
-                }, TIMEOUT_CLEAR_ERROR)
-            }
+      const unSubscriptionRefreshAccessToken = () => {
+        if (idSubscriptionTimeout) {
+          clearTimeout(idSubscriptionTimeout);
+          idSubscriptionTimeout = null;
+        }
+      };
 
-            /**
-             * Function to get information about the user after logging into the session
-             *
-             * After collecting the information, dispatches the action to the authReducer
-             *
-             * @param userData User information after logging into a session
-             * @param sessionData Received Session Information
-             * @param authError Error object if a problem occurred during the session
-             * */
-            const getUserData = async (
-                userData: User | null | undefined,
-                sessionData: Session | null | undefined,
-                authError: AuthError | null | undefined,
-            ) => {
-                /**
-                 * An object with all the information about the user
-                 *
-                 * Used for temporary storage of received information
-                 * */
-                const data = {
-                    ...authUser,
+      const subscriptionRefreshAccessToken = async () => {
+        const REFRESH_TIMEOUT = 1000 * 60 * 10;
+        if (!idSubscriptionTimeout) {
+          const subscription = async () => {
+            idSubscriptionTimeout = setTimeout(async () => {
+              const loginCredentials = getLoginCredentials();
+
+              if (loginCredentials) {
+                try {
+                  const { access_token, user_id } = await dispatch(
+                    actionRefreshTokenCreator({
+                      refresh_token: loginCredentials.refresh_token,
+                    })
+                  ).unwrap();
+                  const user = await dispatch(actionGetUserCreator({ user_id })).unwrap();
+                  setLoginCredentials({ access_token });
+                  dispatch(addAuthData({ access_token, ...user }));
+                } catch (error) {
+                  console.error('Failed to refresh access token!', error);
+                } finally {
+                  setTimeout(subscription, REFRESH_TIMEOUT);
                 }
+              } else {
+                console.error('Session not found!');
+                unSubscriptionRefreshAccessToken();
+              }
+            }, REFRESH_TIMEOUT);
+          };
 
-                if (userData && sessionData) {
-                    const accessToken = sessionData.access_token
-                    const { id, email } = userData
+          await subscription();
+        }
+      };
 
-                    data.accessToken = accessToken
-                    data.id = id
-                    data.email = email ?? null
+      const authorization = async ({
+        typeAuth,
+        email,
+        password,
+        username,
+      }: {
+        typeAuth: TTypeAuth;
+        email: TUserEmail;
+        password: string;
+        username: TUserUserName | null;
+      }) => {
+        const { login: loginEndpoint, registration: registrationEndpoint } = ForumApi.endpoints;
+        const loginActionCreator = loginEndpoint.initiate;
+        const registrationActionCreator = registrationEndpoint.initiate;
 
-                    dispatch(setAuthLoading(true))
+        let loginCredentials = await dispatch(
+          typeAuth === 'registration' && username
+            ? registrationActionCreator({ email, password, username })
+            : loginActionCreator({ email, password })
+        ).unwrap();
 
-                    let userInfo: IForumApi['endpoints']['getUserInfo']['dataResponse'] | null =
-                        null
+        const user = await dispatch(
+          actionGetUserCreator({ user_id: loginCredentials.user_id })
+        ).unwrap();
+        setLoginCredentials(loginCredentials);
+        dispatch(addAuthData({ access_token: loginCredentials.access_token, ...user }));
+        await subscriptionRefreshAccessToken();
+      };
 
-                    try {
-                        userInfo = await dispatch(
-                            ForumApi.endpoints.getUserInfo.initiate({ user_id: id }),
-                        ).unwrap()
-                    } catch (err) {
-                        console.error('Error get user info!', err)
-                    }
-
-                    if (userInfo) {
-                        const { username, bio, created_at, is_admin } = userInfo
-
-                        data.bio = bio
-                        data.username = username
-                        data.createAt = created_at
-                        data.isAdmin = is_admin
-                    }
-                }
-
-                dispatch(setAuthData(data))
-                if (authError) {
-                    setError(authError.message)
-                }
-                dispatch(setAuthLoading(false))
+      const catchErrorAuthorization = (error: unknown) => {
+        if (error instanceof Error) {
+          setAuthError(error.message);
+        } else if (error && typeof error === 'object') {
+          if ('data' in error && typeof error.data === 'object' && error.data) {
+            if ('message' in error.data && typeof error.data.message === 'string') {
+              setAuthError(error.data.message);
             }
+          }
+        } else {
+          setAuthError('Unknown Error!');
+          throw error;
+        }
+      };
 
-            /**
-             * Authorization information after successful authorization
-             * */
-            let authData: AuthResponse | null = null
-            /**
-             * Session information after successfully retrieving the current session
-             * */
-            let sessionData: Awaited<ReturnType<GoTrueClient['getSession']>> | null = null
+      dispatch(setAuthLoading(true));
+      if (email && password && typeAuth !== 'checkSession') {
+        try {
+          await authorization({ typeAuth, email, password, username });
+        } catch (error) {
+          catchErrorAuthorization(error);
+        } finally {
+          dispatch(setAuthLoading(false));
+        }
+      }
 
-            // Selecting the authorization type
-            dispatch(setAuthLoading(true))
-            if (typeAuth !== 'checkSession' && email && password && !authAccessToken) {
-                authData = await supabaseClient.auth[
-                    typeAuth === 'login' ? 'signInWithPassword' : 'signUp'
-                ]({ email, password })
-            } else if (!authAccessToken) {
-                sessionData = await supabaseClient.auth.getSession()
-            }
+      if (typeAuth === 'checkSession') {
+        const loginCredentials = getLoginCredentials();
 
-            dispatch(setAuthLoading(false))
-            await getUserData(
-                authData?.data.user || sessionData?.data.session?.user,
-                authData?.data.session || sessionData?.data.session,
-                authData?.error || sessionData?.error,
-            )
-        },
-    })
-}
+        if (loginCredentials) {
+          const { access_token, user_id } = await dispatch(
+            actionRefreshTokenCreator({
+              refresh_token: loginCredentials.refresh_token,
+            })
+          ).unwrap();
+          const user = await dispatch(actionGetUserCreator({ user_id })).unwrap();
+          setLoginCredentials({ access_token });
+          dispatch(addAuthData({ access_token, ...user }));
+          await subscriptionRefreshAccessToken();
+        }
+      }
+
+      if (typeAuth === 'logout') {
+        unSubscriptionRefreshAccessToken();
+        clearLoginCredentials();
+        dispatch(clearAuthData());
+      }
+
+      dispatch(setAuthLoading(false));
+    },
+  });
+};

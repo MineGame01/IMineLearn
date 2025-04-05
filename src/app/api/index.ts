@@ -1,3 +1,2 @@
-export * from './supabaseClient'
-export * from './ForumApi.ts'
-export * from './IForumApi.ts'
+export * from './ForumApi.ts';
+export * from './IForumApi.ts';

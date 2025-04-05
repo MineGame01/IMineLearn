@@ -1,16 +1,16 @@
-import { IAuthUser } from '@entities/LoginModal'
+import { IAuthUser } from '@entities/User';
 
 /**
  * Form of all necessary properties for storing information about the current authorized user
  *
  * Can be used to generate all properties in another object.
  * */
-export const authUser: IAuthUser = {
-    id: null,
-    username: null,
-    bio: null,
-    email: null,
-    isAdmin: false,
-    createAt: null,
-    accessToken: null,
-}
+export const authUser: IAuthUser & { access_token: string | null } = {
+  _id: 'unknown',
+  username: 'unknown',
+  bio: null,
+  email: 'unknown',
+  is_admin: false,
+  created_at: 0,
+  access_token: null,
+};

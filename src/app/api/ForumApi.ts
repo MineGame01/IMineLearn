@@ -1,217 +1,164 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
-import { SUPABASE_KEY, SUPABASE_URL } from '@/app/api/supabaseClient.ts'
-import { IPost, TPostId } from '@entities/Post'
-import { selectAuthAccessToken } from '@widgets/LoginModal'
-import { TState } from '@/app/model'
-import { IForumApi } from '@/app/api/IForumApi.ts'
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { IForumApi } from './IForumApi';
+import { getUrlParams } from '@shared/model';
+import { TState } from '@app/model';
+import { selectAuthAccessToken } from '@widgets/LoginModal';
 
 export const ForumApi = createApi({
-    reducerPath: 'api',
-    baseQuery: fetchBaseQuery({
-        baseUrl: SUPABASE_URL,
-        prepareHeaders: (headers, { getState }) => {
-            const accessToken = selectAuthAccessToken(getState() as TState)
+  reducerPath: 'api',
+  tagTypes: ['refetch-topics', 'refetch-comment'],
+  baseQuery: fetchBaseQuery({
+    baseUrl: process.env.NEXT_PUBLIC_REST_API_URL,
+    prepareHeaders(headers, { getState }) {
+      const access_token = selectAuthAccessToken(getState() as TState);
 
-            headers.set('Authorization', 'Bearer ' + (accessToken ?? SUPABASE_KEY))
-            headers.set('apiKey', SUPABASE_KEY)
-        },
+      if (access_token) {
+        headers.set('Authorization', access_token);
+      }
+    },
+  }),
+  endpoints: (builder) => ({
+    getTopicsByCategory: builder.query<
+      IForumApi['endpoints']['getTopicsByCategory']['dataResponse'],
+      IForumApi['endpoints']['getTopicsByCategory']['bodyRequest']
+    >({
+      query: (bodyRequest) => {
+        return `/topics?${getUrlParams(bodyRequest)}`;
+      },
+      providesTags: ['refetch-topics'],
     }),
-    endpoints: (builder) => ({
-        getFilteredPost: builder.query<
-            IForumApi['endpoints']['getFilteredPost']['dataResponse'],
-            IForumApi['endpoints']['getFilteredPost']['bodyRequest']
-        >({
-            query: (bodyRequest) => {
-                const { username, user_id, ...arg } = bodyRequest
-
-                return {
-                    url: '/rest/v1/rpc/get_filtered_posts',
-                    method: 'POST',
-                    body: {
-                        ...arg,
-                        username_search: username,
-                        filter_user_id: user_id,
-                    },
-                }
-            },
-        }),
-        getPostById: builder.query<
-            IForumApi['endpoints']['getPostById']['dataResponse'],
-            IForumApi['endpoints']['getPostById']['bodyRequest']
-        >({
-            query: (post_id) => ({
-                url: '/rest/v1/rpc/get_post_by_id',
-                method: 'POST',
-                body: {
-                    post_id,
-                },
-            }),
-            transformResponse: (response: IPost[]) => {
-                return response[0]
-            },
-        }),
-        getCommentsByPostId: builder.query<
-            IForumApi['endpoints']['getCommentsByPostId']['dataResponse'],
-            IForumApi['endpoints']['getCommentsByPostId']['bodyRequest']
-        >({
-            query: (bodyRequest) => {
-                const { post_id, ...arg } = bodyRequest
-
-                return {
-                    url: '/rest/v1/rpc/get_comments_by_post_id',
-                    method: 'POST',
-                    body: {
-                        ...arg,
-                        post_id_search: post_id,
-                    },
-                }
-            },
-        }),
-        getReactions: builder.query<
-            IForumApi['endpoints']['getReactions']['dataResponse'],
-            IForumApi['endpoints']['getReactions']['bodyRequest']
-        >({
-            query: (bodyRequest) => ({
-                url: '/rest/v1/rpc/get_reactions',
-                method: 'POST',
-                body: bodyRequest,
-            }),
-        }),
-        addComment: builder.query<
-            IForumApi['endpoints']['addComment']['dataResponse'],
-            IForumApi['endpoints']['addComment']['bodyRequest']
-        >({
-            query: (bodyRequest) => ({
-                url: '/rest/v1/rpc/add_comment',
-                method: 'POST',
-                body: bodyRequest,
-            }),
-        }),
-        createPost: builder.query<
-            IForumApi['endpoints']['createPost']['dataResponse'],
-            IForumApi['endpoints']['createPost']['bodyRequest']
-        >({
-            query: (bodyRequest) => ({
-                url: '/rest/v1/rpc/create_post',
-                method: 'POST',
-                body: bodyRequest,
-            }),
-            transformResponse: (dataResponse: { new_post_id: TPostId }) => {
-                return {
-                    post_id: dataResponse.new_post_id,
-                }
-            },
-        }),
-        reactionComment: builder.mutation<
-            IForumApi['endpoints']['reactionComment']['dataResponse'],
-            IForumApi['endpoints']['reactionComment']['bodyRequest']
-        >({
-            query: (bodyRequest) => ({
-                url: '/rest/v1/rpc/add_or_update_comment_reaction',
-                method: 'POST',
-                body: {
-                    target_id: bodyRequest.comment_id,
-                    new_reaction: bodyRequest.reaction,
-                },
-            }),
-        }),
-        reactionPost: builder.mutation<
-            IForumApi['endpoints']['reactionPost']['dataResponse'],
-            IForumApi['endpoints']['reactionPost']['bodyRequest']
-        >({
-            query: (bodyRequest) => ({
-                url: '/rest/v1/rpc/add_or_update_post_reaction',
-                method: 'POST',
-                body: {
-                    target_id: bodyRequest.post_id,
-                    new_reaction: bodyRequest.reaction,
-                },
-            }),
-        }),
-        deleteContent: builder.query<
-            IForumApi['endpoints']['deleteContent']['dataResponse'],
-            IForumApi['endpoints']['deleteContent']['bodyRequest']
-        >({
-            query: ({ target_id, target_type }) => {
-                const endpoints = {
-                    comment: '/rest/v1/rpc/delete_comment_admin',
-                    post: '/rest/v1/rpc/delete_post_admin',
-                }
-
-                return {
-                    url: endpoints[target_type],
-                    method: 'POST',
-                    body: {
-                        [target_type === 'comment' ? 'comment_id' : 'post_id']: target_id,
-                    },
-                }
-            },
-        }),
-        getUserInfo: builder.query<
-            IForumApi['endpoints']['getUserInfo']['dataResponse'],
-            IForumApi['endpoints']['getUserInfo']['bodyRequest']
-        >({
-            query: (bodyRequest) => ({
-                url: '/rest/v1/rpc/get_user_info',
-                method: 'POST',
-                body: bodyRequest,
-            }),
-            transformResponse: (
-                dataResponse: IForumApi['endpoints']['getUserInfo']['dataResponse'][],
-            ) => {
-                return dataResponse[0]
-            },
-        }),
-        updateUserProfile: builder.query<
-            IForumApi['endpoints']['updateUserProfile']['dataResponse'],
-            IForumApi['endpoints']['updateUserProfile']['bodyRequest']
-        >({
-            query: (bodyRequest) => ({
-                url: '/rest/v1/rpc/update_user_profile',
-                method: 'POST',
-                body: {
-                    new_username: bodyRequest.username,
-                    new_bio: bodyRequest.bio,
-                },
-            }),
-        }),
-        getCommentById: builder.query<
-            IForumApi['endpoints']['getCommentById']['dataResponse'],
-            IForumApi['endpoints']['getCommentById']['bodyRequest']
-        >({
-            query: (bodyRequest) => ({
-                url: '/rest/v1/rpc/get_comment_by_id',
-                method: 'POST',
-                body: bodyRequest,
-            }),
-        }),
-        sendReportContent: builder.mutation<
-            IForumApi['endpoints']['sendReportContent']['dataResponse'],
-            IForumApi['endpoints']['sendReportContent']['bodyRequest']
-        >({
-            query: (bodyRequest) => ({
-                url: '/rest/v1/rpc/report_content',
-                method: 'POST',
-                body: bodyRequest,
-            }),
-        }),
+    getTopicById: builder.query<
+      IForumApi['endpoints']['getTopicById']['dataResponse'],
+      IForumApi['endpoints']['getTopicById']['bodyRequest']
+    >({
+      query: (topicId) => `/topic?topic_id=${topicId}`,
     }),
-})
+    getCommentsByTopicId: builder.query<
+      IForumApi['endpoints']['getCommentsByTopicId']['dataResponse'],
+      IForumApi['endpoints']['getCommentsByTopicId']['bodyRequest']
+    >({
+      query: (bodyRequest) => `/comments?${getUrlParams(bodyRequest)}`,
+      providesTags: ['refetch-comment'],
+    }),
+    createComment: builder.mutation<
+      IForumApi['endpoints']['createComment']['dataResponse'],
+      IForumApi['endpoints']['createComment']['bodyRequest']
+    >({
+      query: (bodyRequest) => ({
+        url: '/comments',
+        method: 'POST',
+        body: bodyRequest,
+      }),
+      invalidatesTags: ['refetch-comment'],
+    }),
+    createTopic: builder.mutation<
+      IForumApi['endpoints']['createTopic']['dataResponse'],
+      IForumApi['endpoints']['createTopic']['bodyRequest']
+    >({
+      query: (bodyRequest) => ({
+        url: '/topic',
+        method: 'POST',
+        body: bodyRequest,
+      }),
+      invalidatesTags: ['refetch-topics'],
+    }),
+    deleteTopic: builder.mutation<
+      IForumApi['endpoints']['deleteTopic']['dataResponse'],
+      IForumApi['endpoints']['deleteTopic']['bodyRequest']
+    >({
+      query: (bodyRequest) => ({
+        url: '/topic',
+        method: 'DELETE',
+        body: bodyRequest,
+      }),
+      invalidatesTags: ['refetch-topics'],
+    }),
+    getUser: builder.query<
+      IForumApi['endpoints']['getUser']['dataResponse'],
+      IForumApi['endpoints']['getUser']['bodyRequest']
+    >({
+      query: (bodyRequest) => `/user?${getUrlParams(bodyRequest)}`,
+    }),
+    getCommentById: builder.query<
+      IForumApi['endpoints']['getCommentById']['dataResponse'],
+      IForumApi['endpoints']['getCommentById']['bodyRequest']
+    >({
+      query: (bodyRequest) => ({
+        url: '/rest/v1/rpc/get_comment_by_id',
+        method: 'POST',
+        body: bodyRequest,
+      }),
+      transformResponse(data: IForumApi['endpoints']['getCommentById']['dataResponse'][]) {
+        return data[0];
+      },
+    }),
+    sendReport: builder.mutation<
+      IForumApi['endpoints']['sendReport']['dataResponse'],
+      IForumApi['endpoints']['sendReport']['bodyRequest']
+    >({
+      query: (bodyRequest) => ({
+        url: '/report',
+        method: 'POST',
+        body: bodyRequest,
+      }),
+    }),
+    getCategories: builder.query<
+      IForumApi['endpoints']['getCategories']['dataResponse'],
+      IForumApi['endpoints']['getCategories']['bodyRequest']
+    >({
+      query: (bodyRequest) => {
+        if (bodyRequest) {
+          return `/categories?${getUrlParams(bodyRequest)}`;
+        } else {
+          return '/categories';
+        }
+      },
+    }),
+    login: builder.mutation<
+      IForumApi['endpoints']['login']['dataResponse'],
+      IForumApi['endpoints']['login']['bodyRequest']
+    >({
+      query: (bodyRequest) => ({
+        url: '/auth/login',
+        method: 'POST',
+        body: bodyRequest,
+      }),
+    }),
+    registration: builder.mutation<
+      IForumApi['endpoints']['registration']['dataResponse'],
+      IForumApi['endpoints']['registration']['bodyRequest']
+    >({
+      query: (bodyRequest) => ({
+        url: '/auth/registration',
+        method: 'POST',
+        body: bodyRequest,
+      }),
+    }),
+    refreshAccessToken: builder.mutation<
+      IForumApi['endpoints']['refreshAccessToken']['dataResponse'],
+      IForumApi['endpoints']['refreshAccessToken']['bodyRequest']
+    >({
+      query: (bodyRequest) => ({
+        url: '/auth/refresh',
+        method: 'POST',
+        body: bodyRequest,
+      }),
+    }),
+  }),
+});
 
 export const {
-    useGetFilteredPostQuery,
-    useGetPostByIdQuery,
-    useGetCommentsByPostIdQuery,
-    useGetReactionsQuery,
-    useReactionPostMutation,
-    useReactionCommentMutation,
-    useSendReportContentMutation,
-    useLazyGetPostByIdQuery,
-    useLazyGetCommentByIdQuery,
-    useAddCommentQuery,
-    useGetCommentByIdQuery,
-    useCreatePostQuery,
-    useDeleteContentQuery,
-    useGetUserInfoQuery,
-    useUpdateUserProfileQuery,
-} = ForumApi
+  useCreateCommentMutation,
+  useCreateTopicMutation,
+  useGetTopicByIdQuery,
+  useGetCommentsByTopicIdQuery,
+  useSendReportMutation,
+  useLazyGetTopicByIdQuery,
+  useLazyGetCommentByIdQuery,
+  useGetTopicsByCategoryQuery,
+  useLazyGetCategoriesQuery,
+  useGetCategoriesQuery,
+  useDeleteTopicMutation,
+  useGetUserQuery,
+  useLazyGetUserQuery,
+} = ForumApi;

@@ -1,5 +1,5 @@
-import { store } from '@/app/model'
+import { makeStore } from '@app/model';
 
-export type TStore = typeof store
-export type TState = ReturnType<TStore['getState']>
-export type TDispatch = TStore['dispatch']
+export type TStore = ReturnType<typeof makeStore>;
+export type TState = ReturnType<TStore['getState']>;
+export type TDispatch = TStore['dispatch'];

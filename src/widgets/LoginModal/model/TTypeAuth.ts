@@ -1,1 +1,1 @@
-export type TTypeAuth = 'login' | 'registration'
+export type TTypeAuth = 'login' | 'registration' | 'checkSession' | 'logout';
