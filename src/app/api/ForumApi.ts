@@ -6,7 +6,7 @@ import { selectAuthAccessToken } from '@widgets/LoginModal';
 
 export const ForumApi = createApi({
   reducerPath: 'api',
-  tagTypes: ['refetch-topics', 'refetch-comment'],
+  tagTypes: ['refetch-topics', 'refetch-comment', 'refetch-reports'],
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.NEXT_PUBLIC_REST_API_URL,
     prepareHeaders(headers, { getState }) {
@@ -102,6 +102,24 @@ export const ForumApi = createApi({
         body: bodyRequest,
       }),
     }),
+    getReports: builder.query<
+      IForumApi['endpoints']['getReports']['dataResponse'],
+      IForumApi['endpoints']['getReports']['bodyRequest']
+    >({
+      query: (bodyRequest) => `/report?${getUrlParams(bodyRequest)}`,
+      providesTags: ['refetch-reports'],
+    }),
+    deleteReport: builder.mutation<
+      IForumApi['endpoints']['deleteReport']['dataResponse'],
+      IForumApi['endpoints']['deleteReport']['bodyRequest']
+    >({
+      query: (bodyRequest) => ({
+        url: '/report',
+        method: 'DELETE',
+        body: bodyRequest,
+      }),
+      invalidatesTags: ['refetch-reports'],
+    }),
     getCategories: builder.query<
       IForumApi['endpoints']['getCategories']['dataResponse'],
       IForumApi['endpoints']['getCategories']['bodyRequest']
@@ -161,4 +179,6 @@ export const {
   useDeleteTopicMutation,
   useGetUserQuery,
   useLazyGetUserQuery,
+  useGetReportsQuery,
+  useDeleteReportMutation,
 } = ForumApi;
