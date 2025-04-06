@@ -6,6 +6,8 @@ import { makeStore, TStore } from './../app/model';
 import './ui/styles/default.css';
 import { Header } from '@widgets/Header';
 import { domAnimation, LazyMotion } from 'motion/react';
+import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 const RootLayout: FC<{ children: ReactNode }> = ({ children }) => {
   const storeRef = useRef<TStore | null>(null);
@@ -26,6 +28,8 @@ const RootLayout: FC<{ children: ReactNode }> = ({ children }) => {
         <title>IMineLearn</title>
       </head>
       <body>
+        <Analytics />
+        <SpeedInsights />
         <Provider store={storeRef.current}>
           <LazyMotion features={domAnimation} strict>
             <Header />
