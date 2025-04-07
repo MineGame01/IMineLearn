@@ -1,17 +1,4 @@
 'use client';
-import { FC } from 'react';
-import { Topic } from '@features/Topic';
-import { useParams } from 'next/navigation';
+import dynamic from 'next/dynamic';
 
-const TopicPage: FC = () => {
-  const { topicId } = useParams();
-  return (
-    <main>
-      <div className="container mx-auto">
-        {typeof topicId === 'string' && <Topic topic_id={topicId} />}
-      </div>
-    </main>
-  );
-};
-
-export default TopicPage;
+export default dynamic(async () => import('./index').then((el) => el.TopicPage));
