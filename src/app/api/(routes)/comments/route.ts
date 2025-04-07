@@ -2,6 +2,7 @@ import { checkAuthAccessToken } from '@app/api/check-auth-access-token';
 import { client } from '@app/api/db';
 import { FiltersDataResponse, IFilterQueryParams } from '@app/api/filters-data-response';
 import { CommentSchema, IComment, TTopicId } from '@entities/Topic';
+import { FindOptions } from 'mongodb';
 import { NextRequest, NextResponse } from 'next/server';
 
 interface IRequestQuery
@@ -12,22 +13,27 @@ interface IRequestQuery
 export const GET = async (request: NextRequest) => {
   const searchParams = request.nextUrl.searchParams;
 
-  const filters = new FiltersDataResponse();
+  const { defaultOptions, getFilterQueryParams } = new FiltersDataResponse();
 
   const queryParams: IRequestQuery = {
     topic_id: searchParams.get('topic_id'),
-    ...filters.getFilterQueryParams(searchParams),
+    ...getFilterQueryParams(searchParams),
   };
 
-  const { topic_id, return_ids_only } = queryParams;
+  const { topic_id, return_ids_only, limit_count, offset_count } = queryParams;
 
   if (!topic_id || topic_id.length < 24) {
     return NextResponse.json({ message: 'Query param topic_id is required!' }, { status: 400 });
   }
 
+  const defaultFindOptions: FindOptions = {
+    limit: limit_count ?? defaultOptions.limit_count,
+    skip: offset_count ?? defaultOptions.offset_count,
+  };
+
   const commentsCollection = client.db('db').collection<IComment>('comments');
 
-  const commentsFind = commentsCollection.find({ topic_id }, filters.defaultFindOptions);
+  const commentsFind = commentsCollection.find({ topic_id }, defaultFindOptions);
 
   if (return_ids_only) {
     return NextResponse.json<string[]>(await commentsFind.map((comment) => comment._id).toArray());

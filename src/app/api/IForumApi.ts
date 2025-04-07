@@ -66,6 +66,8 @@ export interface IForumApi {
       null,
       Pick<IReport, 'content' | 'reason' | 'target_id' | 'target_type'>
     >;
+    getReports: createEndpoint<IReport[], { report_id?: IReport['_id'] } | void>;
+    deleteReport: createEndpoint<null, { report_id: IReport['_id'] }>;
     getCategories: createEndpoint<
       ICategory[] | ICategory | string[],
       {

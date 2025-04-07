@@ -1,43 +1,38 @@
-import { FindOptions } from 'mongodb';
-
 export interface IFilterQueryParams {
   created_after: string | null;
   created_before: string | null;
-  return_ids_only: boolean;
-  limit_count: string | null;
-  offset_count: string | null;
+  return_ids_only: boolean | null;
+  limit_count: number;
+  offset_count: number;
 }
 
-interface IOptions extends NonNullable<Pick<IFilterQueryParams, 'limit_count' | 'offset_count'>> {}
+type TOptions = Pick<IFilterQueryParams, 'limit_count' | 'offset_count'>;
 
 export class FiltersDataResponse {
-  options: IOptions;
-  defaultFindOptions: FindOptions;
+  defaultOptions: TOptions;
 
-  constructor(options?: IOptions) {
-    this.options = {
-      limit_count: '10',
-      offset_count: '0',
-      ...options,
+  constructor(defaultOptions?: TOptions) {
+    this.defaultOptions = {
+      limit_count: 10,
+      offset_count: 0,
+      ...defaultOptions,
     };
-    this.defaultFindOptions = {
-      limit: +(this.options.limit_count as string),
-      skip: +(this.options.offset_count as string),
-    };
+
+    this.getFilterQueryParams = this.getFilterQueryParams.bind(this);
   }
 
   getFilterQueryParams(searchParams: URLSearchParams) {
-    const queryParams: IFilterQueryParams = {
+    const res: IFilterQueryParams = {
       created_after: null,
       created_before: null,
-      return_ids_only: false,
-      ...this.options,
+      return_ids_only: null,
+      ...this.defaultOptions,
     };
 
-    Object.keys(queryParams).forEach((param) => {
-      if (searchParams.get(param)) queryParams[param] = searchParams.get(param);
+    Object.keys(res).forEach((param) => {
+      if (searchParams.get(param)) res[param] = searchParams.get(param);
     });
 
-    return queryParams;
+    return res;
   }
 }
