@@ -30,7 +30,14 @@ export class FiltersDataResponse {
     };
 
     Object.keys(res).forEach((param) => {
-      if (searchParams.get(param)) res[param] = searchParams.get(param);
+      const paramValue = searchParams.get(param);
+      if (paramValue) {
+        if (typeof res[param] === 'number') {
+          res[param] = +paramValue;
+        } else {
+          res[param] = paramValue;
+        }
+      }
     });
 
     return res;

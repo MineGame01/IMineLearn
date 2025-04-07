@@ -2,9 +2,11 @@
 import { FC, Fragment, MouseEventHandler, useCallback, useEffect, useState } from 'react';
 import { TTopicId } from '@entities/Topic';
 import {
+  useAddReactionMutation,
   useCreateCommentMutation,
   useDeleteTopicMutation,
   useGetCommentsByTopicIdQuery,
+  useGetReactionsQuery,
   useGetTopicByIdQuery,
   useLazyGetUserQuery,
 } from '@app/api';
@@ -19,10 +21,11 @@ import dayjs from 'dayjs';
 import relativeTimePlugin from 'dayjs/plugin/relativeTime';
 import { getServerErrorMessage } from '@shared/model';
 import { useRouter } from 'next/navigation';
+import { TReactionType } from '@entities/Reaction';
 
 dayjs.extend(relativeTimePlugin);
 
-const LazyComment = dynamic(
+const MemoComment = dynamic(
   async () => await import('@features/Topic/ui/comment').then((el) => el.Comment)
 );
 
@@ -40,19 +43,36 @@ export const Topic: FC<IProps> = ({ topic_id }) => {
     getUser,
     { data: user, isLoading: isLoadingUser, isError: isErrorUser, error: errorUser },
   ] = useLazyGetUserQuery();
-  const { data: comments, isError: isErrorComments } = useGetCommentsByTopicIdQuery({ topic_id });
+  const {
+    data: comments,
+    isError: isErrorComments,
+    error: errorComments,
+  } = useGetCommentsByTopicIdQuery({ topic_id });
   const [createComments, { isLoading: isLoadingCreateComments }] = useCreateCommentMutation();
   const [
     deleteTopic,
     { isLoading: isLoadingDeleteTopic, isError: isErrorDeleteTopic, error: errorDeleteTopic },
   ] = useDeleteTopicMutation();
+  const {
+    data: reactions,
+    isLoading: isLoadingReactions,
+    isError: isErrorReactions,
+    error: errorReactions,
+  } = useGetReactionsQuery({ topic_id });
+  const [
+    addReaction,
+    { isLoading: isLoadingAddReaction, isError: isErrorAddReaction, error: errorAddReaction },
+  ] = useAddReactionMutation();
   const [showComments, setShowComments] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [contentComment, setContentComment] = useState('');
   const route = useRouter();
 
-  const errorMessageUser = getServerErrorMessage(errorUser);
-  const errorMessageDeleteTopic = getServerErrorMessage(errorDeleteTopic);
+  const errorMessageUser = getServerErrorMessage(errorUser),
+    errorMessageDeleteTopic = getServerErrorMessage(errorDeleteTopic),
+    errorMessageAddReaction = getServerErrorMessage(errorAddReaction),
+    errorMessageReactions = getServerErrorMessage(errorReactions),
+    errorMessageComments = getServerErrorMessage(errorComments);
 
   const closeReportModal = useCallback(() => {
     setShowReportModal(false);
@@ -64,12 +84,16 @@ export const Topic: FC<IProps> = ({ topic_id }) => {
     }
   }, [topics]);
 
-  const handleClickDeleteTopic: MouseEventHandler = async (_unused) => {
+  const handleClickDeleteTopic: MouseEventHandler = () => {
     deleteTopic({ topic_id })
       .unwrap()
       .then(() => {
         route.back();
       });
+  };
+
+  const handleClickAddReaction = (type_reaction: TReactionType) => {
+    addReaction({ topic_id, type_reaction });
   };
 
   if (isLoadingTopics) {
@@ -106,6 +130,18 @@ export const Topic: FC<IProps> = ({ topic_id }) => {
             <div>{content}</div>
           </section>
           <section className="mt-1">
+            <button onClick={() => handleClickAddReaction('like')}>
+              Like
+              {reactions && (
+                <span>
+                  {reactions.filter((reaction) => reaction.type_reaction === 'like').length}
+                </span>
+              )}
+              {isLoadingAddReaction && <span>Loading...</span>}
+              {isErrorAddReaction && <span>{errorMessageAddReaction}</span>}
+              {isLoadingReactions && <span>Loading...</span>}
+              {isErrorReactions && <span>{errorMessageReactions}</span>}
+            </button>
             <button
               aria-expanded={showComments || undefined}
               aria-controls={showComments ? 'comments-topic' : undefined}
@@ -132,8 +168,8 @@ export const Topic: FC<IProps> = ({ topic_id }) => {
           <div className="p-5">
             {showComments &&
               comments &&
-              comments.map((comment) => <LazyComment key={comment._id} {...comment} />)}
-            {showComments && isErrorComments && <div>Error</div>}
+              comments.map((comment) => <MemoComment key={comment._id} {...comment} />)}
+            {showComments && isErrorComments && <div>{errorMessageComments}</div>}
           </div>
         </section>
         <Input
