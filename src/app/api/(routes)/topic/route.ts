@@ -69,7 +69,7 @@ export const POST = await checkAuthAccessToken(async (request) => {
 
     const topicsCollection = client.db('db').collection<ITopic>('topics');
 
-    const insertedTopic = await topicsCollection.insertOne(newTopic as ITopic);
+    const insertedTopic = await topicsCollection.insertOne(newTopic);
 
     const idNewTopic = insertedTopic.insertedId;
 

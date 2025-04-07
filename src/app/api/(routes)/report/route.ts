@@ -108,7 +108,7 @@ export const POST = await checkAuthAccessToken(async (request: NextRequest) => {
       return NextResponse.json({ message: error?.message ?? warning?.message }, { status: 400 });
     }
 
-    await reportCollection.insertOne(reportValidate as IReport);
+    await reportCollection.insertOne(reportValidate);
     return NextResponse.json(null);
   } catch (error) {
     if (error instanceof Error) {
