@@ -1,7 +1,7 @@
 import { client } from '@app/api/db';
 import { FiltersDataResponse, IFilterQueryParams } from '@app/api/filters-data-response';
 import { ITopic } from '@entities/Topic';
-import { Filter } from 'mongodb';
+import { Filter, FindOptions } from 'mongodb';
 import { NextRequest, NextResponse } from 'next/server';
 
 interface IRequestQuery extends IFilterQueryParams {
@@ -12,15 +12,23 @@ interface IRequestQuery extends IFilterQueryParams {
 export const GET = async (request: NextRequest) => {
   const searchParams = request.nextUrl.searchParams;
 
-  const filters = new FiltersDataResponse();
+  const { getFilterQueryParams, defaultOptions } = new FiltersDataResponse();
 
   const queryParams: IRequestQuery = {
     search: searchParams.get('search'),
     category_id: searchParams.get('category_id'),
-    ...filters.getFilterQueryParams(searchParams),
+    ...getFilterQueryParams(searchParams),
   };
 
-  const { category_id, return_ids_only, created_after, created_before, search } = queryParams;
+  const {
+    category_id,
+    return_ids_only,
+    created_after,
+    created_before,
+    search,
+    limit_count,
+    offset_count,
+  } = queryParams;
 
   if (!category_id) {
     return NextResponse.json(
@@ -29,20 +37,22 @@ export const GET = async (request: NextRequest) => {
     );
   }
 
-  const findOptionsDefault: Filter<ITopic> = {
-    category_id,
+  const defaultFind: Filter<ITopic> = {
     ...(created_after
-      ? {
-          created_at: { $gte: +created_after, $lt: Number(created_before) ?? new Date().getTime() },
-        }
+      ? { created_at: { $gte: +created_after, $lt: +(created_before ?? new Date().getTime()) } }
       : {}),
+    category_id,
     ...(search ? { title: { $regex: search } } : {}),
+  };
+  const defaultFindOptions: FindOptions = {
+    limit: limit_count ?? defaultOptions.limit_count,
+    skip: offset_count ?? defaultOptions.offset_count,
   };
 
   const topicsFind = client
     .db('db')
     .collection<ITopic>('topics')
-    .find(findOptionsDefault, filters.defaultFindOptions);
+    .find(defaultFind, defaultFindOptions);
 
   if (return_ids_only) {
     return NextResponse.json<string[]>(
