@@ -7,6 +7,7 @@ import dayjs from 'dayjs';
 import relativeTimePlugin from 'dayjs/plugin/relativeTime';
 import { useGetUserQuery } from '@app/api';
 import { getServerErrorMessage } from '@shared/model';
+import { IconButton } from '@shared/ui';
 
 dayjs.extend(relativeTimePlugin);
 
@@ -43,10 +44,14 @@ export const Comment: FC<IComment> = ({ created_at, content, _id, user_id }) => 
         <div className="text-muted ml-auto">{dayjs(created_at).toNow()}</div>
       </div>
       <div className="mt-1">{content}</div>
-      <div>
-        <button onClick={() => setShowReportModal(true)}>
+      <div className="mt-2">
+        <IconButton
+          title="Report comment"
+          aria-label="Report comment"
+          onClick={() => setShowReportModal(true)}
+        >
           <ReportGmailerrorredIcon />
-        </button>
+        </IconButton>
         <ReportModal
           target_id={_id}
           target_type="comment"

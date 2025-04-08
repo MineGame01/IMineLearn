@@ -6,7 +6,7 @@ import { selectAuthAccessToken } from '@widgets/LoginModal';
 
 export const ForumApi = createApi({
   reducerPath: 'api',
-  tagTypes: ['refetch-topics', 'refetch-comment', 'refetch-reports', "refetch-reactions"],
+  tagTypes: ['refetch-topics', 'refetch-comment', 'refetch-reports', 'refetch-reactions'],
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.NEXT_PUBLIC_REST_API_URL,
     prepareHeaders(headers, { getState }) {
@@ -82,14 +82,14 @@ export const ForumApi = createApi({
         method: 'POST',
         body: bodyRequest,
       }),
-      invalidatesTags: ["refetch-reactions"]
+      invalidatesTags: ['refetch-reactions'],
     }),
     getReactions: builder.query<
       IForumApi['endpoints']['getReactions']['dataResponse'],
       IForumApi['endpoints']['getReactions']['bodyRequest']
     >({
       query: (bodyRequest) => `/reaction?${getUrlParams(bodyRequest)}`,
-      providesTags: ["refetch-reactions"]
+      providesTags: ['refetch-reactions'],
     }),
     getUser: builder.query<
       IForumApi['endpoints']['getUser']['dataResponse'],

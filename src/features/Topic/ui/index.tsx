@@ -1,27 +1,19 @@
 'use client';
-import { FC, Fragment, MouseEventHandler, useCallback, useEffect, useState } from 'react';
+import { FC, Fragment, useEffect, useState } from 'react';
 import { TTopicId } from '@entities/Topic';
 import {
-  useAddReactionMutation,
   useCreateCommentMutation,
-  useDeleteTopicMutation,
   useGetCommentsByTopicIdQuery,
-  useGetReactionsQuery,
   useGetTopicByIdQuery,
   useLazyGetUserQuery,
 } from '@app/api';
-import { ReportModal } from '@widgets/ReportModal';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
-import CommentsDisabledIcon from '@mui/icons-material/CommentsDisabled';
-import CommentIcon from '@mui/icons-material/Comment';
-import ReportGmailerrorredIcon from '@mui/icons-material/ReportGmailerrorred';
 import { Button, Input } from '@shared/ui';
 import dayjs from 'dayjs';
 import relativeTimePlugin from 'dayjs/plugin/relativeTime';
 import { getServerErrorMessage } from '@shared/model';
-import { useRouter } from 'next/navigation';
-import { TReactionType } from '@entities/Reaction';
+import { ActionBar } from './action-bar';
 
 dayjs.extend(relativeTimePlugin);
 
@@ -49,52 +41,17 @@ export const Topic: FC<IProps> = ({ topic_id }) => {
     error: errorComments,
   } = useGetCommentsByTopicIdQuery({ topic_id });
   const [createComments, { isLoading: isLoadingCreateComments }] = useCreateCommentMutation();
-  const [
-    deleteTopic,
-    { isLoading: isLoadingDeleteTopic, isError: isErrorDeleteTopic, error: errorDeleteTopic },
-  ] = useDeleteTopicMutation();
-  const {
-    data: reactions,
-    isLoading: isLoadingReactions,
-    isError: isErrorReactions,
-    error: errorReactions,
-  } = useGetReactionsQuery({ topic_id });
-  const [
-    addReaction,
-    { isLoading: isLoadingAddReaction, isError: isErrorAddReaction, error: errorAddReaction },
-  ] = useAddReactionMutation();
-  const [showComments, setShowComments] = useState(false);
-  const [showReportModal, setShowReportModal] = useState(false);
   const [contentComment, setContentComment] = useState('');
-  const route = useRouter();
+  const [showComments, setShowComments] = useState(false);
 
   const errorMessageUser = getServerErrorMessage(errorUser),
-    errorMessageDeleteTopic = getServerErrorMessage(errorDeleteTopic),
-    errorMessageAddReaction = getServerErrorMessage(errorAddReaction),
-    errorMessageReactions = getServerErrorMessage(errorReactions),
     errorMessageComments = getServerErrorMessage(errorComments);
-
-  const closeReportModal = useCallback(() => {
-    setShowReportModal(false);
-  }, []);
 
   useEffect(() => {
     if (topics) {
       getUser({ user_id: topics.user_id });
     }
   }, [topics]);
-
-  const handleClickDeleteTopic: MouseEventHandler = () => {
-    deleteTopic({ topic_id })
-      .unwrap()
-      .then(() => {
-        route.back();
-      });
-  };
-
-  const handleClickAddReaction = (type_reaction: TReactionType) => {
-    addReaction({ topic_id, type_reaction });
-  };
 
   if (isLoadingTopics) {
     return <div>Loading...</div>;
@@ -105,7 +62,7 @@ export const Topic: FC<IProps> = ({ topic_id }) => {
   }
 
   if (topics) {
-    const { title, created_at, content, _id } = topics;
+    const { title, created_at, content } = topics;
 
     return (
       <article className="mt-5">
@@ -129,40 +86,11 @@ export const Topic: FC<IProps> = ({ topic_id }) => {
           <section className="mt-1">
             <div>{content}</div>
           </section>
-          <section className="mt-1">
-            <button onClick={() => handleClickAddReaction('like')}>
-              Like
-              {reactions && (
-                <span>
-                  {reactions.filter((reaction) => reaction.type_reaction === 'like').length}
-                </span>
-              )}
-              {isLoadingAddReaction && <span>Loading...</span>}
-              {isErrorAddReaction && <span>{errorMessageAddReaction}</span>}
-              {isLoadingReactions && <span>Loading...</span>}
-              {isErrorReactions && <span>{errorMessageReactions}</span>}
-            </button>
-            <button
-              aria-expanded={showComments || undefined}
-              aria-controls={showComments ? 'comments-topic' : undefined}
-              onClick={() => setShowComments(!showComments)}
-            >
-              {showComments ? <CommentsDisabledIcon /> : <CommentIcon />}
-              <span>{comments ? comments.length : 'Loading...'}</span>
-            </button>
-            <button onClick={() => setShowReportModal(true)}>
-              <ReportGmailerrorredIcon />
-            </button>
-            <ReportModal
-              target_id={_id}
-              target_type="topic"
-              open={showReportModal}
-              close={closeReportModal}
-            />
-            <button onClick={handleClickDeleteTopic}>Delete</button>
-            {isLoadingDeleteTopic && <div>Loading...</div>}
-            {isErrorDeleteTopic && <div>{errorMessageDeleteTopic}</div>}
-          </section>
+          <ActionBar
+            topic_id={topic_id}
+            showComments={showComments}
+            setShowComments={setShowComments}
+          />
         </div>
         <section id={'comments-topic'}>
           <div className="p-5">

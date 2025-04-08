@@ -82,8 +82,13 @@ export const POST = await checkAuthAccessToken(async (request: NextRequest) => {
   try {
     const reactionCollection = client.db('db').collection<IReaction>('reactions');
 
-    if (await reactionCollection.findOne({ topic_id, user_id, type_reaction })) {
-      await reactionCollection.deleteOne({ topic_id, user_id, type_reaction });
+    const reactionFind = await reactionCollection.findOneAndDelete({
+      topic_id,
+      user_id,
+      type_reaction,
+    });
+
+    if (reactionFind) {
       return NextResponse.json(null);
     }
 
