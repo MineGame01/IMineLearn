@@ -1,4 +1,4 @@
-import { FC, useState, useCallback, useRef, ChangeEventHandler, ChangeEvent } from 'react';
+import { FC, useState, useCallback, useRef, ChangeEventHandler, ChangeEvent, useMemo } from 'react';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { TDatePickerState } from '@features/TopicList/model/TDatePickerState.ts';
@@ -15,6 +15,7 @@ import { Button, Dropdown, DropdownItem, DropdownList, Input } from '@shared/ui'
 import dayjs from 'dayjs';
 import dynamic from 'next/dynamic';
 import { getServerErrorMessage } from '@shared/model/get-server-error-message.ts';
+import { SkeletonTopicPreview } from './topic-preview/skeleton.tsx';
 
 const MemoDatePickers = dynamic(async () =>
   import('./date-pickers.tsx').then((el) => el.DatePickers)
@@ -50,8 +51,17 @@ export const TopicsList: FC<{ categoryId: TCategoryId }> = ({ categoryId }) => {
       : {}),
     category_id: categoryId,
   });
+  const MAX_SKELETON_COUNT = 10;
 
-  const errorMessage = getServerErrorMessage(_error) ?? 'Unknown error';
+  const skeletonTopicCount = useMemo(() => {
+    const counts: number[] = [];
+    for (let i = 1; i <= MAX_SKELETON_COUNT; i++) {
+      counts.push(i);
+    }
+    return counts;
+  }, [MAX_SKELETON_COUNT]);
+
+  const errorMessage = getServerErrorMessage(_error);
 
   const changeCheckedMoreOptions = (checked: boolean) => {
     if (checked) {
@@ -147,7 +157,7 @@ export const TopicsList: FC<{ categoryId: TCategoryId }> = ({ categoryId }) => {
         />
       </div>
       {data && <List topics={data as ITopic[]} />}
-      {isLoading && <div>Loading...</div>}
+      {isLoading && skeletonTopicCount.map((num) => <SkeletonTopicPreview key={num} />)}
     </div>
   );
 };

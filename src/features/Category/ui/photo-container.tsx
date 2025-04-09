@@ -10,7 +10,7 @@ export const PhotoContainer: FC<IProps> = ({ children, className, ...props }) =>
     <div
       {...props}
       className={twMerge(
-        'flex justify-center grow-1 overflow-hidden rounded-border-default relative',
+        'flex justify-center w-full h-[80px] grow-1 overflow-hidden rounded-border-default relative',
         className
       )}
     >

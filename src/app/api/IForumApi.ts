@@ -2,6 +2,7 @@ import { IComment, ITopic, TTopicContent, TTopicId, TTopicTitle } from '@entitie
 import { ICategory, TCategoryId } from '@entities/Category';
 import { IAuthUser, TUserEmail, TUserId, TUserUserName } from '@entities/User';
 import { IReport } from '@entities/Report';
+import { IReaction } from '@entities/Reaction';
 
 /**
  * Quickly define the desired endpoint properties
@@ -23,6 +24,8 @@ interface ILoginCredentials {
 export interface IForumApi {
   endpoints: {
     getUser: createEndpoint<IAuthUser, { user_id: TUserId }>;
+    addReaction: createEndpoint<null, Pick<IReaction, 'topic_id' | 'type_reaction'>>;
+    getReactions: createEndpoint<IReaction[], { topic_id: TTopicId }>;
     getTopicsByCategory: createEndpoint<
       ITopic[] | TTopicId[],
       {

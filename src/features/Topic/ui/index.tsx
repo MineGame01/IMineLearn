@@ -1,28 +1,26 @@
 'use client';
-import { FC, Fragment, MouseEventHandler, useCallback, useEffect, useState } from 'react';
+import { FC, Fragment, useEffect, useState } from 'react';
 import { TTopicId } from '@entities/Topic';
 import {
   useCreateCommentMutation,
-  useDeleteTopicMutation,
   useGetCommentsByTopicIdQuery,
   useGetTopicByIdQuery,
   useLazyGetUserQuery,
 } from '@app/api';
-import { ReportModal } from '@widgets/ReportModal';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
-import CommentsDisabledIcon from '@mui/icons-material/CommentsDisabled';
-import CommentIcon from '@mui/icons-material/Comment';
-import ReportGmailerrorredIcon from '@mui/icons-material/ReportGmailerrorred';
-import { Button, Input } from '@shared/ui';
+import { Button, Input, Skeleton } from '@shared/ui';
 import dayjs from 'dayjs';
 import relativeTimePlugin from 'dayjs/plugin/relativeTime';
 import { getServerErrorMessage } from '@shared/model';
-import { useRouter } from 'next/navigation';
+import { ActionBar } from './action-bar';
+import { SkeletonTopic } from './skeleton-topic';
+import * as m from 'motion/react-m';
+import { AnimatePresence } from 'motion/react';
 
 dayjs.extend(relativeTimePlugin);
 
-const LazyComment = dynamic(
+const MemoComment = dynamic(
   async () => await import('@features/Topic/ui/comment').then((el) => el.Comment)
 );
 
@@ -40,23 +38,17 @@ export const Topic: FC<IProps> = ({ topic_id }) => {
     getUser,
     { data: user, isLoading: isLoadingUser, isError: isErrorUser, error: errorUser },
   ] = useLazyGetUserQuery();
-  const { data: comments, isError: isErrorComments } = useGetCommentsByTopicIdQuery({ topic_id });
+  const {
+    data: comments,
+    isError: isErrorComments,
+    error: errorComments,
+  } = useGetCommentsByTopicIdQuery({ topic_id });
   const [createComments, { isLoading: isLoadingCreateComments }] = useCreateCommentMutation();
-  const [
-    deleteTopic,
-    { isLoading: isLoadingDeleteTopic, isError: isErrorDeleteTopic, error: errorDeleteTopic },
-  ] = useDeleteTopicMutation();
-  const [showComments, setShowComments] = useState(false);
-  const [showReportModal, setShowReportModal] = useState(false);
   const [contentComment, setContentComment] = useState('');
-  const route = useRouter();
+  const [showComments, setShowComments] = useState(false);
 
-  const errorMessageUser = getServerErrorMessage(errorUser);
-  const errorMessageDeleteTopic = getServerErrorMessage(errorDeleteTopic);
-
-  const closeReportModal = useCallback(() => {
-    setShowReportModal(false);
-  }, []);
+  const errorMessageUser = getServerErrorMessage(errorUser),
+    errorMessageComments = getServerErrorMessage(errorComments);
 
   useEffect(() => {
     if (topics) {
@@ -64,16 +56,8 @@ export const Topic: FC<IProps> = ({ topic_id }) => {
     }
   }, [topics]);
 
-  const handleClickDeleteTopic: MouseEventHandler = async (_unused) => {
-    deleteTopic({ topic_id })
-      .unwrap()
-      .then(() => {
-        route.back();
-      });
-  };
-
   if (isLoadingTopics) {
-    return <div>Loading...</div>;
+    return <SkeletonTopic />;
   }
 
   if (isErrorTopics) {
@@ -81,7 +65,7 @@ export const Topic: FC<IProps> = ({ topic_id }) => {
   }
 
   if (topics) {
-    const { title, created_at, content, _id } = topics;
+    const { title, created_at, content } = topics;
 
     return (
       <article className="mt-5">
@@ -90,7 +74,7 @@ export const Topic: FC<IProps> = ({ topic_id }) => {
         </h1>
         <div className="mt-5">
           <section className="flex items-center">
-            {isLoadingUser && <div>Loading...</div>}
+            {isLoadingUser && <Skeleton />}
             {!isLoadingUser && user && (
               <Fragment>
                 <div className="inline-block rounded-full overflow-hidden w-[42px] h-[42px]">
@@ -105,35 +89,30 @@ export const Topic: FC<IProps> = ({ topic_id }) => {
           <section className="mt-1">
             <div>{content}</div>
           </section>
-          <section className="mt-1">
-            <button
-              aria-expanded={showComments || undefined}
-              aria-controls={showComments ? 'comments-topic' : undefined}
-              onClick={() => setShowComments(!showComments)}
-            >
-              {showComments ? <CommentsDisabledIcon /> : <CommentIcon />}
-              <span>{comments ? comments.length : 'Loading...'}</span>
-            </button>
-            <button onClick={() => setShowReportModal(true)}>
-              <ReportGmailerrorredIcon />
-            </button>
-            <ReportModal
-              target_id={_id}
-              target_type="topic"
-              open={showReportModal}
-              close={closeReportModal}
-            />
-            <button onClick={handleClickDeleteTopic}>Delete</button>
-            {isLoadingDeleteTopic && <div>Loading...</div>}
-            {isErrorDeleteTopic && <div>{errorMessageDeleteTopic}</div>}
-          </section>
+          <ActionBar
+            topic_id={topic_id}
+            showComments={showComments}
+            setShowComments={setShowComments}
+          />
         </div>
         <section id={'comments-topic'}>
           <div className="p-5">
-            {showComments &&
-              comments &&
-              comments.map((comment) => <LazyComment key={comment._id} {...comment} />)}
-            {showComments && isErrorComments && <div>Error</div>}
+            <AnimatePresence mode="wait">
+              {showComments && comments && (
+                <m.div
+                  className="overflow-hidden"
+                  initial={{ height: 0 }}
+                  animate={{ height: 'auto' }}
+                  exit={{ height: 0 }}
+                >
+                  {comments.map((comment) => (
+                    <MemoComment key={comment._id} {...comment} />
+                  ))}
+                </m.div>
+              )}
+            </AnimatePresence>
+
+            {showComments && isErrorComments && <div>{errorMessageComments}</div>}
           </div>
         </section>
         <Input

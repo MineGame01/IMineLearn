@@ -6,7 +6,7 @@ import { selectAuthAccessToken } from '@widgets/LoginModal';
 
 export const ForumApi = createApi({
   reducerPath: 'api',
-  tagTypes: ['refetch-topics', 'refetch-comment', 'refetch-reports'],
+  tagTypes: ['refetch-topics', 'refetch-comment', 'refetch-reports', 'refetch-reactions'],
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.NEXT_PUBLIC_REST_API_URL,
     prepareHeaders(headers, { getState }) {
@@ -72,6 +72,24 @@ export const ForumApi = createApi({
         body: bodyRequest,
       }),
       invalidatesTags: ['refetch-topics'],
+    }),
+    addReaction: builder.mutation<
+      IForumApi['endpoints']['addReaction']['dataResponse'],
+      IForumApi['endpoints']['addReaction']['bodyRequest']
+    >({
+      query: (bodyRequest) => ({
+        url: '/reaction',
+        method: 'POST',
+        body: bodyRequest,
+      }),
+      invalidatesTags: ['refetch-reactions'],
+    }),
+    getReactions: builder.query<
+      IForumApi['endpoints']['getReactions']['dataResponse'],
+      IForumApi['endpoints']['getReactions']['bodyRequest']
+    >({
+      query: (bodyRequest) => `/reaction?${getUrlParams(bodyRequest)}`,
+      providesTags: ['refetch-reactions'],
     }),
     getUser: builder.query<
       IForumApi['endpoints']['getUser']['dataResponse'],
@@ -181,4 +199,6 @@ export const {
   useLazyGetUserQuery,
   useGetReportsQuery,
   useDeleteReportMutation,
+  useAddReactionMutation,
+  useGetReactionsQuery,
 } = ForumApi;

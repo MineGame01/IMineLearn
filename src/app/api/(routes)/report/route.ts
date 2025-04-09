@@ -22,7 +22,7 @@ export const GET = await checkAuthAccessToken(async (request: NextRequest) => {
   }
 
   const searchParams = request.nextUrl.searchParams;
-  const { getFilterQueryParams, defaultOptions } = new FiltersDataResponse();
+  const { getFilterQueryParams } = new FiltersDataResponse();
 
   const queryParams: IRequestQuery = {
     report_id: searchParams.get('report_id'),
@@ -38,8 +38,8 @@ export const GET = await checkAuthAccessToken(async (request: NextRequest) => {
     ? { created_at: { $gte: +created_after, $lt: +(created_before ?? new Date().getTime()) } }
     : {};
   const reportsDefaultFindOptions: FindOptions = {
-    limit: limit_count ?? defaultOptions.limit_count,
-    skip: offset_count ?? defaultOptions.offset_count,
+    limit: limit_count,
+    skip: offset_count,
   };
 
   try {
@@ -108,7 +108,7 @@ export const POST = await checkAuthAccessToken(async (request: NextRequest) => {
       return NextResponse.json({ message: error?.message ?? warning?.message }, { status: 400 });
     }
 
-    await reportCollection.insertOne(reportValidate as IReport);
+    await reportCollection.insertOne(reportValidate);
     return NextResponse.json(null);
   } catch (error) {
     if (error instanceof Error) {

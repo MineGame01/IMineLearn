@@ -1,10 +1,10 @@
-'use client';
 import { FC, Fragment } from 'react';
 import { ITopic } from '@entities/Topic';
 import Image from 'next/image';
-import Link from 'next/link';
 import { useGetUserQuery } from '@app/api';
 import { getServerErrorMessage } from '@shared/model';
+import { Body } from './body';
+import { Skeleton } from '@shared/ui';
 
 export const TopicPreview: FC<ITopic> = ({ _id, user_id, title, views_count }) => {
   const {
@@ -17,13 +17,10 @@ export const TopicPreview: FC<ITopic> = ({ _id, user_id, title, views_count }) =
   const errorMessageUser = getServerErrorMessage(errorUser);
 
   return (
-    <Link
-      href={'/topic/' + _id}
-      className="bg-surface border-border border-2 flex items-center p-3 transform-box-shadow duration-100 ease-in-out hover:shadow-2xl rounded-border-default"
-    >
+    <Body href={'/topic/' + _id}>
       <div className="flex items-center">
         {isErrorUser && <div>{errorMessageUser}</div>}
-        {isLoadingUser && <div>Loading...</div>}
+        {isLoadingUser && <Skeleton />}
         {user && !isLoadingUser && (
           <Fragment>
             <div className="inline-block rounded-full overflow-hidden">
@@ -35,6 +32,6 @@ export const TopicPreview: FC<ITopic> = ({ _id, user_id, title, views_count }) =
       </div>
       <div className="ml-5">{title}</div>
       <div className="ml-auto">View: {views_count}</div>
-    </Link>
+    </Body>
   );
 };
