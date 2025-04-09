@@ -15,6 +15,8 @@ import relativeTimePlugin from 'dayjs/plugin/relativeTime';
 import { getServerErrorMessage } from '@shared/model';
 import { ActionBar } from './action-bar';
 import { SkeletonTopic } from './skeleton-topic';
+import * as m from 'motion/react-m';
+import { AnimatePresence } from 'motion/react';
 
 dayjs.extend(relativeTimePlugin);
 
@@ -95,9 +97,21 @@ export const Topic: FC<IProps> = ({ topic_id }) => {
         </div>
         <section id={'comments-topic'}>
           <div className="p-5">
-            {showComments &&
-              comments &&
-              comments.map((comment) => <MemoComment key={comment._id} {...comment} />)}
+            <AnimatePresence mode="wait">
+              {showComments && comments && (
+                <m.div
+                  className="overflow-hidden"
+                  initial={{ height: 0 }}
+                  animate={{ height: 'auto' }}
+                  exit={{ height: 0 }}
+                >
+                  {comments.map((comment) => (
+                    <MemoComment key={comment._id} {...comment} />
+                  ))}
+                </m.div>
+              )}
+            </AnimatePresence>
+
             {showComments && isErrorComments && <div>{errorMessageComments}</div>}
           </div>
         </section>
