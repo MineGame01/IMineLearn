@@ -9,11 +9,12 @@ import {
 } from '@app/api';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
-import { Button, Input } from '@shared/ui';
+import { Button, Input, Skeleton } from '@shared/ui';
 import dayjs from 'dayjs';
 import relativeTimePlugin from 'dayjs/plugin/relativeTime';
 import { getServerErrorMessage } from '@shared/model';
 import { ActionBar } from './action-bar';
+import { SkeletonTopic } from './skeleton-topic';
 
 dayjs.extend(relativeTimePlugin);
 
@@ -54,7 +55,7 @@ export const Topic: FC<IProps> = ({ topic_id }) => {
   }, [topics]);
 
   if (isLoadingTopics) {
-    return <div>Loading...</div>;
+    return <SkeletonTopic />;
   }
 
   if (isErrorTopics) {
@@ -71,7 +72,7 @@ export const Topic: FC<IProps> = ({ topic_id }) => {
         </h1>
         <div className="mt-5">
           <section className="flex items-center">
-            {isLoadingUser && <div>Loading...</div>}
+            {isLoadingUser && <Skeleton />}
             {!isLoadingUser && user && (
               <Fragment>
                 <div className="inline-block rounded-full overflow-hidden w-[42px] h-[42px]">

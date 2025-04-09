@@ -1,6 +1,6 @@
 import { FC } from 'react';
 import { ITopic } from '@entities/Topic';
-import { TopicPreview } from './topic-preview.tsx';
+import { TopicPreview } from './topic-preview';
 
 export const List: FC<{ topics: ITopic[] }> = ({ topics }) => {
   return (

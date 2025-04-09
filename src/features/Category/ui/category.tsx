@@ -9,6 +9,7 @@ import { PhotoContainer } from '@features/Category/ui/photo-container';
 import { ContentContainer } from '@features/Category/ui/content-container';
 import { LastTopic } from '@features/Category/ui/last-topic';
 import Image from 'next/image';
+import { SkeletonCategory } from './skeleton-category';
 
 dayjs.extend(relativeTimePlugin);
 
@@ -19,7 +20,7 @@ export const Category: FC<{ _id: TCategoryId; isPreview?: boolean }> = ({
   const { data, isLoading } = useGetCategoriesQuery({ category_id: _id });
 
   if (isLoading && !isPreview) {
-    return <div>Loading...</div>;
+    return <SkeletonCategory />;
   }
 
   return (
@@ -35,7 +36,7 @@ export const Category: FC<{ _id: TCategoryId; isPreview?: boolean }> = ({
               alt={data.name}
               width={1000}
               height={200}
-              className="object-cover object-center w-full h-[80px]"
+              className="object-cover object-center w-full h-auto"
             />
           </PhotoContainer>
           {!isPreview && (
