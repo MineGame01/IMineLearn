@@ -6,12 +6,16 @@ export const client = new MongoClient(getEnvVar('MONGO_DB_URL'), {
   pkFactory: { createPk: () => randomUUID().toString() },
 });
 
-client
-  .db('admin')
-  .command({ ping: 1 })
-  .then(() => {
+const connectToDatabase = async () => {
+  try {
+    await client.connect();
+    await client.db('admin').command({ ping: 1 });
     console.log('Ping is successful! Mongodb connected!');
-  })
-  .catch((error) => {
+  } catch (error) {
     console.error('Ping is failed! Mongodb not respond!', error);
-  });
+  } finally {
+    await client.close();
+  }
+};
+
+await connectToDatabase();
