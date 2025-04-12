@@ -89,6 +89,6 @@ export interface IForumApi {
       Pick<ILoginCredentials, 'access_token' | 'user_id'>,
       Pick<ILoginCredentials, 'refresh_token'>
     >;
-    getConsoleParam: createEndpoint<string | number | boolean, { id: string }>;
+    getConsoleParam: createEndpoint<string | number | boolean, { field: string }>;
   };
 }

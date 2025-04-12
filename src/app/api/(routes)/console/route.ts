@@ -2,24 +2,35 @@ import { client } from '@app/api/db';
 import { NextRequest, NextResponse } from 'next/server';
 
 interface IRequestQuery {
-  id: string | null;
+  field: string | null;
 }
 
 export const GET = async (request: NextRequest) => {
-  const id = request.nextUrl.searchParams.get('id');
+  const field = request.nextUrl.searchParams.get('field');
 
-  if (!id) {
-    return NextResponse.json({ message: "Query param 'id' is required!" }, { status: 400 });
+  if (!field) {
+    return NextResponse.json({ message: "Query param 'field' is required!" }, { status: 400 });
   }
 
-  const value = await client
-    .db('db')
-    .collection<{ _id: string; value: string | number | boolean }>('console')
-    .findOne({ _id: id });
+  try {
+    const document = await client
+      .db('db')
+      .collection<{ _id: string; [key: string]: string | number | boolean }>('console')
+      .find()
+      .toArray();
 
-  if (!value) {
-    return NextResponse.json({ message: 'Not found!' }, { status: 404 });
+    const fieldValue = document[0][field];
+
+    if (!fieldValue) {
+      return NextResponse.json({ message: 'Not found!' }, { status: 404 });
+    }
+
+    return NextResponse.json(fieldValue);
+  } catch (error) {
+    if (error instanceof Error) {
+      return NextResponse.json({ message: error.message }, { status: 500 });
+    } else {
+      throw error;
+    }
   }
-
-  return NextResponse.json(value.value);
 };

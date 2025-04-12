@@ -29,7 +29,7 @@ const RootLayout: FC<{ children: ReactNode }> = ({ children }) => {
       const getIsTechWork = async () => {
         try {
           const value = await store
-            .dispatch(actionGetConsoleParamCreator({ id: 'tech_work' }))
+            .dispatch(actionGetConsoleParamCreator({ field: 'tech_work' }))
             .unwrap();
           setIsTechWork(value as boolean);
         } catch (error) {
