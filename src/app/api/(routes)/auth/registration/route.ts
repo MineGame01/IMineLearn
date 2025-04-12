@@ -5,6 +5,7 @@ import { IUser, UserSchema } from '@entities/User';
 import { client } from '@app/api/db';
 import { createAccessToken } from '@app/api/create-access-token';
 import { createRefreshToken } from '@app/api/create-refresh-token';
+import { errorCatchingApiHandlerDecorator } from '@app/api/error-catching-api-handler-decorator';
 
 interface IBodyRequest {
   email: string | null;
@@ -12,7 +13,9 @@ interface IBodyRequest {
   username: string | null;
 }
 
-export const POST = async (request: NextRequest) => {
+const errorStatusCode = 401;
+
+const handler = async (request: NextRequest) => {
   const body = await request.json();
 
   const { email, password, username } = body as IBodyRequest;
@@ -61,40 +64,34 @@ export const POST = async (request: NextRequest) => {
     });
   };
 
-  try {
-    const hashPassword = (await derivedKey()).toString('hex');
+  const hashPassword = (await derivedKey()).toString('hex');
 
-    const {
-      error: errorUserValidate,
-      warning: warningUserValidate,
-      value: userValidate,
-    } = UserSchema.validate({
-      username,
-      email: loginCredentialsValidate.email,
-      hash_password: hashPassword,
-      salt,
-    });
+  const {
+    error: errorUserValidate,
+    warning: warningUserValidate,
+    value: userValidate,
+  } = UserSchema.validate({
+    username,
+    email: loginCredentialsValidate.email,
+    hash_password: hashPassword,
+    salt,
+  });
 
-    if (errorUserValidate || warningUserValidate) {
-      return NextResponse.json(
-        { message: errorUserValidate?.message ?? warningUserValidate?.message },
-        { status: 401 }
-      );
-    }
-
-    const newUser = await usersCollection.insertOne(userValidate as IUser);
-    const newUserId = newUser.insertedId;
-
-    return NextResponse.json({
-      access_token: createAccessToken({ ...userValidate, _id: newUserId }),
-      refresh_token: createRefreshToken(newUserId),
-      user_id: newUserId,
-    });
-  } catch (error) {
-    if (error instanceof Error) {
-      return NextResponse.json({ message: error.message }, { status: 401 });
-    } else {
-      throw error;
-    }
+  if (errorUserValidate || warningUserValidate) {
+    return NextResponse.json(
+      { message: errorUserValidate?.message ?? warningUserValidate?.message },
+      { status: 401 }
+    );
   }
+
+  const newUser = await usersCollection.insertOne(userValidate as IUser);
+  const newUserId = newUser.insertedId;
+
+  return NextResponse.json({
+    access_token: createAccessToken({ ...userValidate, _id: newUserId }),
+    refresh_token: createRefreshToken(newUserId),
+    user_id: newUserId,
+  });
 };
+
+export const POST = await errorCatchingApiHandlerDecorator(handler, errorStatusCode);

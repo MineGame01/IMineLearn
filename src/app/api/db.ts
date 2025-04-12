@@ -1,7 +1,8 @@
+import { getEnvVar } from '@shared/lib';
 import { randomUUID } from 'crypto';
 import { MongoClient } from 'mongodb';
 
-export const client = new MongoClient(process.env.MONGO_DB_URL as string, {
+export const client = new MongoClient(getEnvVar('MONGO_DB_URL'), {
   pkFactory: { createPk: () => randomUUID().toString() },
 });
 
