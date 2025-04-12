@@ -1,5 +1,6 @@
 import { checkAuthAccessToken } from '@app/api/check-auth-access-token';
 import { client } from '@app/api/db';
+import { errorCatchingApiHandlerDecorator } from '@app/api/error-catching-api-handler-decorator';
 import { FiltersDataResponse, IFilterQueryParams } from '@app/api/filters-data-response';
 import { CommentSchema, IComment, TTopicId } from '@entities/Topic';
 import { NextRequest, NextResponse } from 'next/server';
@@ -9,7 +10,7 @@ interface IRequestQuery
   topic_id: TTopicId | null;
 }
 
-export const GET = async (request: NextRequest) => {
+const handlerGet = async (request: NextRequest) => {
   const searchParams = request.nextUrl.searchParams;
 
   const { getFilterQueryParams } = new FiltersDataResponse();
@@ -42,12 +43,14 @@ export const GET = async (request: NextRequest) => {
   return NextResponse.json<IComment[]>(await commentsFind.toArray());
 };
 
+export const GET = await errorCatchingApiHandlerDecorator(handlerGet);
+
 interface IDataRequest {
   topic_id: TTopicId | null;
   content: IComment['content'] | null;
 }
 
-export const POST = await checkAuthAccessToken(async (request: NextRequest) => {
+const handlerPost = await checkAuthAccessToken(async (request: NextRequest) => {
   const body = await request.json();
   const authUser = request.auth;
 
@@ -74,3 +77,5 @@ export const POST = await checkAuthAccessToken(async (request: NextRequest) => {
   await client.db('db').collection<IComment>('comments').insertOne(commentValidate);
   return NextResponse.json(null);
 });
+
+export const POST = await errorCatchingApiHandlerDecorator(handlerPost);

@@ -1,8 +1,9 @@
 import { client } from '@app/api/db';
+import { errorCatchingApiHandlerDecorator } from '@app/api/error-catching-api-handler-decorator';
 import { IUser } from '@entities/User';
 import { NextRequest, NextResponse } from 'next/server';
 
-export const GET = async (request: NextRequest) => {
+const handlerGet = async (request: NextRequest) => {
   const searchParams = request.nextUrl.searchParams;
 
   const user_id = searchParams.get('user_id');
@@ -23,3 +24,5 @@ export const GET = async (request: NextRequest) => {
     return NextResponse.json({ message: 'User not found!' }, { status: 400 });
   }
 };
+
+export const GET = await errorCatchingApiHandlerDecorator(handlerGet);

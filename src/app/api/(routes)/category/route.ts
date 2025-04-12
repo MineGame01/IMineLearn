@@ -1,4 +1,5 @@
 import { client } from '@app/api/db';
+import { errorCatchingApiHandlerDecorator } from '@app/api/error-catching-api-handler-decorator';
 import { ICategory } from '@entities/Category';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -6,7 +7,7 @@ interface IRequestQuery {
   category_id: ICategory['_id'] | null;
 }
 
-export const GET = async (request: NextRequest) => {
+const handler = async (request: NextRequest) => {
   const queryParams: IRequestQuery = {
     category_id: request.nextUrl.searchParams.get('category_id'),
   };
@@ -28,3 +29,5 @@ export const GET = async (request: NextRequest) => {
 
   return NextResponse.json<ICategory>(category);
 };
+
+export const GET = await errorCatchingApiHandlerDecorator(handler);

@@ -1,4 +1,5 @@
 import { client } from '@app/api/db';
+import { errorCatchingApiHandlerDecorator } from '@app/api/error-catching-api-handler-decorator';
 import { FiltersDataResponse, IFilterQueryParams } from '@app/api/filters-data-response';
 import { ICategory } from '@entities/Category';
 import { FindOptions } from 'mongodb';
@@ -9,7 +10,7 @@ interface IRequestQuery
   category_id: string | null;
 }
 
-export const GET = async (request: NextRequest) => {
+const handler = async (request: NextRequest) => {
   const searchParams = request.nextUrl.searchParams;
 
   const { defaultOptions, getFilterQueryParams } = new FiltersDataResponse();
@@ -54,3 +55,5 @@ export const GET = async (request: NextRequest) => {
 
   return NextResponse.json<ICategory[]>(categories);
 };
+
+export const GET = await errorCatchingApiHandlerDecorator(handler);

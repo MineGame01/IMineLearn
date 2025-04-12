@@ -1,5 +1,6 @@
 import { checkAuthAccessToken } from '@app/api/check-auth-access-token';
 import { client } from '@app/api/db';
+import { errorCatchingApiHandlerDecorator } from '@app/api/error-catching-api-handler-decorator';
 import { FiltersDataResponse, IFilterQueryParams } from '@app/api/filters-data-response';
 import { IReport, ReportSchema } from '@entities/Report';
 import { Filter, FindOptions } from 'mongodb';
@@ -9,7 +10,7 @@ interface IRequestQuery extends IFilterQueryParams {
   report_id: IReport['_id'] | null;
 }
 
-export const GET = await checkAuthAccessToken(async (request: NextRequest) => {
+const handlerGet = async (request: NextRequest) => {
   const authUser = request.auth;
   if (!authUser) {
     return;
@@ -42,39 +43,33 @@ export const GET = await checkAuthAccessToken(async (request: NextRequest) => {
     skip: offset_count,
   };
 
-  try {
-    if (return_ids_only) {
-      return NextResponse.json(
-        await reportsCollection
-          .find(reportsDefaultFind, reportsDefaultFindOptions)
-          .map((report) => report._id)
-          .toArray()
-      );
-    }
-
-    if (report_id) {
-      return NextResponse.json(
-        await reportsCollection
-          .find({ ...reportsDefaultFind, _id: report_id }, reportsDefaultFindOptions)
-          .toArray()
-      );
-    }
-
+  if (return_ids_only) {
     return NextResponse.json(
-      await reportsCollection.find(reportsDefaultFind, reportsDefaultFindOptions).toArray()
+      await reportsCollection
+        .find(reportsDefaultFind, reportsDefaultFindOptions)
+        .map((report) => report._id)
+        .toArray()
     );
-  } catch (error) {
-    if (error instanceof Error) {
-      return NextResponse.json({ message: error.message }, { status: 500 });
-    } else {
-      throw error;
-    }
   }
-});
+
+  if (report_id) {
+    return NextResponse.json(
+      await reportsCollection
+        .find({ ...reportsDefaultFind, _id: report_id }, reportsDefaultFindOptions)
+        .toArray()
+    );
+  }
+
+  return NextResponse.json(
+    await reportsCollection.find(reportsDefaultFind, reportsDefaultFindOptions).toArray()
+  );
+};
+
+export const GET = await errorCatchingApiHandlerDecorator(await checkAuthAccessToken(handlerGet));
 
 interface IDataRequest extends Pick<IReport, 'content' | 'reason' | 'target_id' | 'target_type'> {}
 
-export const POST = await checkAuthAccessToken(async (request: NextRequest) => {
+const handlerPost = async (request: NextRequest) => {
   const body = await request.json();
   const authUser = request.auth;
 
@@ -92,38 +87,32 @@ export const POST = await checkAuthAccessToken(async (request: NextRequest) => {
 
   const reportCollection = client.db('db').collection<IReport>('reports');
 
-  try {
-    const report = await reportCollection.findOne({ target_id, user_id });
+  const report = await reportCollection.findOne({ target_id, user_id });
 
-    if (report) {
-      return NextResponse.json(
-        { message: 'This content has already been reported.' },
-        { status: 400 }
-      );
-    }
-
-    const { error, warning, value: reportValidate } = ReportSchema.validate({ ...body, user_id });
-
-    if (error || warning) {
-      return NextResponse.json({ message: error?.message ?? warning?.message }, { status: 400 });
-    }
-
-    await reportCollection.insertOne(reportValidate);
-    return NextResponse.json(null);
-  } catch (error) {
-    if (error instanceof Error) {
-      return NextResponse.json({ message: error.message }, { status: 500 });
-    } else {
-      throw error;
-    }
+  if (report) {
+    return NextResponse.json(
+      { message: 'This content has already been reported.' },
+      { status: 400 }
+    );
   }
-});
+
+  const { error, warning, value: reportValidate } = ReportSchema.validate({ ...body, user_id });
+
+  if (error || warning) {
+    return NextResponse.json({ message: error?.message ?? warning?.message }, { status: 400 });
+  }
+
+  await reportCollection.insertOne(reportValidate);
+  return NextResponse.json(null);
+};
+
+export const POST = await errorCatchingApiHandlerDecorator(await checkAuthAccessToken(handlerPost));
 
 interface IDataRequest {
   report_id: IReport['_id'] | null;
 }
 
-export const DELETE = await checkAuthAccessToken(async (request: NextRequest) => {
+const handlerDelete = async (request: NextRequest) => {
   const data = await request.json();
   const authUser = request.auth;
 
@@ -137,14 +126,10 @@ export const DELETE = await checkAuthAccessToken(async (request: NextRequest) =>
     return NextResponse.json({ message: 'report_id is required!' }, { status: 400 });
   }
 
-  try {
-    await client.db('db').collection<IReport>('reports').deleteOne({ _id: report_id });
-    return NextResponse.json(null);
-  } catch (error) {
-    if (error instanceof Error) {
-      return NextResponse.json({ message: error.message }, { status: 500 });
-    } else {
-      throw error;
-    }
-  }
-});
+  await client.db('db').collection<IReport>('reports').deleteOne({ _id: report_id });
+  return NextResponse.json(null);
+};
+
+export const DELETE = await errorCatchingApiHandlerDecorator(
+  await checkAuthAccessToken(handlerDelete)
+);
