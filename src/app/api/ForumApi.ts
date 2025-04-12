@@ -180,6 +180,12 @@ export const ForumApi = createApi({
         body: bodyRequest,
       }),
     }),
+    getConsoleParam: builder.mutation<
+      IForumApi['endpoints']['getConsoleParam']['dataResponse'],
+      IForumApi['endpoints']['getConsoleParam']['bodyRequest']
+    >({
+      query: (bodyRequest) => `/console?${getUrlParams(bodyRequest)}`,
+    }),
   }),
 });
 
