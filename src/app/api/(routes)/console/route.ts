@@ -21,7 +21,7 @@ export const GET = async (request: NextRequest) => {
 
     const fieldValue = document[0][field];
 
-    if (!fieldValue) {
+    if (!(field in document[0])) {
       return NextResponse.json({ message: 'Not found!' }, { status: 404 });
     }
 
