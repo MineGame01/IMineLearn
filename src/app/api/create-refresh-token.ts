@@ -1,8 +1,9 @@
-import { TUserId } from '@entities/User'
-import jwt from 'jsonwebtoken'
+import { TUserId } from '@entities/User';
+import { getEnvVar } from '@shared/lib';
+import jwt from 'jsonwebtoken';
 
 export const createRefreshToken = (userId: TUserId) => {
-    return jwt.sign({ user_id: userId }, process.env.PRIVATE_KEY_JWT as string, {
-        expiresIn: '30d',
-    })
-}
+  return jwt.sign({ user_id: userId }, getEnvVar('PRIVATE_KEY_JWT'), {
+    expiresIn: '30d',
+  });
+};

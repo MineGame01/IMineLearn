@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import { client } from '@app/api/db';
 import { createAccessToken } from '@app/api/create-access-token';
 import { IUser } from '@entities/User';
+import { getEnvVar } from '@shared/lib';
 
 interface IDataRequest {
   refresh_token: string;
@@ -21,7 +22,7 @@ export const POST = async (request: NextRequest) => {
     return new Promise<string | jwt.JwtPayload | undefined>((resolve, reject) => {
       jwt.verify(
         refresh_token,
-        process.env.PRIVATE_KEY_JWT as string,
+        getEnvVar('PRIVATE_KEY_JWT') as string,
         async (error, jwtPayload) => {
           if (error) reject(error);
           else resolve(jwtPayload);
