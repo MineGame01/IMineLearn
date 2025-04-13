@@ -1,5 +1,5 @@
 import { checkAuthAccessToken } from '@app/api/check-auth-access-token';
-import { client } from '@app/api/db';
+import { getClient } from '@app/api/db';
 import { errorCatchingApiHandlerDecorator } from '@app/api/error-catching-api-handler-decorator';
 import { FiltersDataResponse, IFilterQueryParams } from '@app/api/filters-data-response';
 import { IReaction, ReactionSchema, TReactionType } from '@entities/Reaction';
@@ -12,6 +12,7 @@ interface IRequestQuery extends Pick<IFilterQueryParams, 'limit_count' | 'offset
 }
 
 const handlerGet = async (request: NextRequest) => {
+  const client = getClient();
   try {
     await client.connect();
     const searchParams = request.nextUrl.searchParams;
@@ -59,6 +60,7 @@ interface IDataRequest {
 }
 
 const handlerPost = async (request: NextRequest) => {
+  const client = getClient();
   try {
     await client.connect();
     const data = await request.json();

@@ -1,4 +1,4 @@
-import { client } from '@app/api/db';
+import { getClient } from '@app/api/db';
 import { errorCatchingApiHandlerDecorator } from '@app/api/error-catching-api-handler-decorator';
 import { ICategory } from '@entities/Category';
 import { NextRequest, NextResponse } from 'next/server';
@@ -8,6 +8,7 @@ interface IRequestQuery {
 }
 
 const handler = async (request: NextRequest) => {
+  const client = getClient();
   try {
     await client.connect();
     const queryParams: IRequestQuery = {

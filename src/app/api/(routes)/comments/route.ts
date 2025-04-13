@@ -1,5 +1,5 @@
 import { checkAuthAccessToken } from '@app/api/check-auth-access-token';
-import { client } from '@app/api/db';
+import { getClient } from '@app/api/db';
 import { errorCatchingApiHandlerDecorator } from '@app/api/error-catching-api-handler-decorator';
 import { FiltersDataResponse, IFilterQueryParams } from '@app/api/filters-data-response';
 import { CommentSchema, IComment, TTopicId } from '@entities/Topic';
@@ -11,6 +11,7 @@ interface IRequestQuery
 }
 
 const handlerGet = async (request: NextRequest) => {
+  const client = getClient();
   try {
     await client.connect();
     const searchParams = request.nextUrl.searchParams;
@@ -58,6 +59,7 @@ interface IDataRequest {
 }
 
 const handlerPost = await checkAuthAccessToken(async (request: NextRequest) => {
+  const client = getClient();
   try {
     await client.connect();
     const body = await request.json();

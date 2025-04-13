@@ -1,9 +1,10 @@
-import { client } from '@app/api/db';
+import { getClient } from '@app/api/db';
 import { errorCatchingApiHandlerDecorator } from '@app/api/error-catching-api-handler-decorator';
 import { IUser } from '@entities/User';
 import { NextRequest, NextResponse } from 'next/server';
 
 const handlerGet = async (request: NextRequest) => {
+  const client = getClient();
   try {
     await client.connect();
     const searchParams = request.nextUrl.searchParams;

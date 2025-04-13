@@ -1,4 +1,4 @@
-import { client } from '@app/api/db';
+import { getClient } from '@app/api/db';
 import { emailAndPasswordSchema } from '@shared/model';
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
@@ -15,6 +15,7 @@ interface IDataRequest {
 const errorStatusCode = 401;
 
 const handler = async (request: NextRequest) => {
+  const client = getClient();
   try {
     await client.connect();
     const body = await request.json();

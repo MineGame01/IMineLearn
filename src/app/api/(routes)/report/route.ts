@@ -1,5 +1,5 @@
 import { checkAuthAccessToken } from '@app/api/check-auth-access-token';
-import { client } from '@app/api/db';
+import { getClient } from '@app/api/db';
 import { errorCatchingApiHandlerDecorator } from '@app/api/error-catching-api-handler-decorator';
 import { FiltersDataResponse, IFilterQueryParams } from '@app/api/filters-data-response';
 import { IReport, ReportSchema } from '@entities/Report';
@@ -11,6 +11,7 @@ interface IRequestQuery extends IFilterQueryParams {
 }
 
 const handlerGet = async (request: NextRequest) => {
+  const client = getClient();
   try {
     await client.connect();
     const authUser = request.auth;
@@ -78,6 +79,7 @@ export const GET = await errorCatchingApiHandlerDecorator(await checkAuthAccessT
 interface IDataRequest extends Pick<IReport, 'content' | 'reason' | 'target_id' | 'target_type'> {}
 
 const handlerPost = async (request: NextRequest) => {
+  const client = getClient();
   try {
     await client.connect();
     const body = await request.json();
@@ -126,6 +128,7 @@ interface IDataRequest {
 }
 
 const handlerDelete = async (request: NextRequest) => {
+  const client = getClient();
   try {
     await client.connect();
     const data = await request.json();
