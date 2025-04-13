@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
-import { client } from '@app/api/db';
+import { getClient } from '@app/api/db';
 import { createAccessToken } from '@app/api/create-access-token';
 import { IUser } from '@entities/User';
 import { getEnvVar } from '@shared/lib';
@@ -13,6 +13,7 @@ interface IDataRequest {
 const errorStatusCode = 401;
 
 const handler = async (request: NextRequest) => {
+  const client = getClient();
   try {
     await client.connect();
     const body = await request.json();

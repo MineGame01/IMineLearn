@@ -2,7 +2,7 @@ import { emailAndPasswordSchema } from '@shared/model';
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { IUser, UserSchema } from '@entities/User';
-import { client } from '@app/api/db';
+import { getClient } from '@app/api/db';
 import { createAccessToken } from '@app/api/create-access-token';
 import { createRefreshToken } from '@app/api/create-refresh-token';
 import { errorCatchingApiHandlerDecorator } from '@app/api/error-catching-api-handler-decorator';
@@ -16,6 +16,7 @@ interface IBodyRequest {
 const errorStatusCode = 401;
 
 const handler = async (request: NextRequest) => {
+  const client = getClient();
   try {
     await client.connect();
     const body = await request.json();

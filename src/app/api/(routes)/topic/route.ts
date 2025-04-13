@@ -1,5 +1,5 @@
-import { client } from '@app/api/db';
-import { IComment, ITopic, TopicSchema, TTopicId } from '@entities/Topic';
+import { getClient } from '@app/api/db';
+import { ITopic, TopicSchema, TTopicId } from '@entities/Topic';
 import { NextRequest, NextResponse } from 'next/server';
 import { checkAuthAccessToken } from '@app/api/check-auth-access-token';
 import { ICategory } from '@entities/Category';
@@ -10,6 +10,7 @@ interface IRequestQuery {
 }
 
 const handlerGet = async (request: NextRequest) => {
+  const client = getClient();
   try {
     await client.connect();
     const searchParams = request.nextUrl.searchParams;
@@ -42,7 +43,8 @@ export const GET = await errorCatchingApiHandlerDecorator(handlerGet);
 
 interface IDataRequest extends Pick<ITopic, 'category_id' | 'content' | 'title'> {}
 
-const handlerPost = async (request) => {
+const handlerPost = async (request: NextRequest) => {
+  const client = getClient();
   try {
     await client.connect();
     const body = await request.json();
@@ -82,19 +84,6 @@ const handlerPost = async (request) => {
 
     const idNewTopic = insertedTopic.insertedId;
 
-    const categoryTopicsLength = (
-      await topicsCollection.find({ category_id: category._id }).toArray()
-    ).length;
-    await categoriesCollection.updateOne({ _id: category._id }, [
-      {
-        $set: {
-          topicsCount: categoryTopicsLength,
-          lastTopicId: idNewTopic,
-          lastActivity: new Date().getTime(),
-        },
-      },
-    ]);
-
     return NextResponse.json<TTopicId>(idNewTopic);
   } finally {
     await client.close();
@@ -108,6 +97,7 @@ interface IDataRequest {
 }
 
 const handlerDelete = async (request: NextRequest) => {
+  const client = getClient();
   try {
     await client.connect();
     const data = await request.json();
@@ -133,8 +123,6 @@ const handlerDelete = async (request: NextRequest) => {
 
     const db = client.db('db');
     const topicsCollection = db.collection<ITopic>('topics');
-    const categoriesCollection = db.collection<ICategory>('categories');
-    const commentsCollection = db.collection<IComment>('comments');
 
     const topic = await topicsCollection.findOne({ _id: topic_id });
 
@@ -143,10 +131,6 @@ const handlerDelete = async (request: NextRequest) => {
     }
 
     await topicsCollection.deleteOne({ _id: topic_id });
-    await commentsCollection.deleteMany({ topic_id });
-    const topicsCount = (await topicsCollection.find({ category_id: topic.category_id }).toArray())
-      .length;
-    await categoriesCollection.updateOne({ _id: topic.category_id }, { $set: { topicsCount } });
 
     return NextResponse.json(null);
   } finally {

@@ -1,4 +1,4 @@
-import { client } from '@app/api/db';
+import { getClient } from '@app/api/db';
 import { errorCatchingApiHandlerDecorator } from '@app/api/error-catching-api-handler-decorator';
 import { FiltersDataResponse, IFilterQueryParams } from '@app/api/filters-data-response';
 import { ITopic } from '@entities/Topic';
@@ -11,6 +11,7 @@ interface IRequestQuery extends IFilterQueryParams {
 }
 
 const handlerGet = async (request: NextRequest) => {
+  const client = getClient();
   try {
     await client.connect();
     const searchParams = request.nextUrl.searchParams;
