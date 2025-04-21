@@ -47,14 +47,16 @@ export const FormCreateCategory: FC<IProps> = ({ onSubmit, isError, formId }) =>
   return (
     <form id={FORM_ID} onSubmit={handleSubmitCreateCategory}>
       <Input
+        inputAttr={{
+          type: 'text',
+          name: 'new-category-name',
+          value: categoryName,
+          onChange: handleChangeCategoryName,
+          max: MAX_CATEGORY_NAME_LENGTH,
+          required: true,
+        }}
         isError={isError}
-        type="text"
-        name="new-category-name"
-        value={categoryName}
-        onChange={handleChangeCategoryName}
         label="Name"
-        max={MAX_CATEGORY_NAME_LENGTH}
-        required
         helperText={<div>Max length: {MAX_CATEGORY_NAME_LENGTH}</div>}
       />
       <label htmlFor={INPUT_IMAGE_CATEGORY_ID}>Image</label>

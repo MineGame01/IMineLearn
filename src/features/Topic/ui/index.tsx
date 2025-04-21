@@ -116,9 +116,11 @@ export const Topic: FC<IProps> = ({ topic_id }) => {
           </div>
         </section>
         <Input
+          inputAttr={{
+            value: contentComment,
+            onChange: (event) => setContentComment(event.target.value),
+          }}
           label="Comment"
-          value={contentComment}
-          onChange={(event) => setContentComment(event.target.value)}
         />
         <Button
           variant="contained"

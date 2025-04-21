@@ -37,13 +37,15 @@ export const ContentModal: FC<{ category_id: TCategoryId; close: () => void }> =
         </h1>
         <form>
           <Input
+            inputAttr={{
+              type: 'text',
+              value: titleTopicValue,
+              onChange: (event) => setTitleTopicValue(event.target.value),
+              name: 'heading-topic',
+              required: true,
+            }}
             isError={isError}
-            type={'text'}
-            value={titleTopicValue}
-            onChange={(event) => setTitleTopicValue(event.target.value)}
             label="Heading"
-            name={'heading-topic'}
-            required
             helperText={isError && <span>{error}</span>}
           />
           <textarea

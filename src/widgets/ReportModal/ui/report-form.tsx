@@ -95,16 +95,18 @@ export const ReportForm: FC<{
 
         {reasonReport === 'other' && (
           <Input
-            isError={isError}
-            required
-            autoFocus
-            value={otherReasonReport}
-            onChange={(event) => {
-              const value = event.currentTarget.value;
-              if (value.length <= MAX_REPORT_CONTENT_LENGTH) {
-                setOtherReasonReport(value);
-              }
+            inputAttr={{
+              required: true,
+              autoFocus: true,
+              value: otherReasonReport,
+              onChange: (event) => {
+                const value = event.currentTarget.value;
+                if (value.length <= MAX_REPORT_CONTENT_LENGTH) {
+                  setOtherReasonReport(value);
+                }
+              },
             }}
+            isError={isError}
             helperText={<span>Max length: {MAX_REPORT_CONTENT_LENGTH}</span>}
           />
         )}
