@@ -2,8 +2,8 @@ import { getClient } from '@app/api/db';
 import { emailAndPasswordSchema } from '@shared/model';
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
-import { createAccessToken } from '@app/api/create-access-token';
-import { createRefreshToken } from '@app/api/create-refresh-token';
+import { createAccessToken } from '@app/api/_lib/create-access-token';
+import { createRefreshToken } from '@app/api/_lib/create-refresh-token';
 import { IUser } from '@entities/User';
 import { errorCatchingApiHandlerDecorator } from '@app/api/error-catching-api-handler-decorator';
 

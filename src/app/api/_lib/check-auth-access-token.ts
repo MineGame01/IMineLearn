@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import { IUser } from '@entities/User';
 import { getEnvVar } from '@shared/lib';
-import { TApiHandler } from './api-handler.type';
+import { TApiHandler } from '../_model/api-handler.type';
 
 export const checkAuthAccessToken = async (handler: TApiHandler) => {
   return async (request: NextRequest) => {

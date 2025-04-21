@@ -23,20 +23,28 @@ export const Category: FC<{ _id: TCategoryId; isPreview?: boolean }> = ({
     return <SkeletonCategory />;
   }
 
-  return (
-    <Body href={'/category/' + _id} isPreview={isPreview}>
-      {data && !Array.isArray(data) && (
+  if (data && !Array.isArray(data)) {
+    const { image_base64_1200x, image_base64_415x, name, lastTopicId, lastActivity, topicsCount } =
+      data;
+
+    const imageSrc =
+      image_base64_1200x && image_base64_415x
+        ? `data:image/png;base64,${isPreview ? image_base64_1200x : image_base64_415x}`
+        : null;
+
+    return (
+      <Body href={'/category/' + _id} isPreview={isPreview}>
         <Container>
           <PhotoContainer>
-            <div className="absolute left-0 bottom-[50%] transform-[translate(0,50%)] text-white font-[700] text-[1.5rem] ml-[20px]">
-              {data.name}
+            <div className="absolute left-0 bottom-[50%] transform-[translate(0,50%)] font-[700] text-[1.8rem] ml-[20px]">
+              {name}
             </div>
             <Image
-              src={'/javascriptCategory.png'}
-              alt={data.name}
+              src={imageSrc ?? '/image-not-found.png'}
+              alt={name}
               width={1000}
               height={200}
-              className="object-cover object-center w-full h-auto"
+              className="object-contain object-center w-full h-auto"
             />
           </PhotoContainer>
           {!isPreview && (
@@ -44,18 +52,18 @@ export const Category: FC<{ _id: TCategoryId; isPreview?: boolean }> = ({
               <ContentContainer>
                 <div>
                   <span className="uppercase text-[0.9rem] text-muted">Topics</span>
-                  <div className="font-[700] text-[1.5rem]">{data.topicsCount}</div>
+                  <div className="font-[700] text-[1.5rem]">{topicsCount}</div>
                 </div>
                 <div>
                   <span className="uppercase text-[0.9rem] text-muted">Last activity</span>
-                  <div className="font-[700] text-[1.5rem]">{dayjs(data.lastActivity).toNow()}</div>
+                  <div className="font-[700] text-[1.5rem]">{dayjs(lastActivity).toNow()}</div>
                 </div>
               </ContentContainer>
-              {data.lastTopicId && <LastTopic topic_id={data.lastTopicId} />}
+              {lastTopicId && <LastTopic topic_id={lastTopicId} />}
             </Fragment>
           )}
         </Container>
-      )}
-    </Body>
-  );
+      </Body>
+    );
+  }
 };

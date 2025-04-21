@@ -1,7 +1,7 @@
 import { getEnvVar } from '@shared/lib';
 import { randomUUID } from 'crypto';
 import { MongoClient } from 'mongodb';
-import { runsTriggers } from './triggers';
+import { runTriggers } from './_triggers/run-triggers';
 
 export const getClient = () => {
   const client = new MongoClient(getEnvVar('MONGO_DB_URL'), {
@@ -24,4 +24,4 @@ const connectToDatabase = async () => {
 };
 
 connectToDatabase();
-runsTriggers();
+runTriggers();

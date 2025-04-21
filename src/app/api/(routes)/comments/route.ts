@@ -1,7 +1,7 @@
-import { checkAuthAccessToken } from '@app/api/check-auth-access-token';
+import { checkAuthAccessToken } from '@app/api/_lib/check-auth-access-token';
 import { getClient } from '@app/api/db';
 import { errorCatchingApiHandlerDecorator } from '@app/api/error-catching-api-handler-decorator';
-import { FiltersDataResponse, IFilterQueryParams } from '@app/api/filters-data-response';
+import { FiltersDataResponse, IFilterQueryParams } from '@app/api/_model/filters-data-response';
 import { CommentSchema, IComment, TTopicId } from '@entities/Topic';
 import { NextRequest, NextResponse } from 'next/server';
 

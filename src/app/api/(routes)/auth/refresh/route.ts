@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import { getClient } from '@app/api/db';
-import { createAccessToken } from '@app/api/create-access-token';
+import { createAccessToken } from '@app/api/_lib/create-access-token';
 import { IUser } from '@entities/User';
 import { getEnvVar } from '@shared/lib';
 import { errorCatchingApiHandlerDecorator } from '@app/api/error-catching-api-handler-decorator';

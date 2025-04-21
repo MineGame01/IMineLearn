@@ -2,7 +2,7 @@ import { FC, Fragment, InputHTMLAttributes, ReactNode, useId, useState } from 'r
 import { twMerge } from 'tailwind-merge';
 
 interface IProps extends InputHTMLAttributes<HTMLInputElement> {
-  value: string;
+  value?: string;
   label?: string;
   helperText?: ReactNode;
   isError?: boolean;
@@ -22,7 +22,7 @@ export const Input: FC<IProps> = ({
   const inputId = useId();
   const [isFocus, setIsFocus] = useState(false);
 
-  const isEmpty = value.length === 0;
+  const isEmpty = !value;
 
   const animation = 'transition-top duration-200 ease-in-out';
 

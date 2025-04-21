@@ -1,6 +1,6 @@
 import { getClient } from '@app/api/db';
 import { errorCatchingApiHandlerDecorator } from '@app/api/error-catching-api-handler-decorator';
-import { FiltersDataResponse, IFilterQueryParams } from '@app/api/filters-data-response';
+import { FiltersDataResponse, IFilterQueryParams } from '@app/api/_model/filters-data-response';
 import { ICategory } from '@entities/Category';
 import { FindOptions } from 'mongodb';
 import { NextRequest, NextResponse } from 'next/server';

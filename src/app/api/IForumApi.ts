@@ -90,5 +90,7 @@ export interface IForumApi {
       Pick<ILoginCredentials, 'refresh_token'>
     >;
     getConsoleParam: createEndpoint<string | number | boolean, { field: string }>;
+    createCategory: createEndpoint<null, Pick<ICategory, 'name'> & { image_base64: string | null }>;
+    deleteCategory: createEndpoint<null, { category_id: TCategoryId }>;
   };
 }
