@@ -3,13 +3,20 @@ import { Category, SkeletonCategory } from '@features/Category';
 import { useGetCategoriesQuery } from '@app/api';
 import { getServerErrorMessage } from '@shared/model';
 import { Button } from '@shared/ui';
-import { CreateCategoryModal } from '@widgets/CreateCategoryModal';
+import { useAppSelector } from '@app/lib';
+import { selectAuthUserInfo } from '@widgets/LoginModal';
+import dynamic from 'next/dynamic';
+
+const MemoCreateCategoryModal = dynamic(async () =>
+  import('@widgets/CreateCategoryModal').then((file) => file.CreateCategoryModal)
+);
 
 export const CategoriesList: FC = () => {
   const { data, isError, isLoading, error } = useGetCategoriesQuery({
     return_ids_only: true,
   });
   const [showCreateCategoryModal, setShowCreateCategoryModal] = useState(false);
+  const { is_admin } = useAppSelector(selectAuthUserInfo);
 
   const errorMessage = getServerErrorMessage(error);
 
@@ -23,14 +30,18 @@ export const CategoriesList: FC = () => {
 
   return (
     <div>
-      <Button
-        variant="contained"
-        className="w-auto"
-        onClick={() => setShowCreateCategoryModal(true)}
-      >
-        New Category
-      </Button>
-      <CreateCategoryModal open={showCreateCategoryModal} close={closeCreateCategoryModal} />
+      {is_admin && (
+        <Button
+          variant="contained"
+          className="w-auto"
+          onClick={() => setShowCreateCategoryModal(true)}
+        >
+          New Category
+        </Button>
+      )}
+      {is_admin && (
+        <MemoCreateCategoryModal open={showCreateCategoryModal} close={closeCreateCategoryModal} />
+      )}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-[50px]">
         {data &&
           Array.isArray(data) &&
