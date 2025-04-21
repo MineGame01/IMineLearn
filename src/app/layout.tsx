@@ -10,6 +10,11 @@ import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { ForumApi } from './api';
 import { TechWorkPage } from './tech-work-page';
+import { Inter } from 'next/font/google';
+
+const InterFont = Inter({
+  display: 'swap',
+});
 
 const RootLayout: FC<{ children: ReactNode }> = ({ children }) => {
   const storeRef = useRef<TStore | null>(null);
@@ -53,7 +58,7 @@ const RootLayout: FC<{ children: ReactNode }> = ({ children }) => {
   }, []);
 
   return (
-    <html lang="en">
+    <html lang="en" className={InterFont.className}>
       <head>
         <title>IMineLearn</title>
       </head>
