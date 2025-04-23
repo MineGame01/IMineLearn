@@ -1,9 +1,12 @@
 import { FC } from 'react';
 import { Category } from '@features/Category';
 import { CreateCategoryToolbar } from './create-category-toolbar';
+import { getEnvVar } from '@shared/lib';
 
 export const CategoriesList: FC = async () => {
-  const response = await fetch('http://localhost:3000/api/categories?return_ids_only=true');
+  const response = await fetch(
+    `${getEnvVar('NEXT_PUBLIC_REST_API_URL')}/categories?return_ids_only=true`
+  );
   const data = (await response.json()) as string[] | { message: string };
 
   if (!response.ok) {
