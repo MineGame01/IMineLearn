@@ -17,7 +17,9 @@ interface IProps {
 
 export const Category: FC<IProps> = async ({ _id }) => {
   const response = await fetch(
-    `${getEnvVar('NEXT_PUBLIC_REST_API_URL')}/category?category_id=${_id}`
+    `${getEnvVar('NEXT_PUBLIC_REST_API_URL')}/category?category_id=${_id}`, {
+      cache: "no-store"
+    }
   );
   const data = (await response.json()) as ICategory | { message: string };
 
