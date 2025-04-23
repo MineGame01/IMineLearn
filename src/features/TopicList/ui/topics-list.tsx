@@ -92,11 +92,13 @@ export const TopicsList: FC<{ categoryId: TCategoryId }> = ({ categoryId }) => {
     <div>
       <div className="my-2 flex items-center flex-wrap">
         <Input
-          isError={isError}
-          value={searchContent}
-          onChange={(event) => {
-            setSearchContent(event.target.value);
+          inputAttr={{
+            value: searchContent,
+            onChange: (event) => {
+              setSearchContent(event.target.value);
+            },
           }}
+          isError={isError}
           label={'Title'}
           helperText={isError ? <span>{errorMessage}</span> : undefined}
         />

@@ -1,3 +1,4 @@
+'use client';
 import React, { ChangeEvent, FC, FormEvent, useState } from 'react';
 import { TTypeAuth } from '@widgets/LoginModal/model/TTypeAuth.ts';
 import { useAppDispatch, useAppSelector } from '@app/lib';
@@ -63,30 +64,36 @@ export const AuthForm: FC<{
     <form onSubmit={handleSubmitAuth} className="*:mt-3">
       {typeAuth === 'registration' && (
         <Input
-          type={'text'}
-          required={true}
+          inputAttr={{
+            type: 'text',
+            required: true,
+            value: username,
+            onChange: (event) => handleChangeState(event, 'username'),
+          }}
           label={'Username'}
-          value={username}
-          onChange={(event) => handleChangeState(event, 'username')}
           helperText={isAuthError ? <span>Please check username for uniqueness</span> : undefined}
         />
       )}
       <Input
-        autoFocus={true}
-        value={email}
-        onChange={(event) => handleChangeState(event, 'email')}
-        type="email"
-        required={true}
+        inputAttr={{
+          autoFocus: true,
+          value: email,
+          onChange: (event) => handleChangeState(event, 'email'),
+          type: 'email',
+          required: true,
+        }}
         isError={isAuthError}
         label={'Email'}
         helperText={isAuthError ? <span>Please check that your email is correct</span> : undefined}
       />
       <div className="relative">
         <Input
-          value={password}
-          onChange={(event) => handleChangeState(event, 'password')}
-          type={isVisibilityPassword ? 'text' : 'password'}
-          required={true}
+          inputAttr={{
+            value: password,
+            onChange: (event) => handleChangeState(event, 'password'),
+            type: isVisibilityPassword ? 'text' : 'password',
+            required: true,
+          }}
           isError={isAuthError}
           label={'Password'}
           helperText={isAuthError ? <span>Please check your password</span> : undefined}
@@ -103,14 +110,16 @@ export const AuthForm: FC<{
       </div>
       {typeAuth === 'registration' && (
         <Input
-          value={passwordRepeated}
-          onChange={(event) => {
-            handleChangeState(event, 'passwordRepeated');
+          inputAttr={{
+            value: passwordRepeated,
+            onChange: (event) => {
+              handleChangeState(event, 'passwordRepeated');
+            },
+            type: isVisibilityPassword ? 'text' : 'password',
+            required: true,
           }}
-          type={isVisibilityPassword ? 'text' : 'password'}
           label={'Repeat password'}
           isError={!isPasswordsMatch}
-          required={true}
           helperText={!isPasswordsMatch ? <span>Passwords don't match</span> : undefined}
         />
       )}

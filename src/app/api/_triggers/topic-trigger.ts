@@ -25,18 +25,22 @@ export const topicTrigger = async () => {
   changeStream?.close();
   changeStream = _changeStream;
 
+  const getCategoryTopicCount = async (category_id: TCategoryId) => {
+    return (await topicsCollection.find({ category_id }).toArray()).length;
+  };
+
   const updateCategoryAfterInsertTopic: TChangeHandle = async (change) => {
     if (change.operationType === 'insert') {
-      const insertTopic = change.fullDocument;
-      const topicsLength = (await topicsCollection.find().toArray()).length;
+      const insertedTopic = change.fullDocument;
+      const countTopicCategory = await getCategoryTopicCount(insertedTopic.category_id);
 
       await categoriesCollection.updateOne(
-        { _id: insertTopic.category_id },
+        { _id: insertedTopic.category_id },
         {
           $set: {
-            lastTopicId: insertTopic._id,
-            lastActivity: insertTopic.created_at,
-            topicsCount: topicsLength,
+            lastTopicId: insertedTopic._id,
+            lastActivity: insertedTopic.created_at,
+            topicsCount: countTopicCategory,
           },
         }
       );
@@ -47,20 +51,20 @@ export const topicTrigger = async () => {
     if (change.operationType === 'delete') {
       const deletedTopic = change.fullDocumentBeforeChange;
 
-      const updateCategory = async (_id: TCategoryId) => {
-        const lastTopic = await topicsCollection.findOne({
-          category_id: _id,
+      const updateCategory = async (category_id: TCategoryId) => {
+        const lastTopicCategory = await topicsCollection.findOne({
+          category_id: category_id,
           created_at: { $lt: new Date().getTime() },
         });
-        const topicsLength = (await topicsCollection.find({ category_id: _id }).toArray()).length;
+        const countTopicCategory = await getCategoryTopicCount(category_id);
 
         await categoriesCollection.updateOne(
-          { _id },
+          { _id: category_id },
           {
             $set: {
-              lastTopicId: lastTopic ? lastTopic._id : null,
-              lastActivity: lastTopic ? lastTopic.created_at : null,
-              topicsCount: topicsLength,
+              lastTopicId: lastTopicCategory ? lastTopicCategory._id : null,
+              lastActivity: lastTopicCategory ? lastTopicCategory.created_at : null,
+              topicsCount: countTopicCategory,
             },
           }
         );
@@ -121,15 +125,7 @@ export const topicTrigger = async () => {
   };
 
   changeStream.on('change', (change) => {
-    switch (change.operationType) {
-      case 'insert': {
-        handleInsert(change);
-        return;
-      }
-      case 'delete': {
-        handleDelete(change);
-        return;
-      }
-    }
+    handleInsert(change);
+    handleDelete(change);
   });
 };

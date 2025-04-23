@@ -1,61 +1,53 @@
-import { FC, Fragment } from 'react';
-import { TCategoryId } from '@entities/Category';
+import { FC, Suspense } from 'react';
+import { ICategory, TCategoryId } from '@entities/Category';
 import dayjs from 'dayjs';
 import relativeTimePlugin from 'dayjs/plugin/relativeTime';
-import { useGetCategoriesQuery } from '@app/api';
 import { Body } from '@features/Category/ui/body';
 import { Container } from '@features/Category/ui/container';
-import { PhotoContainer } from '@features/Category/ui/photo-container';
+import { CategoryPhotoContainer } from '@features/Category/ui/category-photo-container';
 import { ContentContainer } from '@features/Category/ui/content-container';
 import { LastTopic } from '@features/Category/ui/last-topic';
-import Image from 'next/image';
-import { SkeletonCategory } from './skeleton-category';
 
 dayjs.extend(relativeTimePlugin);
 
-export const Category: FC<{ _id: TCategoryId; isPreview?: boolean }> = ({
-  _id,
-  isPreview = false,
-}) => {
-  const { data, isLoading } = useGetCategoriesQuery({ category_id: _id });
+interface IProps {
+  _id: TCategoryId;
+}
 
-  if (isLoading && !isPreview) {
-    return <SkeletonCategory />;
+export const Category: FC<IProps> = async ({ _id }) => {
+  const response = await fetch(`http://localhost:3000/api/category?category_id=${_id}`);
+  const data = (await response.json()) as ICategory | { message: string };
+
+  if (!response.ok) {
+    const errorMessage = 'message' in data && data.message;
+
+    return <Body href={'/category/' + _id}>{errorMessage}</Body>;
   }
 
-  return (
-    <Body href={'/category/' + _id} isPreview={isPreview}>
-      {data && !Array.isArray(data) && (
+  if (data && !('message' in data)) {
+    const { image_base64_415x, name, lastTopicId, lastActivity, topicsCount } = data;
+
+    const image_src = image_base64_415x ? `data:image/png;base64,${image_base64_415x}` : null;
+
+    return (
+      <Body href={'/category/' + _id}>
         <Container>
-          <PhotoContainer>
-            <div className="absolute left-0 bottom-[50%] transform-[translate(0,50%)] text-white font-[700] text-[1.5rem] ml-[20px]">
-              {data.name}
+          <CategoryPhotoContainer categoryName={name} src={image_src} />
+          <ContentContainer>
+            <div>
+              <span className="uppercase text-[0.9rem] text-muted">Topics</span>
+              <div className="font-[700] text-[1.5rem]">{topicsCount}</div>
             </div>
-            <Image
-              src={'/javascriptCategory.png'}
-              alt={data.name}
-              width={1000}
-              height={200}
-              className="object-cover object-center w-full h-auto"
-            />
-          </PhotoContainer>
-          {!isPreview && (
-            <Fragment>
-              <ContentContainer>
-                <div>
-                  <span className="uppercase text-[0.9rem] text-muted">Topics</span>
-                  <div className="font-[700] text-[1.5rem]">{data.topicsCount}</div>
-                </div>
-                <div>
-                  <span className="uppercase text-[0.9rem] text-muted">Last activity</span>
-                  <div className="font-[700] text-[1.5rem]">{dayjs(data.lastActivity).toNow()}</div>
-                </div>
-              </ContentContainer>
-              {data.lastTopicId && <LastTopic topic_id={data.lastTopicId} />}
-            </Fragment>
-          )}
+            <div>
+              <span className="uppercase text-[0.9rem] text-muted">Last activity</span>
+              <div className="font-[700] text-[1.5rem]">{dayjs(lastActivity).toNow()}</div>
+            </div>
+          </ContentContainer>
+          <Suspense fallback={<div>Loading...</div>}>
+            {lastTopicId && <LastTopic topic_id={lastTopicId} />}
+          </Suspense>
         </Container>
-      )}
-    </Body>
-  );
+      </Body>
+    );
+  }
 };

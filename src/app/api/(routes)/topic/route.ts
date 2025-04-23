@@ -1,7 +1,7 @@
 import { getClient } from '@app/api/db';
 import { ITopic, TopicSchema, TTopicId } from '@entities/Topic';
 import { NextRequest, NextResponse } from 'next/server';
-import { checkAuthAccessToken } from '@app/api/check-auth-access-token';
+import { checkAuthAccessToken } from '@app/api/_lib/check-auth-access-token';
 import { ICategory } from '@entities/Category';
 import { errorCatchingApiHandlerDecorator } from '@app/api/error-catching-api-handler-decorator';
 

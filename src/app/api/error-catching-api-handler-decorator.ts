@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { TApiHandler } from './api-handler.type';
+import { TApiHandler } from './_model/api-handler.type';
 
 export const errorCatchingApiHandlerDecorator =
   async (handler: TApiHandler, statusCode?: number) => async (request: NextRequest) => {

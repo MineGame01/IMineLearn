@@ -14,6 +14,7 @@ export const AppLogo: FC<{
       width={width}
       height={height}
       className={className}
+      priority
     />
   );
 };

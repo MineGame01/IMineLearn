@@ -1,30 +1,28 @@
 import { FC } from 'react';
-import Image from "next/image"
-import { TTopicId } from '@entities/Topic';
-import { useGetTopicByIdQuery } from '@app/api';
+import Image from 'next/image';
+import { ITopic, TTopicId } from '@entities/Topic';
 
 interface IProps {
-    topic_id: TTopicId
+  topic_id: TTopicId;
 }
 
-export const LastTopic: FC<IProps> = ({ topic_id }) => {
-  const {data, isLoading, isError} = useGetTopicByIdQuery(topic_id)
+export const LastTopic: FC<IProps> = async ({ topic_id }) => {
+  const response = await fetch(`http://localhost:3000/api/topic?topic_id=${topic_id}`);
+  const data = (await response.json()) as ITopic | { message: string };
 
-  if (isError) {
-    return <div>Error</div>
+  if (!response.ok) {
+    const errorMessage = 'message' in data && data.message;
+
+    return <div>{errorMessage ?? 'Unknown Error!'}</div>;
   }
 
-  if (isLoading) {
-    return <div>Loading...</div>
-  }
-
-  if (data) {
+  if (data && !('message' in data)) {
     return (
-      <div className='grow-1 basis-full'>
+      <div className="grow-1 basis-full">
         <span className="uppercase text-[0.9rem] text-muted">Last Topic</span>
         <div className="flex items-center gap-[13px] mt-[10px]">
           <div className="rounded-full overflow-hidden">
-          <Image width="42" height="42" src={'/defaultUser.png'} alt={'User'} />
+            <Image width="42" height="42" src={'/defaultUser.png'} alt={'User'} />
           </div>
           <div className="font-[600]">{data.title}</div>
         </div>

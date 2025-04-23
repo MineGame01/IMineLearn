@@ -3,8 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { IUser, UserSchema } from '@entities/User';
 import { getClient } from '@app/api/db';
-import { createAccessToken } from '@app/api/create-access-token';
-import { createRefreshToken } from '@app/api/create-refresh-token';
+import { createAccessToken } from '@app/api/_lib/create-access-token';
+import { createRefreshToken } from '@app/api/_lib/create-refresh-token';
 import { errorCatchingApiHandlerDecorator } from '@app/api/error-catching-api-handler-decorator';
 
 interface IBodyRequest {

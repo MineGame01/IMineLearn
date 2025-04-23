@@ -1,3 +1,4 @@
+'use client';
 import { FC, useState } from 'react';
 import { GreetingUser } from '@widgets/LoginModal/ui/greeting-user';
 import { AuthForm } from '@widgets/LoginModal/ui/auth-form';

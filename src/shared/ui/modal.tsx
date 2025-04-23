@@ -1,3 +1,4 @@
+'use client';
 import { FC, Fragment, ReactNode, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { twMerge } from 'tailwind-merge';

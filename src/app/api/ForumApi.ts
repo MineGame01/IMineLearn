@@ -6,7 +6,13 @@ import { selectAuthAccessToken } from '@widgets/LoginModal';
 
 export const ForumApi = createApi({
   reducerPath: 'api',
-  tagTypes: ['refetch-topics', 'refetch-comment', 'refetch-reports', 'refetch-reactions'],
+  tagTypes: [
+    'refetch-topics',
+    'refetch-comment',
+    'refetch-reports',
+    'refetch-reactions',
+    'refetch-categories',
+  ],
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.NEXT_PUBLIC_REST_API_URL,
     prepareHeaders(headers, { getState }) {
@@ -149,6 +155,7 @@ export const ForumApi = createApi({
           return '/categories';
         }
       },
+      providesTags: ['refetch-categories'],
     }),
     login: builder.mutation<
       IForumApi['endpoints']['login']['dataResponse'],
@@ -186,6 +193,28 @@ export const ForumApi = createApi({
     >({
       query: (bodyRequest) => `/console?${getUrlParams(bodyRequest)}`,
     }),
+    createCategory: builder.mutation<
+      IForumApi['endpoints']['createCategory']['dataResponse'],
+      IForumApi['endpoints']['createCategory']['bodyRequest']
+    >({
+      query: (bodyRequest) => ({
+        url: '/category',
+        method: 'POST',
+        body: bodyRequest,
+      }),
+      invalidatesTags: ['refetch-categories'],
+    }),
+    deleteCategory: builder.mutation<
+      IForumApi['endpoints']['deleteCategory']['dataResponse'],
+      IForumApi['endpoints']['deleteCategory']['bodyRequest']
+    >({
+      query: (bodyRequest) => ({
+        url: '/category',
+        method: 'DELETE',
+        body: bodyRequest,
+      }),
+      invalidatesTags: ['refetch-categories'],
+    }),
   }),
 });
 
@@ -207,4 +236,6 @@ export const {
   useDeleteReportMutation,
   useAddReactionMutation,
   useGetReactionsQuery,
+  useCreateCategoryMutation,
+  useDeleteCategoryMutation,
 } = ForumApi;
