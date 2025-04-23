@@ -1,3 +1,4 @@
+'use client';
 import { useDeleteCategoryMutation } from '@app/api';
 import { TCategoryId } from '@entities/Category';
 import { getServerErrorMessage } from '@shared/model';

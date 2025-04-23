@@ -1,3 +1,4 @@
+'use client';
 import { AnimatePresence } from 'motion/react';
 import { FC, ReactNode, RefObject, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';

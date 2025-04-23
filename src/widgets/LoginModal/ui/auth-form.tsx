@@ -1,3 +1,4 @@
+'use client';
 import React, { ChangeEvent, FC, FormEvent, useState } from 'react';
 import { TTypeAuth } from '@widgets/LoginModal/model/TTypeAuth.ts';
 import { useAppDispatch, useAppSelector } from '@app/lib';

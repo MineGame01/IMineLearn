@@ -1,3 +1,4 @@
+'use client';
 import { TCategoryId } from '@entities/Category';
 import { IconButton } from '@shared/ui';
 import { FC, useState } from 'react';
