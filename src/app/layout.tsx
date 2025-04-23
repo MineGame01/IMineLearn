@@ -1,9 +1,9 @@
 'use client';
+import './ui/styles/default.css';
 import React, { useEffect, FC, ReactNode, useRef, useState, StrictMode } from 'react';
 import { authLogin } from '@widgets/LoginModal';
 import { Provider } from 'react-redux';
 import { makeStore, TStore } from './../app/model';
-import './ui/styles/default.css';
 import { Header } from '@widgets/Header';
 import { domAnimation, LazyMotion } from 'motion/react';
 import { Analytics } from '@vercel/analytics/react';
@@ -14,6 +14,7 @@ import { Inter } from 'next/font/google';
 
 const InterFont = Inter({
   display: 'swap',
+  subsets: ['cyrillic', 'latin'],
 });
 
 const RootLayout: FC<{ children: ReactNode }> = ({ children }) => {
