@@ -9,7 +9,10 @@ interface IProps {
 
 export const LastTopic: FC<IProps> = async ({ topic_id }) => {
   const response = await fetch(
-    `${getEnvVar('NEXT_PUBLIC_REST_API_URL')}/topic?topic_id=${topic_id}`
+    `${getEnvVar('NEXT_PUBLIC_REST_API_URL')}/topic?topic_id=${topic_id}`,
+    {
+      cache: 'no-store',
+    }
   );
   const data = (await response.json()) as ITopic | { message: string };
 

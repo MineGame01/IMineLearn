@@ -5,7 +5,10 @@ import { getEnvVar } from '@shared/lib';
 
 export const CategoriesList: FC = async () => {
   const response = await fetch(
-    `${getEnvVar('NEXT_PUBLIC_REST_API_URL')}/categories?return_ids_only=true`
+    `${getEnvVar('NEXT_PUBLIC_REST_API_URL')}/categories?return_ids_only=true`,
+    {
+      cache: 'no-store',
+    }
   );
   const data = (await response.json()) as string[] | { message: string };
 
