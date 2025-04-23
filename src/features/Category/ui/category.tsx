@@ -7,6 +7,7 @@ import { Container } from '@features/Category/ui/container';
 import { CategoryPhotoContainer } from '@features/Category/ui/category-photo-container';
 import { ContentContainer } from '@features/Category/ui/content-container';
 import { LastTopic } from '@features/Category/ui/last-topic';
+import { getEnvVar } from '@shared/lib';
 
 dayjs.extend(relativeTimePlugin);
 
@@ -15,7 +16,9 @@ interface IProps {
 }
 
 export const Category: FC<IProps> = async ({ _id }) => {
-  const response = await fetch(`http://localhost:3000/api/category?category_id=${_id}`);
+  const response = await fetch(
+    `${getEnvVar('NEXT_PUBLIC_REST_API_URL')}/category?category_id=${_id}`
+  );
   const data = (await response.json()) as ICategory | { message: string };
 
   if (!response.ok) {

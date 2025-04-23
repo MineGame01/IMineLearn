@@ -1,13 +1,16 @@
 import { FC } from 'react';
 import Image from 'next/image';
 import { ITopic, TTopicId } from '@entities/Topic';
+import { getEnvVar } from '@shared/lib';
 
 interface IProps {
   topic_id: TTopicId;
 }
 
 export const LastTopic: FC<IProps> = async ({ topic_id }) => {
-  const response = await fetch(`http://localhost:3000/api/topic?topic_id=${topic_id}`);
+  const response = await fetch(
+    `${getEnvVar('NEXT_PUBLIC_REST_API_URL')}/topic?topic_id=${topic_id}`
+  );
   const data = (await response.json()) as ITopic | { message: string };
 
   if (!response.ok) {
