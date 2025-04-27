@@ -4,7 +4,7 @@ import { UserIdSchema } from '@entities/User';
 import { CategoryIdSchema } from '@entities/Category';
 
 export const TopicSchema = Joi.object<ITopic>({
-  title: Joi.string().alphanum().min(MIN_TOPIC_TITLE_LENGTH).max(MAX_TOPIC_TITLE_LENGTH).required(),
+  title: Joi.string().min(MIN_TOPIC_TITLE_LENGTH).max(MAX_TOPIC_TITLE_LENGTH).required(),
   content: Joi.string().required(),
   category_id: CategoryIdSchema.required(),
   user_id: UserIdSchema.required(),
