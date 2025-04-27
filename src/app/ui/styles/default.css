@@ -39,7 +39,7 @@
     --color-alert-bg: #fff3cd;         /* Фон для сообщений предупреждений */
     --color-alert-text: #856404;       /* Текст предупреждений */
 
-    --radius-border-default: 10px;
+    --radius-border-default: 7px;
 }
 
 body {
