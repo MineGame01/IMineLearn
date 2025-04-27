@@ -19,6 +19,7 @@
     "@vercel/speed-insights": "^1.2.0",
     "classnames": "^2.5.1",
     "dayjs": "^1.11.13",
+    "firebase": "^11.6.1",
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.15.0",

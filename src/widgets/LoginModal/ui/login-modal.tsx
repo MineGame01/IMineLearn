@@ -2,7 +2,7 @@ import { FC, memo } from 'react';
 import { Modal } from '@shared/ui';
 import dynamic from 'next/dynamic';
 
-const LazyContentModal = dynamic(() => import('./content-modal.tsx').then(el => el.ContentModal))
+const LazyContentModal = dynamic(() => import('./content-modal.tsx').then((el) => el.ContentModal));
 
 export const LoginModal: FC<{
   isOpen: boolean;
@@ -10,7 +10,7 @@ export const LoginModal: FC<{
 }> = memo(({ isOpen = false, onClose }) => {
   return (
     <Modal open={isOpen} onClose={onClose}>
-      <LazyContentModal />
+      <LazyContentModal onClose={onClose} />
     </Modal>
   );
 });

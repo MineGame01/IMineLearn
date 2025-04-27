@@ -8,18 +8,21 @@ import { Header } from '@widgets/Header';
 import { domAnimation, LazyMotion } from 'motion/react';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
-import { ForumApi } from './api';
 import { TechWorkPage } from './tech-work-page';
 import { Inter } from 'next/font/google';
+import { getDatabase, ref, onValue } from 'firebase/database';
+import { twMerge } from 'tailwind-merge';
 
 const InterFont = Inter({
   display: 'swap',
   subsets: ['cyrillic', 'latin'],
 });
 
+type TIsTechWork = null | boolean;
+
 const RootLayout: FC<{ children: ReactNode }> = ({ children }) => {
   const storeRef = useRef<TStore | null>(null);
-  const [isTechWork, setIsTechWork] = useState(false);
+  const [isTechWork, setIsTechWork] = useState<TIsTechWork>(null);
 
   if (!storeRef.current) {
     storeRef.current = makeStore();
@@ -29,37 +32,22 @@ const RootLayout: FC<{ children: ReactNode }> = ({ children }) => {
     if (storeRef.current) {
       const store = storeRef.current;
 
-      store.dispatch(authLogin(null, null, null, 'checkSession'));
-      const actionGetConsoleParamCreator = ForumApi.endpoints.getConsoleParam.initiate;
+      let isTechWork: TIsTechWork = null;
 
-      const getIsTechWork = async () => {
-        try {
-          const value = await store
-            .dispatch(actionGetConsoleParamCreator({ field: 'tech_work' }))
-            .unwrap();
-          setIsTechWork(value as boolean);
-        } catch (error) {
-          if (error instanceof Error) {
-            console.error(error.message);
-          } else {
-            throw error;
-          }
-        }
-      };
+      const db = getDatabase();
+      const techWorkRef = ref(db, '/tech_work');
+      onValue(techWorkRef, (snapshot) => {
+        const data = snapshot.val() as boolean;
+        setIsTechWork(data);
+        isTechWork = data;
+      });
 
-      void getIsTechWork();
-
-      setInterval(
-        () => {
-          void getIsTechWork();
-        },
-        1000 * 60 * 5
-      );
+      isTechWork === false && store.dispatch(authLogin(null, null, null, 'checkSession'));
     }
-  }, []);
+  }, [setIsTechWork]);
 
   return (
-    <html lang="en" className={InterFont.className}>
+    <html lang="en" className={(twMerge(InterFont.className), 'text-[1rem] lg:text-[initial]')}>
       <head>
         <title>IMineLearn</title>
       </head>
@@ -67,7 +55,7 @@ const RootLayout: FC<{ children: ReactNode }> = ({ children }) => {
         <Analytics />
         <SpeedInsights />
         <StrictMode>
-          {!isTechWork && (
+          {isTechWork === false && (
             <Provider store={storeRef.current}>
               <LazyMotion features={domAnimation} strict>
                 <Header />
@@ -75,7 +63,7 @@ const RootLayout: FC<{ children: ReactNode }> = ({ children }) => {
               </LazyMotion>
             </Provider>
           )}
-          {isTechWork && <TechWorkPage />}
+          {isTechWork === true && <TechWorkPage />}
         </StrictMode>
       </body>
     </html>

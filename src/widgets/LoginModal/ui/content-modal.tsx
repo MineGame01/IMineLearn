@@ -1,18 +1,28 @@
 'use client';
-import { FC, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 import { GreetingUser } from '@widgets/LoginModal/ui/greeting-user';
 import { AuthForm } from '@widgets/LoginModal/ui/auth-form';
 import { ButtonChangeTypeAuth } from '@widgets/LoginModal/ui/button-change-type-auth';
 import { TTypeAuth } from '@widgets/LoginModal/model/TTypeAuth.ts';
-import { useAppSelector } from '@app/lib';
-import { selectAuthIsLoading } from '@widgets/LoginModal';
 import * as m from 'motion/react-m';
 import { AnimatePresence } from 'motion/react';
 import { AppLogo } from '@shared/ui';
+import { useAppSelector } from '@app/lib';
+import { selectAuthAccessToken } from '../model/authSlice';
 
-export const ContentModal: FC = () => {
+interface IProps {
+  onClose: () => void;
+}
+
+export const ContentModal: FC<IProps> = ({ onClose }) => {
   const [typeAuth, setTypeAuth] = useState<TTypeAuth>('login');
-  const authIsLoading = useAppSelector(selectAuthIsLoading);
+  const authAccessToken = useAppSelector(selectAuthAccessToken);
+
+  useEffect(() => {
+    if (authAccessToken) {
+      onClose();
+    }
+  }, [authAccessToken]);
 
   return (
     <div className="p-5">
@@ -27,7 +37,6 @@ export const ContentModal: FC = () => {
         >
           <GreetingUser typeAuth={typeAuth} />
           <AuthForm typeAuth={typeAuth} />
-          {authIsLoading && <div>Loading...</div>}
           <ButtonChangeTypeAuth
             typeAuth={typeAuth}
             onClickChangeTypeAuth={() => {

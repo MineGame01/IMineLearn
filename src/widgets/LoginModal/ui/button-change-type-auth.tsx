@@ -10,9 +10,14 @@ export const ButtonChangeTypeAuth: FC<{
 }> = ({ onClickChangeTypeAuth, typeAuth }) => {
   const authIsLoading = useAppSelector(selectAuthIsLoading);
 
+  const content = {
+    login: "Don't have an account?",
+    registration: 'Do you have an account?',
+  };
+
   return (
     <Button className="mt-[10px]" onClick={onClickChangeTypeAuth} disabled={authIsLoading}>
-      {typeAuth === "registration" ? "Do you have an account?" : "Don't have an account?"}
+      {content[typeAuth]}
     </Button>
   );
 };

@@ -21,7 +21,7 @@ export const CategoriesList: FC = async () => {
   return (
     <div>
       <CreateCategoryToolbar />
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-[50px]">
+      <div className="grid grid-cols-1 p-1 lg-p-2 lg:grid-cols-3 gap-[20px] lg:gap-[50px]">
         {data &&
           Array.isArray(data) &&
           data.map((categoryId) => <Category key={categoryId} _id={categoryId} />)}
