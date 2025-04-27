@@ -11,6 +11,7 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 import { TechWorkPage } from './tech-work-page';
 import { Inter } from 'next/font/google';
 import { getDatabase, ref, onValue } from 'firebase/database';
+import { twMerge } from 'tailwind-merge';
 
 const InterFont = Inter({
   display: 'swap',
@@ -46,7 +47,7 @@ const RootLayout: FC<{ children: ReactNode }> = ({ children }) => {
   }, [setIsTechWork]);
 
   return (
-    <html lang="en" className={InterFont.className}>
+    <html lang="en" className={(twMerge(InterFont.className), 'text-[1rem] lg:text-[initial]')}>
       <head>
         <title>IMineLearn</title>
       </head>

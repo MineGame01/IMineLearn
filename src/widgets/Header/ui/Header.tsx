@@ -32,7 +32,7 @@ export const Header: FC = () => {
   };
 
   return (
-    <div className="h-[50px]">
+    <div className="h-[50px] bg-surface">
       <div className="px-[20px] h-full flex items-center justify-between">
         <Link href={'/'}>
           <AppLogo theme="dark" />

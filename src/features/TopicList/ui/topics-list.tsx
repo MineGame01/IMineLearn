@@ -1,4 +1,4 @@
-import { FC, useState, useCallback, useRef, ChangeEventHandler, ChangeEvent, useMemo } from 'react';
+import { FC, useState, useCallback, useRef, useMemo } from 'react';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { TDatePickerState } from '@features/TopicList/model/TDatePickerState.ts';
@@ -90,7 +90,7 @@ export const TopicsList: FC<{ categoryId: TCategoryId }> = ({ categoryId }) => {
 
   return (
     <div>
-      <div className="my-2 flex items-center flex-wrap">
+      <div className="my-2 flex px-1 lg:px-0 items-center flex-wrap">
         <Input
           inputAttr={{
             value: searchContent,
@@ -99,7 +99,8 @@ export const TopicsList: FC<{ categoryId: TCategoryId }> = ({ categoryId }) => {
             },
           }}
           isError={isError}
-          label={'Title'}
+          label={'Search...'}
+          className="grow-1"
           helperText={isError ? <span>{errorMessage}</span> : undefined}
         />
         <Button
@@ -146,7 +147,7 @@ export const TopicsList: FC<{ categoryId: TCategoryId }> = ({ categoryId }) => {
           )}
         </LocalizationProvider>
         <Button
-          className="w-auto ml-auto"
+          className="lg:w-auto mt-2 lg:mt-0 lg:ml-auto"
           variant="contained"
           onClick={() => setOpenTopicCreateModal(true)}
         >
