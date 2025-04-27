@@ -10,6 +10,8 @@ export const TechWorkPage: FC = () => {
           alt="Gear Loading Png"
           width={200}
           height={200}
+          unoptimized
+          priority
         />
       </div>
       <h1 className="font-bold mt-5 text-3xl">Sorry, technical work is in progress...</h1>
