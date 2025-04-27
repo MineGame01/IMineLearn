@@ -123,11 +123,7 @@ export const AuthForm: FC<{
           helperText={!isPasswordsMatch ? <span>Passwords don't match</span> : undefined}
         />
       )}
-      <ButtonSubmitAuth
-        authIsLoading={authIsLoading}
-        typeAuth={typeAuth}
-        disabled={typeAuth === 'registration' ? !isPasswordsMatch : false}
-      />
+      <ButtonSubmitAuth loading={authIsLoading} typeAuth={typeAuth} />
       {isAuthError && <div className="text-center text-error mt-2">{authError}</div>}
     </form>
   );
