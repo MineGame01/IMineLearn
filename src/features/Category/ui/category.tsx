@@ -8,6 +8,7 @@ import { CategoryPhotoContainer } from '@features/Category/ui/category-photo-con
 import { ContentContainer } from '@features/Category/ui/content-container';
 import { LastTopic } from '@features/Category/ui/last-topic';
 import { getEnvVar } from '@shared/lib';
+import { IServerErrorResponse } from '@shared/model';
 
 dayjs.extend(relativeTimePlugin);
 
@@ -17,16 +18,17 @@ interface IProps {
 
 export const Category: FC<IProps> = async ({ _id }) => {
   const response = await fetch(
-    `${getEnvVar('NEXT_PUBLIC_REST_API_URL')}/category?category_id=${_id}`, {
-      cache: "no-store"
+    `${getEnvVar('NEXT_PUBLIC_REST_API_URL')}/category?category_id=${_id}`,
+    {
+      cache: 'no-store',
     }
   );
-  const data = (await response.json()) as ICategory | { message: string };
+  const data = (await response.json()) as ICategory | IServerErrorResponse;
 
   if (!response.ok) {
     const errorMessage = 'message' in data && data.message;
 
-    return <Body href={'/category/' + _id}>{errorMessage}</Body>;
+    return <Body href={'/category/' + _id}>{errorMessage || response.statusText}</Body>;
   }
 
   if (data && !('message' in data)) {
@@ -48,7 +50,7 @@ export const Category: FC<IProps> = async ({ _id }) => {
               <div className="font-[700] text-[1.5rem]">{dayjs(lastActivity).toNow()}</div>
             </div>
           </ContentContainer>
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<div></div>}>
             {lastTopicId && <LastTopic topic_id={lastTopicId} />}
           </Suspense>
         </Container>
