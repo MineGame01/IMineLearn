@@ -29,22 +29,20 @@ const RootLayout: FC<{ children: ReactNode }> = ({ children }) => {
   }
 
   useEffect(() => {
+    const db = getDatabase();
+    const techWorkRef = ref(db, '/tech_work');
+    onValue(techWorkRef, (snapshot) => {
+      const data = snapshot.val() as boolean;
+      setIsTechWork(data);
+    });
+  }, [setIsTechWork]);
+
+  useEffect(() => {
     if (storeRef.current) {
       const store = storeRef.current;
-
-      let isTechWork: TIsTechWork = null;
-
-      const db = getDatabase();
-      const techWorkRef = ref(db, '/tech_work');
-      onValue(techWorkRef, (snapshot) => {
-        const data = snapshot.val() as boolean;
-        setIsTechWork(data);
-        isTechWork = data;
-      });
-
-      isTechWork === false && store.dispatch(authLogin(null, null, null, 'checkSession'));
+      store.dispatch(authLogin(null, null, null, 'checkSession'));
     }
-  }, [setIsTechWork]);
+  }, []);
 
   return (
     <html lang="en" className={(twMerge(InterFont.className), 'text-[1rem] lg:text-[initial]')}>
