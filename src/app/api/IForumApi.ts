@@ -1,4 +1,11 @@
-import { IComment, ITopic, TTopicContent, TTopicId, TTopicTitle } from '@entities/Topic';
+import {
+  IComment,
+  ITopic,
+  TCommentId,
+  TTopicContent,
+  TTopicId,
+  TTopicTitle,
+} from '@entities/Topic';
 import { ICategory, TCategoryId } from '@entities/Category';
 import { IAuthUser, TUserEmail, TUserId, TUserUserName } from '@entities/User';
 import { IReport } from '@entities/Report';
@@ -64,7 +71,7 @@ export interface IForumApi {
       }
     >;
     deleteTopic: createEndpoint<null, { topic_id: TTopicId }>;
-    getCommentById: createEndpoint<IComment, { comment_id: TTopicId }>;
+    getCommentById: createEndpoint<IComment, TCommentId>;
     sendReport: createEndpoint<
       null,
       Pick<IReport, 'content' | 'reason' | 'target_id' | 'target_type'>
@@ -92,5 +99,6 @@ export interface IForumApi {
     getConsoleParam: createEndpoint<string | number | boolean, { field: string }>;
     createCategory: createEndpoint<null, Pick<ICategory, 'name'> & { image_base64: string | null }>;
     deleteCategory: createEndpoint<null, { category_id: TCategoryId }>;
+    deleteComment: createEndpoint<null, TCommentId>;
   };
 }

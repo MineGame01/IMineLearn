@@ -107,14 +107,7 @@ export const ForumApi = createApi({
       IForumApi['endpoints']['getCommentById']['dataResponse'],
       IForumApi['endpoints']['getCommentById']['bodyRequest']
     >({
-      query: (bodyRequest) => ({
-        url: '/rest/v1/rpc/get_comment_by_id',
-        method: 'POST',
-        body: bodyRequest,
-      }),
-      transformResponse(data: IForumApi['endpoints']['getCommentById']['dataResponse'][]) {
-        return data[0];
-      },
+      query: (comment_id) => `/comment?comment_id=${comment_id}`,
     }),
     sendReport: builder.mutation<
       IForumApi['endpoints']['sendReport']['dataResponse'],
@@ -215,6 +208,17 @@ export const ForumApi = createApi({
       }),
       invalidatesTags: ['refetch-categories'],
     }),
+    deleteComment: builder.mutation<
+      IForumApi['endpoints']['deleteComment']['dataResponse'],
+      IForumApi['endpoints']['deleteComment']['bodyRequest']
+    >({
+      query: (comment_id) => ({
+        url: '/comment',
+        method: 'DELETE',
+        body: { comment_id },
+      }),
+      invalidatesTags: ['refetch-comment'],
+    }),
   }),
 });
 
@@ -238,4 +242,5 @@ export const {
   useGetReactionsQuery,
   useCreateCategoryMutation,
   useDeleteCategoryMutation,
+  useDeleteCommentMutation,
 } = ForumApi;

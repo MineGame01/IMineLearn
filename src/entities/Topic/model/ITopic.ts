@@ -17,11 +17,13 @@ export interface ITopic {
   content: string;
 }
 
-export interface IComment extends Pick<ITopic, '_id' | 'content' | 'created_at' | 'user_id'> {
-  topic_id: TTopicId;
-}
-
 export type TTopicViewsCount = ITopic['views_count'];
 export type TTopicTitle = ITopic['title'];
 export type TTopicId = ITopic['_id'];
 export type TTopicContent = ITopic['content'];
+
+export interface IComment extends Pick<ITopic, '_id' | 'content' | 'created_at' | 'user_id'> {
+  topic_id: TTopicId;
+}
+
+export type TCommentId = IComment['_id'];
