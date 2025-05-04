@@ -26,7 +26,6 @@ export const LastTopic: FC<IProps> = async ({ topic_id }) => {
   if (data && !('message' in data)) {
     return (
       <div className="grow-1 basis-full">
-        <span className="uppercase text-[0.9rem] text-muted">Last Topic</span>
         <div className="flex items-center gap-[13px] mt-[10px]">
           <div className="rounded-full overflow-hidden">
             <Image width="42" height="42" src={'/defaultUser.png'} alt={'User'} />

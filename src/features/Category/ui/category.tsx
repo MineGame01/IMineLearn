@@ -1,4 +1,4 @@
-import { FC, Suspense } from 'react';
+import { FC } from 'react';
 import { ICategory, TCategoryId } from '@entities/Category';
 import dayjs from 'dayjs';
 import relativeTimePlugin from 'dayjs/plugin/relativeTime';
@@ -6,11 +6,21 @@ import { Body } from '@features/Category/ui/body';
 import { Container } from '@features/Category/ui/container';
 import { CategoryPhotoContainer } from '@features/Category/ui/category-photo-container';
 import { ContentContainer } from '@features/Category/ui/content-container';
-import { LastTopic } from '@features/Category/ui/last-topic';
 import { getEnvVar } from '@shared/lib';
 import { IServerErrorResponse } from '@shared/model';
+import { TitleSecondary } from './title-secondary';
+import dynamic from 'next/dynamic';
 
 dayjs.extend(relativeTimePlugin);
+
+const ServerLastTopic = dynamic(
+  async () => import('@features/Category/ui/last-topic').then((file) => file.LastTopic),
+  {
+    loading: () => {
+      return <div>Loading...</div>;
+    },
+  }
+);
 
 interface IProps {
   _id: TCategoryId;
@@ -42,17 +52,21 @@ export const Category: FC<IProps> = async ({ _id }) => {
           <CategoryPhotoContainer categoryName={name} src={image_src} />
           <ContentContainer>
             <div>
-              <span className="uppercase text-[0.9rem] text-muted">Topics</span>
+              <TitleSecondary>Topics</TitleSecondary>
               <div className="font-[700] text-[1.5rem]">{topicsCount}</div>
             </div>
             <div>
-              <span className="uppercase text-[0.9rem] text-muted">Last activity</span>
+              <TitleSecondary>Last activity</TitleSecondary>
               <div className="font-[700] text-[1.5rem]">{dayjs(lastActivity).toNow()}</div>
             </div>
           </ContentContainer>
-          <Suspense fallback={<div></div>}>
-            {lastTopicId && <LastTopic topic_id={lastTopicId} />}
-          </Suspense>
+          <TitleSecondary className="w-full">Last Topic</TitleSecondary>
+          {lastTopicId && <ServerLastTopic topic_id={lastTopicId} />}
+          {!lastTopicId && (
+            <div className="flex items-center">
+              <div className="font-[600]">Latest topic not found</div>
+            </div>
+          )}
         </Container>
       </Body>
     );

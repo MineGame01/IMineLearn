@@ -7,7 +7,7 @@ interface IProps extends HTMLAttributes<HTMLDivElement> {
 
 export const Container: FC<IProps> = ({ children, className, ...props }) => {
   return (
-    <div {...props} className={twMerge('flex flex-wrap p-[30px]', className)}>
+    <div {...props} className={twMerge('flex flex-wrap h-full p-[30px]', className)}>
       {children}
     </div>
   );
