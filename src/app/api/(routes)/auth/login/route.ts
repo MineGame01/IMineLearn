@@ -1,11 +1,11 @@
 import { getClient } from '@app/api/db';
-import { emailAndPasswordSchema } from '@shared/model';
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { createAccessToken } from '@app/api/_lib/create-access-token';
 import { createRefreshToken } from '@app/api/_lib/create-refresh-token';
 import { IUser } from '@entities/User';
 import { errorCatchingApiHandlerDecorator } from '@app/api/error-catching-api-handler-decorator';
+import { AuthSchema } from '@entities/LoginModal';
 
 interface IDataRequest {
   email: string | null;
@@ -22,11 +22,7 @@ const handler = async (request: NextRequest) => {
 
     const { email, password } = body as IDataRequest;
 
-    const {
-      value: loginCredentials,
-      error,
-      warning,
-    } = emailAndPasswordSchema.validate({ password, email });
+    const { value: loginCredentials, error, warning } = AuthSchema.validate({ password, email });
 
     if (error || warning) {
       return NextResponse.json({ message: error?.message ?? warning?.message }, { status: 401 });

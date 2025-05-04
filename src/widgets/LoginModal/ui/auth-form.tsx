@@ -1,5 +1,5 @@
 'use client';
-import React, { ChangeEvent, FC, FormEvent, useState } from 'react';
+import React, { FC, useState } from 'react';
 import { TTypeAuth } from '@widgets/LoginModal/model/TTypeAuth.ts';
 import { useAppDispatch, useAppSelector } from '@app/lib';
 import { authLogin, selectAuthError, selectAuthIsLoading } from '@widgets/LoginModal';
@@ -7,6 +7,16 @@ import { ButtonSubmitAuth } from './button-submit-auth.tsx';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { Input } from '@shared/ui';
+import { SubmitHandler, useForm } from 'react-hook-form';
+import { AuthSchema, RegistrationSchema } from '@entities/LoginModal';
+import { joiResolver } from '@hookform/resolvers/joi';
+
+interface IAuthFormInputs {
+  username: string;
+  email: string;
+  password: string;
+  password_repeated: string;
+}
 
 export const AuthForm: FC<{
   typeAuth: TTypeAuth;
@@ -16,112 +26,105 @@ export const AuthForm: FC<{
   const isAuthError = Boolean(authError);
 
   const dispatch = useAppDispatch();
-  const [username, setUsername] = useState<string>('');
-  const [email, setEmail] = useState<string>('');
-  const [password, setPassword] = useState<string>('');
-  const [passwordRepeated, setPasswordRepeated] = useState<string>('');
   const [isVisibilityPassword, setIsVisibilityPassword] = useState(false);
 
-  const isPasswordsMatch = password === passwordRepeated;
+  const { register, handleSubmit, formState, watch } = useForm<IAuthFormInputs>({
+    mode: 'onChange',
+    defaultValues: {
+      username: '',
+      email: '',
+      password: '',
+      password_repeated: '',
+    },
+    resolver: typeAuth === 'login' ? joiResolver(AuthSchema) : joiResolver(RegistrationSchema),
+  });
 
-  const handleChangeState = (
-    event:
-      | ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-      | FormEvent<HTMLInputElement | HTMLTextAreaElement>,
-    typeChange: 'email' | 'password' | 'passwordRepeated' | 'username'
-  ) => {
-    const valueInput = event.currentTarget.value;
+  const { errors, isValid } = formState;
+  const { email, username, password, password_repeated } = errors;
 
-    switch (typeChange) {
-      case 'username': {
-        setUsername(valueInput);
-        return;
-      }
-      case 'email': {
-        setEmail(valueInput);
-        return;
-      }
-      case 'password': {
-        setPassword(valueInput);
-        return;
-      }
-      case 'passwordRepeated': {
-        setPasswordRepeated(valueInput);
-        return;
-      }
-    }
-  };
+  const isPasswordsMatch = watch('password') === watch('password_repeated');
 
-  const handleSubmitAuth: React.FormEventHandler = (event) => {
-    event.preventDefault();
-
-    if (isPasswordsMatch || typeAuth === 'login') {
+  const onSubmit: SubmitHandler<IAuthFormInputs> = (data) => {
+    console.log(isValid);
+    if (isValid && (isPasswordsMatch || typeAuth === 'login')) {
+      console.log(typeAuth);
+      const { email, password, username } = data;
       dispatch(authLogin(email, password, username, typeAuth));
     }
   };
 
   return (
-    <form onSubmit={handleSubmitAuth} className="*:mt-3">
+    <form onSubmit={handleSubmit(onSubmit)} className="*:mt-3">
       {typeAuth === 'registration' && (
+        <div>
+          <Input
+            inputAttr={{
+              type: 'text',
+              required: true,
+              value: watch('username'),
+              ...register('username'),
+            }}
+            isError={Boolean(username)}
+            label={'Username'}
+            helperText={username ? <span>{username.message}</span> : undefined}
+          />
+        </div>
+      )}
+      <div>
         <Input
           inputAttr={{
-            type: 'text',
+            autoFocus: true,
+            type: 'email',
             required: true,
-            value: username,
-            onChange: (event) => handleChangeState(event, 'username'),
+            value: watch('email'),
+            ...register('email'),
           }}
-          label={'Username'}
-          helperText={isAuthError ? <span>Please check username for uniqueness</span> : undefined}
+          isError={Boolean(email?.message)}
+          label={'Email'}
+          helperText={email ? <span>{email.message}</span> : undefined}
         />
-      )}
-      <Input
-        inputAttr={{
-          autoFocus: true,
-          value: email,
-          onChange: (event) => handleChangeState(event, 'email'),
-          type: 'email',
-          required: true,
-        }}
-        isError={isAuthError}
-        label={'Email'}
-        helperText={isAuthError ? <span>Please check that your email is correct</span> : undefined}
-      />
+      </div>
       <div className="relative">
         <Input
           inputAttr={{
-            value: password,
-            onChange: (event) => handleChangeState(event, 'password'),
             type: isVisibilityPassword ? 'text' : 'password',
             required: true,
+            value: watch('password'),
+            ...register('password'),
           }}
-          isError={isAuthError}
+          isError={Boolean(password)}
           label={'Password'}
-          helperText={isAuthError ? <span>Please check your password</span> : undefined}
+          helperText={password ? <span>{password.message}</span> : undefined}
         />
         <button
           onClick={() => {
             setIsVisibilityPassword(!isVisibilityPassword);
           }}
           type="button"
+          title={isVisibilityPassword ? 'Hide password' : 'Show password'}
           className="absolute top-[50%] right-0 transform-[translate(-50%,-50%)]"
         >
           {isVisibilityPassword ? <VisibilityIcon /> : <VisibilityOffIcon />}
         </button>
       </div>
       {typeAuth === 'registration' && (
-        <Input
-          inputAttr={{
-            value: passwordRepeated,
-            onChange: (event) => {
-              handleChangeState(event, 'passwordRepeated');
-            },
-            type: isVisibilityPassword ? 'text' : 'password',
-            required: true,
-          }}
-          label={'Repeat password'}
-          isError={!isPasswordsMatch}
-          helperText={!isPasswordsMatch ? <span>Passwords don't match</span> : undefined}
-        />
+        <div>
+          <Input
+            inputAttr={{
+              type: isVisibilityPassword ? 'text' : 'password',
+              required: true,
+              value: watch('password_repeated'),
+              ...register('password_repeated'),
+            }}
+            label={'Repeat password'}
+            isError={!isPasswordsMatch || Boolean(password_repeated)}
+            helperText={
+              !isPasswordsMatch || password_repeated ? (
+                <span>{password_repeated?.message ?? "Passwords don't match"}</span>
+              ) : undefined
+            }
+          />
+        </div>
       )}
       <ButtonSubmitAuth loading={authIsLoading} typeAuth={typeAuth} />
       {isAuthError && <div className="text-center text-error mt-2">{authError}</div>}

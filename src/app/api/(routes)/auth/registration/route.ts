@@ -1,4 +1,3 @@
-import { emailAndPasswordSchema } from '@shared/model';
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { IUser, UserSchema } from '@entities/User';
@@ -6,6 +5,7 @@ import { getClient } from '@app/api/db';
 import { createAccessToken } from '@app/api/_lib/create-access-token';
 import { createRefreshToken } from '@app/api/_lib/create-refresh-token';
 import { errorCatchingApiHandlerDecorator } from '@app/api/error-catching-api-handler-decorator';
+import { AuthSchema } from '@entities/LoginModal';
 
 interface IBodyRequest {
   email: string | null;
@@ -38,7 +38,7 @@ const handler = async (request: NextRequest) => {
       error: errorLoginCredentialsValidate,
       warning: warningLoginCredentialsValidate,
       value: loginCredentialsValidate,
-    } = emailAndPasswordSchema.validate({ email, password });
+    } = AuthSchema.validate({ email, password });
 
     if (errorLoginCredentialsValidate || warningLoginCredentialsValidate) {
       return NextResponse.json(

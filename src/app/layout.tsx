@@ -45,7 +45,7 @@ const RootLayout: FC<{ children: ReactNode }> = ({ children }) => {
   }, []);
 
   return (
-    <html lang="en" className={(twMerge(InterFont.className), 'text-[0.9rem] lg:text-[initial]')}>
+    <html lang="en" className={(twMerge(InterFont.className), 'text-[0.9rem] lg:text-[1rem]')}>
       <head>
         <title>IMineLearn</title>
       </head>
