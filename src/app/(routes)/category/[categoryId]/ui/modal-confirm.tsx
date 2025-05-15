@@ -27,20 +27,30 @@ export const ModalConfirm: FC<IProps> = ({ onShowModal, showModalConfirm, catego
     <Modal
       classNameModal="bg-error-bg border-error p-2"
       open={showModalConfirm}
-      onClose={() => onShowModal(false)}
+      onClose={() => {
+        onShowModal(false);
+      }}
     >
       <h1 className="text-error-text font-bold text-2xl">Are you sure?</h1>
       <p className="text-error">This action cannot be undone!</p>
       {errorMessage}
       {isLoading && <div>Deleting...</div>}
       <div className="flex justify-between mt-5">
-        <Button type="button" onClick={() => onShowModal(false)} className="w-auto">
+        <Button
+          type="button"
+          onClick={() => {
+            onShowModal(false);
+          }}
+          className="w-auto"
+        >
           Close
         </Button>
         <Button
           className="w-auto bg-error"
           variant="contained"
-          onClick={() => deleteCategory()}
+          onClick={() => {
+            void deleteCategory();
+          }}
           type="submit"
         >
           Delete

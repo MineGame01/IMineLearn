@@ -3,7 +3,7 @@ export const MAX_USER_USERNAME_LENGTH = 16;
 export const MAX_USER_BIO_LENGTH = 255;
 
 export interface IUser {
-  _id: string;
+  id: string;
   username: string;
   bio: string | null;
   email: string;
@@ -17,7 +17,7 @@ export interface IAuthUser extends Omit<IUser, 'hash_password' | 'salt' | 'email
   email: TUserEmail | null;
 }
 
-export type TUserId = IUser['_id'];
+export type TUserId = IUser['id'];
 export type TUserUserName = IUser['username'];
 export type TUserBio = IUser['bio'];
 export type TUserEmail = IUser['email'];

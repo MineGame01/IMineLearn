@@ -123,7 +123,7 @@ export const ForumApi = createApi({
       IForumApi['endpoints']['getReports']['dataResponse'],
       IForumApi['endpoints']['getReports']['bodyRequest']
     >({
-      query: (bodyRequest) => `/report?${getUrlParams(bodyRequest)}`,
+      query: (bodyRequest) => `/report?${bodyRequest ? getUrlParams(bodyRequest) : ''}`,
       providesTags: ['refetch-reports'],
     }),
     deleteReport: builder.mutation<
@@ -141,14 +141,14 @@ export const ForumApi = createApi({
       IForumApi['endpoints']['getCategories']['dataResponse'],
       IForumApi['endpoints']['getCategories']['bodyRequest']
     >({
-      query: (bodyRequest) => {
-        if (bodyRequest) {
-          return `/categories?${getUrlParams(bodyRequest)}`;
-        } else {
-          return '/categories';
-        }
-      },
+      query: (bodyRequest) => `/categories?${bodyRequest ? getUrlParams(bodyRequest) : ''}`,
       providesTags: ['refetch-categories'],
+    }),
+    getCategoryById: builder.query<
+      IForumApi['endpoints']['getCategoryById']['dataResponse'],
+      IForumApi['endpoints']['getCategoryById']['bodyRequest']
+    >({
+      query: (category_id) => `/category?category_id=${category_id}`,
     }),
     login: builder.mutation<
       IForumApi['endpoints']['login']['dataResponse'],
@@ -243,4 +243,5 @@ export const {
   useCreateCategoryMutation,
   useDeleteCategoryMutation,
   useDeleteCommentMutation,
+  useGetCategoryByIdQuery,
 } = ForumApi;

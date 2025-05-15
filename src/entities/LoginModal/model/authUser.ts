@@ -6,7 +6,7 @@ import { IAuthUser } from '@entities/User';
  * Can be used to generate all properties in another object.
  * */
 export const authUser: IAuthUser & { access_token: string | null } = {
-  _id: 'unknown',
+  id: 'unknown',
   username: 'unknown',
   bio: null,
   email: 'unknown',

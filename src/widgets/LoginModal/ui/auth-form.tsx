@@ -31,10 +31,9 @@ export const AuthForm: FC<{
   const { register, handleSubmit, formState, watch } = useForm<IAuthFormInputs>({
     mode: 'onChange',
     defaultValues: {
-      username: '',
       email: '',
       password: '',
-      password_repeated: '',
+      ...(typeAuth === 'registration' ? { username: '', password_repeated: '' } : {}),
     },
     resolver: typeAuth === 'login' ? joiResolver(AuthSchema) : joiResolver(RegistrationSchema),
   });
@@ -54,6 +53,7 @@ export const AuthForm: FC<{
   };
 
   return (
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     <form onSubmit={handleSubmit(onSubmit)} className="*:mt-3">
       {typeAuth === 'registration' && (
         <div>

@@ -124,10 +124,18 @@ export const TopicsList: FC<{ categoryId: TCategoryId }> = ({ categoryId }) => {
           }}
         >
           <DropdownList>
-            <DropdownItem onClick={() => setTypeSorted('latest')}>
+            <DropdownItem
+              onClick={() => {
+                setTypeSorted('latest');
+              }}
+            >
               <KeyboardArrowUpIcon /> Latest
             </DropdownItem>
-            <DropdownItem onClick={() => setTypeSorted('old')}>
+            <DropdownItem
+              onClick={() => {
+                setTypeSorted('old');
+              }}
+            >
               <KeyboardArrowDownIcon /> Old
             </DropdownItem>
           </DropdownList>
@@ -136,7 +144,9 @@ export const TopicsList: FC<{ categoryId: TCategoryId }> = ({ categoryId }) => {
           <input
             type="checkbox"
             checked={isOpenMoreOptions}
-            onChange={() => changeCheckedMoreOptions(!isOpenMoreOptions)}
+            onChange={() => {
+              changeCheckedMoreOptions(!isOpenMoreOptions);
+            }}
           />
           {isOpenMoreOptions && (
             <MemoDatePickers
@@ -149,7 +159,9 @@ export const TopicsList: FC<{ categoryId: TCategoryId }> = ({ categoryId }) => {
         <Button
           className="lg:w-auto mt-2 lg:mt-0 lg:ml-auto"
           variant="contained"
-          onClick={() => setOpenTopicCreateModal(true)}
+          onClick={() => {
+            setOpenTopicCreateModal(true);
+          }}
         >
           Create Topic
         </Button>

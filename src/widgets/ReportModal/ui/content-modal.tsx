@@ -48,11 +48,11 @@ export const ContentModal: FC<{
   useEffect(() => {
     switch (target_type) {
       case 'comment': {
-        getCommentById();
+        void getCommentById();
         return;
       }
       case 'topic': {
-        getTopicById();
+        void getTopicById();
         return;
       }
     }
@@ -60,7 +60,7 @@ export const ContentModal: FC<{
 
   const isFetching = isFetchingGetTopic || isFetchingGetComment;
   const isLoading = isLoadingGetComment || isLoadingGetTopic;
-  const reportContent = dataTopic?.title || dataComment?.content;
+  const reportContent = dataTopic?.title ?? dataComment?.content;
 
   const errorMessageGetTopic = getServerErrorMessage(errorGetTopic);
   const errorMessageGetComment = getServerErrorMessage(errorGetComment);
@@ -70,11 +70,11 @@ export const ContentModal: FC<{
   const handleClickReload = () => {
     switch (target_type) {
       case 'comment': {
-        getCommentById();
+        void getCommentById();
         return;
       }
       case 'topic': {
-        getTopicById();
+        void getTopicById();
         return;
       }
     }

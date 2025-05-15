@@ -15,10 +15,10 @@ export const LastTopic: FC<IProps> = async ({ topic_id }) => {
       cache: 'no-store',
     }
   );
-  const data = (await response.json()) as ITopic | IServerErrorResponse;
+  const data = (await response.json()) as ITopic | IServerErrorResponse | undefined;
 
   if (!response.ok) {
-    const errorMessage = 'message' in data && data.message;
+    const errorMessage = data ? 'message' in data && data.message : 'Unknown error!';
 
     return <div>{errorMessage || response.statusText}</div>;
   }

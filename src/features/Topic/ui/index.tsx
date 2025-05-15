@@ -1,11 +1,11 @@
 'use client';
-import { FC, Fragment, useEffect, useState } from 'react';
+import { FC, Fragment, useState } from 'react';
 import { TTopicId } from '@entities/Topic';
 import {
   useCreateCommentMutation,
   useGetCommentsByTopicIdQuery,
   useGetTopicByIdQuery,
-  useLazyGetUserQuery,
+  useGetUserQuery,
 } from '@app/api';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
@@ -30,14 +30,16 @@ interface IProps {
 
 export const Topic: FC<IProps> = ({ topic_id }) => {
   const {
-    data: topics,
-    isError: isErrorTopics,
-    isLoading: isLoadingTopics,
+    data: topic,
+    isError: isErrorTopic,
+    isLoading: isLoadingTopic,
   } = useGetTopicByIdQuery(topic_id);
-  const [
-    getUser,
-    { data: user, isLoading: isLoadingUser, isError: isErrorUser, error: errorUser },
-  ] = useLazyGetUserQuery();
+  const {
+    data: user,
+    isLoading: isLoadingUser,
+    isError: isErrorUser,
+    error: errorUser,
+  } = useGetUserQuery({ user_id: topic ? topic.user_id : ' ' }, { skip: !topic });
   const {
     data: comments,
     isError: isErrorComments,
@@ -50,22 +52,16 @@ export const Topic: FC<IProps> = ({ topic_id }) => {
   const errorMessageUser = getServerErrorMessage(errorUser),
     errorMessageComments = getServerErrorMessage(errorComments);
 
-  useEffect(() => {
-    if (topics) {
-      getUser({ user_id: topics.user_id });
-    }
-  }, [topics]);
-
-  if (isLoadingTopics) {
+  if (isLoadingTopic) {
     return <SkeletonTopic />;
   }
 
-  if (isErrorTopics) {
+  if (isErrorTopic) {
     return <div>Error</div>;
   }
 
-  if (topics) {
-    const { title, created_at, content } = topics;
+  if (topic) {
+    const { title, created_at, content, user_id } = topic;
 
     return (
       <article className="mt-5">
@@ -91,6 +87,7 @@ export const Topic: FC<IProps> = ({ topic_id }) => {
           </section>
           <ActionBar
             topic_id={topic_id}
+            user_id_topic={user_id}
             showComments={showComments}
             setShowComments={setShowComments}
           />
@@ -106,7 +103,7 @@ export const Topic: FC<IProps> = ({ topic_id }) => {
                   exit={{ height: 0 }}
                 >
                   {comments.map((comment) => (
-                    <MemoComment key={comment._id} {...comment} />
+                    <MemoComment key={comment.id} {...comment} />
                   ))}
                 </m.div>
               )}
@@ -118,14 +115,16 @@ export const Topic: FC<IProps> = ({ topic_id }) => {
         <Input
           inputAttr={{
             value: contentComment,
-            onChange: (event) => setContentComment(event.target.value),
+            onChange: (event) => {
+              setContentComment(event.target.value);
+            },
           }}
           label="Comment"
         />
         <Button
           variant="contained"
           onClick={() => {
-            createComments({ content: contentComment, topic_id });
+            void createComments({ content: contentComment, topic_id });
           }}
         >
           Create comment

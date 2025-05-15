@@ -46,10 +46,11 @@ export const Header: FC = () => {
                 <Button
                   className="w-auto"
                   variant={'contained'}
-                  disabled={false}
-                  onClick={() => setIsOpenLoginModal(true)}
+                  onClick={() => {
+                    setIsOpenLoginModal(true);
+                  }}
                 >
-                  {false ? 'Logined' : 'Login'}
+                  Login
                 </Button>
               </Fragment>
             )}
@@ -60,7 +61,9 @@ export const Header: FC = () => {
                 </div>
                 <button
                   ref={showUserMenuButton}
-                  onClick={() => setShowUserMenu(true)}
+                  onClick={() => {
+                    setShowUserMenu(true);
+                  }}
                   className="ml-2"
                 >
                   {username}
@@ -68,7 +71,9 @@ export const Header: FC = () => {
                 <MemoDropdown
                   open={showUserMenu}
                   anchorEl={showUserMenuButton}
-                  close={() => setShowUserMenu(false)}
+                  close={() => {
+                    setShowUserMenu(false);
+                  }}
                 >
                   <DropdownList>
                     <DropdownItem>

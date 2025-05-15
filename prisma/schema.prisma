@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("MONGO_DB_URL")
+}
+
+/// This collection uses a JSON Schema defined in the database, which requires additional setup for migrations. Visit https://pris.ly/d/mongodb-json-schema for more info.
+model categories {
+  id                 String  @id @default(uuid()) @map("_id")
+  image_base64_1200x String?
+  image_base64_415x  String?
+  lastActivity       Int?
+  lastTopicId        String?
+  name               String  @unique
+  topicsCount        Int     @default(0)
+}
+
+/// This collection uses a JSON Schema defined in the database, which requires additional setup for migrations. Visit https://pris.ly/d/mongodb-json-schema for more info.
+model comments {
+  id         String @id @default(uuid()) @map("_id")
+  content    String
+  created_at Int?
+  topic_id   String
+  user_id    String
+}
+
+/// This collection uses a JSON Schema defined in the database, which requires additional setup for migrations. Visit https://pris.ly/d/mongodb-json-schema for more info.
+model reactions {
+  id            String @id @default(uuid()) @map("_id")
+  created_at    Int?
+  topic_id      String
+  type_reaction String
+  user_id       String
+}
+
+/// This collection uses a JSON Schema defined in the database, which requires additional setup for migrations. Visit https://pris.ly/d/mongodb-json-schema for more info.
+model reports {
+  id          String @id @default(uuid()) @map("_id")
+  content     String
+  created_at  Int?
+  reason      String
+  target_id   String
+  target_type String
+  user_id     String
+}
+
+/// This collection uses a JSON Schema defined in the database, which requires additional setup for migrations. Visit https://pris.ly/d/mongodb-json-schema for more info.
+model topics {
+  id          String @id @default(uuid()) @map("_id")
+  category_id String
+  content     String
+  created_at  Int?
+  title       String
+  user_id     String
+  views_count Int    @default(0)
+}
+
+/// This collection uses a JSON Schema defined in the database, which requires additional setup for migrations. Visit https://pris.ly/d/mongodb-json-schema for more info.
+model users {
+  id            String  @id @default(uuid()) @map("_id")
+  bio           String?
+  created_at    Int?
+  email         String  @unique
+  hash_password String
+  is_admin      Boolean @default(false)
+  salt          String
+  username      String  @unique
+}

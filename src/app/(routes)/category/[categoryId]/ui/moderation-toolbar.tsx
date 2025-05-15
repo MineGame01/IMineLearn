@@ -13,7 +13,9 @@ export const ModerationToolbar: FC<{ category_id: TCategoryId }> = ({ category_i
       <h1 className="text-error-text font-bold text-2xl">Danger Zone</h1>
       <section>
         <IconButton
-          onClick={() => setShowModalConfirm(true)}
+          onClick={() => {
+            setShowModalConfirm(true);
+          }}
           title="Delete Category"
           className="text-error"
         >

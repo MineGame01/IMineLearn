@@ -29,7 +29,8 @@
       "@features/*": ["./src/features/*"],
       "@widgets/*": ["./src/widgets/*"],
       "@pages/*": ["./src/pages/*"],
-      "@app/*": ["./src/app/*"]
+      "@app/*": ["./src/app/*"],
+      "@prisma/*": ["./generated/prisma/*"]
     },
     "strictNullChecks": true
   },
@@ -38,7 +39,7 @@
     ".next/types/**/*.ts",
     "**/*.ts",
     "**/*.tsx"
-  ],
+, "jest.config.js"  ],
   "exclude": [
     "node_modules"
   ]

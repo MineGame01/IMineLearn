@@ -1,9 +1,9 @@
 import { checkAuthAccessToken } from '@app/api/_lib/check-auth-access-token';
-import { getClient } from '@app/api/db';
 import { errorCatchingApiHandlerDecorator } from '@app/api/error-catching-api-handler-decorator';
 import { FiltersDataResponse, IFilterQueryParams } from '@app/api/_model/filters-data-response';
-import { CommentSchema, IComment, TTopicId } from '@entities/Topic';
+import { IComment, TTopicId } from '@entities/Topic';
 import { NextRequest, NextResponse } from 'next/server';
+import { getPrisma } from '@app/api/_prisma/get-prisma';
 
 interface IRequestQuery
   extends Pick<IFilterQueryParams, 'limit_count' | 'offset_count' | 'return_ids_only'> {
@@ -11,11 +11,12 @@ interface IRequestQuery
 }
 
 const handlerGet = async (request: NextRequest) => {
-  const client = getClient();
+  const prisma = getPrisma();
   try {
-    await client.connect();
+    await prisma.$connect();
     const searchParams = request.nextUrl.searchParams;
 
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     const { getFilterQueryParams } = new FiltersDataResponse();
 
     const queryParams: IRequestQuery = {
@@ -25,70 +26,59 @@ const handlerGet = async (request: NextRequest) => {
 
     const { topic_id, return_ids_only, limit_count, offset_count } = queryParams;
 
-    if (!topic_id || topic_id.length < 24) {
+    if (!topic_id) {
       return NextResponse.json({ message: 'Query param topic_id is required!' }, { status: 400 });
     }
 
-    const commentsCollection = client.db('db').collection<IComment>('comments');
+    const topic = await prisma.topics.findFirst({ where: { id: topic_id } });
 
-    const commentsFind = commentsCollection.find(
-      { topic_id },
-      {
-        limit: limit_count,
-        skip: offset_count,
-      }
-    );
+    if (!topic) {
+      return NextResponse.json({ message: 'Topic not found!' }, { status: 404 });
+    }
+
+    const find_options = {
+      where: { topic_id },
+      take: limit_count,
+      skip: offset_count,
+    };
 
     if (return_ids_only) {
       return NextResponse.json<string[]>(
-        await commentsFind.map((comment) => comment._id).toArray()
+        (await prisma.comments.findMany(find_options)).map((comment) => comment.id)
       );
     }
 
-    return NextResponse.json<IComment[]>(await commentsFind.toArray());
+    return NextResponse.json<IComment[]>(await prisma.comments.findMany(find_options));
   } finally {
-    await client.close();
+    await prisma.$disconnect();
   }
 };
 
 export const GET = await errorCatchingApiHandlerDecorator(handlerGet);
 
 interface IDataRequest {
-  topic_id: TTopicId | null;
-  content: IComment['content'] | null;
+  topic_id: TTopicId;
+  content: IComment['content'];
 }
 
 const handlerPost = await checkAuthAccessToken(async (request: NextRequest) => {
-  const client = getClient();
+  const prisma = getPrisma();
   try {
-    await client.connect();
-    const body = await request.json();
+    await prisma.$connect();
+    const body = (await request.json()) as IDataRequest;
     const authUser = request.auth;
 
     if (!authUser) {
       return;
     }
 
-    const { topic_id, content } = body as IDataRequest;
-    const { _id } = authUser;
+    const { topic_id, content } = body;
+    const { id: auth_user_id } = authUser;
 
-    const {
-      error: errorCommentValidate,
-      warning: warningCommentValidate,
-      value: commentValidate,
-    } = CommentSchema.validate({ content, user_id: _id, topic_id });
-
-    if (errorCommentValidate || warningCommentValidate) {
-      return NextResponse.json(
-        { message: errorCommentValidate?.message ?? warningCommentValidate?.message },
-        { status: 400 }
-      );
-    }
-
-    await client.db('db').collection<IComment>('comments').insertOne(commentValidate);
+    await prisma.comments.create({ data: { topic_id, content, user_id: auth_user_id } });
     return NextResponse.json(null);
   } finally {
-    await client.close();
+    await prisma.$disconnect();
   }
 });
 

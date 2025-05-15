@@ -1,21 +1,25 @@
-import { getClient } from '@app/api/db';
+import { getPrisma } from '@app/api/_prisma/get-prisma';
 import { errorCatchingApiHandlerDecorator } from '@app/api/error-catching-api-handler-decorator';
-import { IUser } from '@entities/User';
+import { TUserId } from '@entities/User';
 import { NextRequest, NextResponse } from 'next/server';
 
+interface IRequestQuery {
+  user_id: TUserId | undefined;
+}
+
 const handlerGet = async (request: NextRequest) => {
-  const client = getClient();
+  const prisma = getPrisma();
   try {
-    await client.connect();
+    await prisma.$connect();
     const searchParams = request.nextUrl.searchParams;
 
-    const user_id = searchParams.get('user_id');
+    const user_id = searchParams.get('user_id') as IRequestQuery['user_id'];
 
     if (!user_id) {
       return NextResponse.json({ message: 'Query params user_id is required!' }, { status: 400 });
     }
 
-    const user = await client.db('db').collection<IUser>('users').findOne({ _id: user_id });
+    const user = await prisma.users.findFirst({ where: { id: user_id } });
 
     if (user) {
       return NextResponse.json({
@@ -27,7 +31,7 @@ const handlerGet = async (request: NextRequest) => {
       return NextResponse.json({ message: 'User not found!' }, { status: 400 });
     }
   } finally {
-    await client.close();
+    await prisma.$disconnect();
   }
 };
 

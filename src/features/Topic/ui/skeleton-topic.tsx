@@ -26,7 +26,7 @@ export const SkeletonTopic: FC = () => {
       </div>
       <div>
         {skeletonLinesWidths.map((width) => (
-          <Skeleton key={width} className="w-auto mt-3" style={{ width: width + '%' }} />
+          <Skeleton key={width} className="w-auto mt-3" style={{ width: String(width) + '%' }} />
         ))}
       </div>
     </div>

@@ -5,9 +5,8 @@ import { useParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { useAppSelector } from '@app/lib';
 import { selectAuthUserInfo } from '@widgets/LoginModal';
-import { useGetCategoriesQuery } from '@app/api';
+import { useGetCategoryByIdQuery } from '@app/api';
 import { getServerErrorMessage } from '@shared/model';
-import { ICategory } from '@entities/Category';
 import { CategoryPhotoContainer } from '@features/Category';
 
 const MemoModerationToolbar = dynamic(async () =>
@@ -23,7 +22,8 @@ const CategoryPage: FC = () => {
     isLoading,
     isError,
     error,
-  } = useGetCategoriesQuery({ category_id: category_id }, { skip: !category_id });
+    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+  } = useGetCategoryByIdQuery(category_id as string, { skip: !category_id });
 
   const errorMessage = getServerErrorMessage(error);
 
@@ -36,15 +36,15 @@ const CategoryPage: FC = () => {
   }
 
   if (category) {
-    const { _id, name, image_base64_1200x } = category as ICategory;
+    const { id, name, image_base64_1200x } = category;
 
     const image_src = image_base64_1200x ? `data:image/png;base64,${image_base64_1200x}` : null;
 
     return (
       <div className="container mx-auto">
         <CategoryPhotoContainer className="m-5" categoryName={name} src={image_src} />
-        {is_admin && <MemoModerationToolbar category_id={_id} />}
-        <TopicsList categoryId={_id} />
+        {is_admin && <MemoModerationToolbar category_id={id} />}
+        <TopicsList categoryId={id} />
       </div>
     );
   }

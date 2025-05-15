@@ -18,7 +18,9 @@ export class FiltersDataResponse {
       ...defaultOptions,
     };
 
-    this.getFilterQueryParams = this.getFilterQueryParams.bind(this);
+    this.getFilterQueryParams = this.getFilterQueryParams.bind(
+      this
+    ) as typeof this.getFilterQueryParams;
   }
 
   getFilterQueryParams(searchParams: URLSearchParams) {
