@@ -74,7 +74,7 @@ const handlerGet = async (request: NextRequest) => {
   }
 };
 
-export const GET = await errorCatchingApiHandlerDecorator(await checkAuthAccessToken(handlerGet));
+export const GET = errorCatchingApiHandlerDecorator(checkAuthAccessToken(handlerGet));
 
 type TDataRequestPost = Pick<IReport, 'target_id' | 'content' | 'reason' | 'target_type'>;
 
@@ -116,7 +116,7 @@ const handlerPost = async (request: NextRequest) => {
   }
 };
 
-export const POST = await errorCatchingApiHandlerDecorator(await checkAuthAccessToken(handlerPost));
+export const POST = errorCatchingApiHandlerDecorator(checkAuthAccessToken(handlerPost));
 
 interface IDataRequestDelete {
   report_id: TReportId | null;
@@ -153,6 +153,4 @@ const handlerDelete = async (request: NextRequest) => {
   }
 };
 
-export const DELETE = await errorCatchingApiHandlerDecorator(
-  await checkAuthAccessToken(handlerDelete)
-);
+export const DELETE = errorCatchingApiHandlerDecorator(checkAuthAccessToken(handlerDelete));

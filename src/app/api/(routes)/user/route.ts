@@ -35,4 +35,4 @@ const handlerGet = async (request: NextRequest) => {
   }
 };
 
-export const GET = await errorCatchingApiHandlerDecorator(handlerGet);
+export const GET = errorCatchingApiHandlerDecorator(handlerGet);

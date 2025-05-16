@@ -54,14 +54,14 @@ const handlerGet = async (request: NextRequest) => {
   }
 };
 
-export const GET = await errorCatchingApiHandlerDecorator(handlerGet);
+export const GET = errorCatchingApiHandlerDecorator(handlerGet);
 
 interface IDataRequest {
   topic_id: TTopicId;
   content: IComment['content'];
 }
 
-const handlerPost = await checkAuthAccessToken(async (request: NextRequest) => {
+const handlerPost = checkAuthAccessToken(async (request: NextRequest) => {
   const prisma = getPrisma();
   try {
     await prisma.$connect();
@@ -82,4 +82,4 @@ const handlerPost = await checkAuthAccessToken(async (request: NextRequest) => {
   }
 });
 
-export const POST = await errorCatchingApiHandlerDecorator(handlerPost);
+export const POST = errorCatchingApiHandlerDecorator(handlerPost);
