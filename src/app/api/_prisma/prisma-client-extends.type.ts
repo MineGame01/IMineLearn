@@ -1,5 +1,5 @@
 import { Prisma } from '@prisma/client';
-import { DynamicClientExtensionThis, InternalArgs } from '@prisma/runtime/library';
+import { DynamicClientExtensionThis, InternalArgs } from '@prisma/client/runtime/library';
 
 export type TPrismaClientExtends = DynamicClientExtensionThis<
   Prisma.TypeMap<

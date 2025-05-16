@@ -2,7 +2,7 @@ import { errorCatchingApiHandlerDecorator } from '@app/api/error-catching-api-ha
 import { FiltersDataResponse, IFilterQueryParams } from '@app/api/_model/filters-data-response';
 import { ITopic } from '@entities/Topic';
 import { NextRequest, NextResponse } from 'next/server';
-import { Prisma } from '@prisma/index';
+import { Prisma } from '@prisma/client';
 import { getPrisma } from '@app/api/_prisma/get-prisma';
 
 interface IRequestQuery extends IFilterQueryParams {
