@@ -5,7 +5,7 @@ export interface IReaction {
   _id: string;
   topic_id: TTopicId;
   user_id: TUserId;
-  type_reaction: 'like';
+  type_reaction: string;
   created_at: number;
 }
 

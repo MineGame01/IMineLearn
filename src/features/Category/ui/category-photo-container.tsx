@@ -11,7 +11,6 @@ interface IProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 export const CategoryPhotoContainer: FC<IProps> = ({
-  children,
   className,
   categoryName,
   categoryNameAttr,

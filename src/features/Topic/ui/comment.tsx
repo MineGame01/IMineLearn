@@ -14,11 +14,11 @@ import DeleteIcon from '@mui/icons-material/Delete';
 
 dayjs.extend(relativeTimePlugin);
 
-export const Comment: FC<IComment> = ({ created_at, content, _id, user_id }) => {
+export const Comment: FC<IComment> = ({ created_at, content, id, user_id }) => {
   const [showReportModal, setShowReportModal] = useState(false);
   const {
     data: user,
-    isLoading: isLoadingUser,
+    isFetching: isFetchingUser,
     isError: isErrorUser,
     error: errorUser,
   } = useGetUserQuery({ user_id });
@@ -26,7 +26,7 @@ export const Comment: FC<IComment> = ({ created_at, content, _id, user_id }) => 
     deleteComment,
     { isLoading: isLoadingDeleteComment, isError: isErrorDeleteComment, error: errorDeleteComment },
   ] = useDeleteCommentMutation();
-  const { is_admin, _id: auth_user_id } = useAppSelector(selectAuthUserInfo);
+  const { is_admin, id: auth_user_id } = useAppSelector(selectAuthUserInfo);
 
   const errorMessageUser = getServerErrorMessage(errorUser),
     errorMessageDeleteComment = getServerErrorMessage(errorDeleteComment);
@@ -36,15 +36,15 @@ export const Comment: FC<IComment> = ({ created_at, content, _id, user_id }) => 
   }, []);
 
   const handleClickDeleteComment = () => {
-    deleteComment(_id);
+    void deleteComment(id);
   };
 
   return (
     <section>
       <div className="flex">
         {isErrorUser && <div>{errorMessageUser}</div>}
-        {isLoadingUser && <div>Loading...</div>}
-        {user && !isLoadingUser && (
+        {isFetchingUser && <div>Loading...</div>}
+        {user && !isFetchingUser && (
           <Fragment>
             <div className="inline-block rounded-full overflow-hidden w-[42px] h-[42px]">
               <Image width={42} height={42} src="/defaultUser.png" alt={user.username} />
@@ -58,25 +58,29 @@ export const Comment: FC<IComment> = ({ created_at, content, _id, user_id }) => 
       </div>
       <div className="mt-1">{content}</div>
       <div className="mt-2 flex items-center">
-        <IconButton title="Report comment" onClick={() => setShowReportModal(true)}>
+        <IconButton
+          title="Report comment"
+          onClick={() => {
+            setShowReportModal(true);
+          }}
+        >
           <ReportGmailerrorredIcon />
         </IconButton>
         <ReportModal
-          target_id={_id}
+          target_id={id}
           target_type="comment"
           open={showReportModal}
           close={closeReportModal}
         />
-        {is_admin ||
-          (auth_user_id === user_id && (
-            <IconButton
-              title="Delete comment"
-              onClick={handleClickDeleteComment}
-              isLoading={isLoadingDeleteComment}
-            >
-              <DeleteIcon />
-            </IconButton>
-          ))}
+        {(is_admin || auth_user_id === user_id) && (
+          <IconButton
+            title="Delete comment"
+            onClick={handleClickDeleteComment}
+            isLoading={isLoadingDeleteComment}
+          >
+            <DeleteIcon />
+          </IconButton>
+        )}
       </div>
       {isErrorDeleteComment && <div>{errorMessageDeleteComment}</div>}
     </section>

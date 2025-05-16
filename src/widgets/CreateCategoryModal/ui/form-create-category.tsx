@@ -8,7 +8,7 @@ export type THandleSubmitCreateCategory = (
   event: FormEvent,
   categoryImage: TStateCategoryImage,
   categoryName: string
-) => void;
+) => void | Promise<void>;
 
 interface IProps {
   onSubmit: THandleSubmitCreateCategory;
@@ -25,7 +25,7 @@ export const FormCreateCategory: FC<IProps> = ({ onSubmit, isError, formId }) =>
   if (formId) FORM_ID = formId;
   const INPUT_IMAGE_CATEGORY_ID = useId();
 
-  const handleChangeImageFile: ChangeEventHandler<HTMLInputElement> = async (event) => {
+  const handleChangeImageFile: ChangeEventHandler<HTMLInputElement> = (event) => {
     const files = event.target.files;
 
     if (files && files.length === 1) {
@@ -41,7 +41,7 @@ export const FormCreateCategory: FC<IProps> = ({ onSubmit, isError, formId }) =>
 
   const handleSubmitCreateCategory: FormEventHandler = (event) => {
     event.preventDefault();
-    onSubmit(event, categoryImage, categoryName);
+    void onSubmit(event, categoryImage, categoryName);
   };
 
   return (

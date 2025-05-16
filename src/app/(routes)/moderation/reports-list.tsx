@@ -10,7 +10,7 @@ export const ReportsList: FC = () => {
   const errorMessage = getServerErrorMessage(error);
 
   const handleClickReloadReports = () => {
-    refetch();
+    void refetch();
   };
 
   return (
@@ -23,7 +23,7 @@ export const ReportsList: FC = () => {
         {isFetching && !isLoading && <div>Reload...</div>}
         {isLoading && <div>Loading...</div>}
         {isError && <div>{errorMessage}</div>}
-        {data && !isLoading && data.map((report) => <Report key={report._id} {...report} />)}
+        {data && !isFetching && data.map((report) => <Report key={report.id} {...report} />)}
       </div>
     </div>
   );

@@ -56,12 +56,16 @@ export const Dropdown: FC<IProps> = ({ anchorEl, children, open, close }) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          onClick={() => close()}
+          onClick={() => {
+            close();
+          }}
           className="absolute z-900 top-0 left-0 w-full h-full"
         >
           <div
-            style={{ top: `${position.top + 45}px`, left: `${position.left}px` }}
-            onClick={(event) => event.stopPropagation()}
+            style={{ top: `${String(position.top + 45)}px`, left: `${String(position.left)}px` }}
+            onClick={(event) => {
+              event.stopPropagation();
+            }}
             className="bg-modal-bg shadow-2xl border-2 origin-top border-modal-border rounded-border-default p-1 absolute min-w-[100px]"
           >
             {children}

@@ -23,22 +23,34 @@ export const DatePickers: FC<{
     <div className="mt-2 flex gap-[10px]">
       <DatePicker
         open={datePickerState.isOpenModalCreatedAtAfter}
-        onOpen={() => changeSettingDatePicker(true, 'isOpenModalCreatedAtAfter')}
-        onClose={() => changeSettingDatePicker(false, 'isOpenModalCreatedAtAfter')}
+        onOpen={() => {
+          changeSettingDatePicker(true, 'isOpenModalCreatedAtAfter');
+        }}
+        onClose={() => {
+          changeSettingDatePicker(false, 'isOpenModalCreatedAtAfter');
+        }}
         label={'Created after'}
         value={dayjs(datePickerState.createdAtAfter)}
         maxDate={dayjs().set('date', dayjs().date() - 1)}
-        onAccept={(value) => changeDatePickerState(value, 'createdAtAfter')}
+        onAccept={(value) => {
+          changeDatePickerState(value, 'createdAtAfter');
+        }}
       />
       <hr />
       <DatePicker
         open={datePickerState.isOpenModalCreatedAtBefore}
-        onOpen={() => changeSettingDatePicker(true, 'isOpenModalCreatedAtBefore')}
-        onClose={() => changeSettingDatePicker(false, 'isOpenModalCreatedAtBefore')}
+        onOpen={() => {
+          changeSettingDatePicker(true, 'isOpenModalCreatedAtBefore');
+        }}
+        onClose={() => {
+          changeSettingDatePicker(false, 'isOpenModalCreatedAtBefore');
+        }}
         label={'Created before'}
         value={dayjs(datePickerState.createdAtBefore)}
         maxDate={dayjs()}
-        onAccept={(value) => changeDatePickerState(value, 'createdAtBefore')}
+        onAccept={(value) => {
+          changeDatePickerState(value, 'createdAtBefore');
+        }}
       />
     </div>
   );

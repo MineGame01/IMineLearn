@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { ICategory, TCategoryId } from '@entities/Category';
+import { ICategory } from '@entities/Category';
 import dayjs from 'dayjs';
 import relativeTimePlugin from 'dayjs/plugin/relativeTime';
 import { Body } from '@features/Category/ui/body';
@@ -22,23 +22,19 @@ const ServerLastTopic = dynamic(
   }
 );
 
-interface IProps {
-  _id: TCategoryId;
-}
-
-export const Category: FC<IProps> = async ({ _id }) => {
+export const Category: FC<Pick<ICategory, 'id'>> = async ({ id }) => {
   const response = await fetch(
-    `${getEnvVar('NEXT_PUBLIC_REST_API_URL')}/category?category_id=${_id}`,
+    `${getEnvVar('NEXT_PUBLIC_REST_API_URL')}/category?category_id=${id}`,
     {
       cache: 'no-store',
     }
   );
-  const data = (await response.json()) as ICategory | IServerErrorResponse;
+  const data = (await response.json()) as ICategory | IServerErrorResponse | undefined;
 
   if (!response.ok) {
-    const errorMessage = 'message' in data && data.message;
+    const errorMessage = data ? 'message' in data && data.message : 'Unknown error!';
 
-    return <Body href={'/category/' + _id}>{errorMessage || response.statusText}</Body>;
+    return <Body href={'/category/' + id}>{errorMessage || response.statusText}</Body>;
   }
 
   if (data && !('message' in data)) {
@@ -47,7 +43,7 @@ export const Category: FC<IProps> = async ({ _id }) => {
     const image_src = image_base64_415x ? `data:image/png;base64,${image_base64_415x}` : null;
 
     return (
-      <Body href={'/category/' + _id}>
+      <Body href={'/category/' + id}>
         <Container>
           <CategoryPhotoContainer categoryName={name} src={image_src} />
           <ContentContainer>

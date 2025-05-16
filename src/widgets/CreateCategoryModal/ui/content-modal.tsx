@@ -27,13 +27,10 @@ export const ContentModal: FC<IProps> = ({ close }) => {
     categoryName
   ) => {
     if (categoryName) {
-      let imageBase64: string | null = null;
-
-      if (categoryImage) {
-        const imageArrayBuffer = await categoryImage.arrayBuffer();
-        imageBase64 = arrayBufferToBase64(imageArrayBuffer);
-      }
-      await createCategory({ image_base64: imageBase64, name: categoryName }).unwrap();
+      await createCategory({
+        image_base64: categoryImage ? arrayBufferToBase64(await categoryImage.arrayBuffer()) : null,
+        name: categoryName,
+      }).unwrap();
       close();
     }
   };

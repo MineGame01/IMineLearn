@@ -49,7 +49,14 @@ const getLoginCredentials = (): Required<ISession> | null => {
   const login_credentials = localStorage.getItem(KEY_LOGIN_CREDENTIALS);
 
   if (login_credentials) {
-    return JSON.parse(login_credentials);
+    const session = JSON.parse(login_credentials) as unknown;
+    if (session && typeof session === 'object') {
+      if ('access_token' in session && 'refresh_token' in session) {
+        if (typeof session.access_token === 'string' && typeof session.refresh_token === 'string') {
+          return session as Required<ISession>;
+        }
+      }
+    }
   }
 
   return null;
@@ -107,36 +114,39 @@ export const authListener = (startAppListening: TStartAppListening) => {
         }
       };
 
-      const subscriptionRefreshAccessToken = async () => {
+      const subscriptionRefreshAccessToken = () => {
         const REFRESH_TIMEOUT = 1000 * 60 * 10;
         if (!idSubscriptionTimeout) {
-          const subscription = async () => {
-            idSubscriptionTimeout = setTimeout(async () => {
-              const loginCredentials = getLoginCredentials();
+          const subscription = () => {
+            idSubscriptionTimeout = setTimeout(() => {
+              const refresh = async () => {
+                const loginCredentials = getLoginCredentials();
 
-              if (loginCredentials) {
-                try {
-                  const { access_token, user_id } = await dispatch(
-                    actionRefreshTokenCreator({
-                      refresh_token: loginCredentials.refresh_token,
-                    })
-                  ).unwrap();
-                  const user = await dispatch(actionGetUserCreator({ user_id })).unwrap();
-                  setLoginCredentials({ access_token });
-                  dispatch(addAuthData({ access_token, ...user }));
-                } catch (error) {
-                  console.error('Failed to refresh access token!', error);
-                } finally {
-                  setTimeout(subscription, REFRESH_TIMEOUT);
+                if (loginCredentials) {
+                  try {
+                    const { access_token, user_id } = await dispatch(
+                      actionRefreshTokenCreator({
+                        refresh_token: loginCredentials.refresh_token,
+                      })
+                    ).unwrap();
+                    const user = await dispatch(actionGetUserCreator({ user_id })).unwrap();
+                    setLoginCredentials({ access_token });
+                    dispatch(addAuthData({ access_token, ...user }));
+                  } catch (error) {
+                    console.error('Failed to refresh access token!', error);
+                  } finally {
+                    setTimeout(subscription, REFRESH_TIMEOUT);
+                  }
+                } else {
+                  console.error('Session not found!');
+                  unSubscriptionRefreshAccessToken();
                 }
-              } else {
-                console.error('Session not found!');
-                unSubscriptionRefreshAccessToken();
-              }
+              };
+              void refresh();
             }, REFRESH_TIMEOUT);
           };
 
-          await subscription();
+          subscription();
         }
       };
 
@@ -155,18 +165,18 @@ export const authListener = (startAppListening: TStartAppListening) => {
         const loginActionCreator = loginEndpoint.initiate;
         const registrationActionCreator = registrationEndpoint.initiate;
 
-        let loginCredentials = await dispatch(
+        const login_credentials = await dispatch(
           typeAuth === 'registration' && username
             ? registrationActionCreator({ email, password, username })
             : loginActionCreator({ email, password })
         ).unwrap();
 
         const user = await dispatch(
-          actionGetUserCreator({ user_id: loginCredentials.user_id })
+          actionGetUserCreator({ user_id: login_credentials.user_id })
         ).unwrap();
-        setLoginCredentials(loginCredentials);
-        dispatch(addAuthData({ access_token: loginCredentials.access_token, ...user }));
-        await subscriptionRefreshAccessToken();
+        setLoginCredentials(login_credentials);
+        dispatch(addAuthData({ access_token: login_credentials.access_token, ...user }));
+        subscriptionRefreshAccessToken();
       };
 
       const catchErrorAuthorization = (error: unknown) => {
@@ -207,7 +217,7 @@ export const authListener = (startAppListening: TStartAppListening) => {
           const user = await dispatch(actionGetUserCreator({ user_id })).unwrap();
           setLoginCredentials({ access_token });
           dispatch(addAuthData({ access_token, ...user }));
-          await subscriptionRefreshAccessToken();
+          subscriptionRefreshAccessToken();
         }
       }
 

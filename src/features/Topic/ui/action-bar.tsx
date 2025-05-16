@@ -19,14 +19,21 @@ import { IconButton } from '@shared/ui';
 import { useAppSelector } from '@app/lib';
 import { selectAuthUserInfo } from '@widgets/LoginModal';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { TUserId } from '@entities/User';
 
 interface IProps {
   topic_id: TTopicId;
+  user_id_topic: TUserId;
   showComments: boolean;
   setShowComments: Dispatch<IProps['showComments']>;
 }
 
-export const ActionBar: FC<IProps> = ({ topic_id, showComments, setShowComments }) => {
+export const ActionBar: FC<IProps> = ({
+  topic_id,
+  user_id_topic,
+  showComments,
+  setShowComments,
+}) => {
   const [
     deleteTopic,
     { isLoading: isLoadingDeleteTopic, isError: isErrorDeleteTopic, error: errorDeleteTopic },
@@ -46,7 +53,7 @@ export const ActionBar: FC<IProps> = ({ topic_id, showComments, setShowComments 
   });
 
   const [showReportModal, setShowReportModal] = useState(false);
-  const { is_admin, _id: user_id } = useAppSelector(selectAuthUserInfo);
+  const { is_admin, id: auth_user_id } = useAppSelector(selectAuthUserInfo);
 
   const route = useRouter();
 
@@ -59,7 +66,7 @@ export const ActionBar: FC<IProps> = ({ topic_id, showComments, setShowComments 
   }, []);
 
   const handleClickDeleteTopic: MouseEventHandler = () => {
-    deleteTopic({ topic_id })
+    void deleteTopic({ topic_id })
       .unwrap()
       .then(() => {
         route.back();
@@ -67,7 +74,7 @@ export const ActionBar: FC<IProps> = ({ topic_id, showComments, setShowComments 
   };
 
   const handleClickAddReaction = (type_reaction: TReactionType) => {
-    addReaction({ topic_id, type_reaction });
+    void addReaction({ topic_id, type_reaction });
   };
 
   return (
@@ -76,13 +83,12 @@ export const ActionBar: FC<IProps> = ({ topic_id, showComments, setShowComments 
         title={'Like'}
         aria-label="Like"
         isLoading={isLoadingAddReaction || isLoadingReactions}
-        onClick={() => handleClickAddReaction('like')}
+        onClick={() => {
+          handleClickAddReaction('like');
+        }}
       >
-        {Boolean(
-          reactions &&
-            reactions.find(
-              (reaction) => reaction.type_reaction === 'like' && reaction.user_id === user_id
-            )
+        {reactions?.find(
+          (reaction) => reaction.type_reaction === 'like' && reaction.user_id === auth_user_id
         ) ? (
           <ThumbUpAltIcon />
         ) : (
@@ -100,7 +106,9 @@ export const ActionBar: FC<IProps> = ({ topic_id, showComments, setShowComments 
         isLoading={isLoadingComments}
         aria-expanded={showComments || undefined}
         aria-controls={showComments ? 'comments-topic' : undefined}
-        onClick={() => setShowComments(!showComments)}
+        onClick={() => {
+          setShowComments(!showComments);
+        }}
       >
         {showComments ? <CommentsDisabledIcon /> : <CommentIcon />}
         {comments ? <span className="ml-1">{comments.length}</span> : undefined}
@@ -109,7 +117,9 @@ export const ActionBar: FC<IProps> = ({ topic_id, showComments, setShowComments 
         className="ml-full"
         title={'Report topic'}
         aria-label="Report topic"
-        onClick={() => setShowReportModal(true)}
+        onClick={() => {
+          setShowReportModal(true);
+        }}
       >
         <ReportGmailerrorredIcon />
       </IconButton>
@@ -119,7 +129,7 @@ export const ActionBar: FC<IProps> = ({ topic_id, showComments, setShowComments 
         open={showReportModal}
         close={closeReportModal}
       />
-      {is_admin && (
+      {(is_admin || user_id_topic === auth_user_id) && (
         <IconButton
           title="Delete topic"
           aria-label="Delete topic"
