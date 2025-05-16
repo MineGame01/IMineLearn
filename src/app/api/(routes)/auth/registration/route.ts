@@ -1,104 +1,33 @@
-import { emailAndPasswordSchema } from '@shared/model';
 import { NextRequest, NextResponse } from 'next/server';
-import crypto from 'crypto';
-import { IUser, UserSchema } from '@entities/User';
-import { getClient } from '@app/api/db';
 import { createAccessToken } from '@app/api/_lib/create-access-token';
 import { createRefreshToken } from '@app/api/_lib/create-refresh-token';
 import { errorCatchingApiHandlerDecorator } from '@app/api/error-catching-api-handler-decorator';
+import { getPrisma } from '@app/api/_prisma/get-prisma';
 
-interface IBodyRequest {
+interface IDataRequest {
   email: string | null;
   password: string | null;
   username: string | null;
 }
 
-const errorStatusCode = 401;
-
 const handler = async (request: NextRequest) => {
-  const client = getClient();
+  const prisma = getPrisma();
   try {
-    await client.connect();
-    const body = await request.json();
+    await prisma.$connect();
+    const body = (await request.json()) as IDataRequest;
 
-    const { email, password, username } = body as IBodyRequest;
+    const { email, password, username } = body;
 
-    const usersCollection = client.db('db').collection<IUser>('users');
-
-    if (username) {
-      const user = await usersCollection.findOne({ username });
-      if (user) {
-        return NextResponse.json({ message: 'Username already in use!' }, { status: 401 });
-      }
-    } else {
-      return NextResponse.json({ message: 'Username is required!' }, { status: 401 });
-    }
-
-    const {
-      error: errorLoginCredentialsValidate,
-      warning: warningLoginCredentialsValidate,
-      value: loginCredentialsValidate,
-    } = emailAndPasswordSchema.validate({ email, password });
-
-    if (errorLoginCredentialsValidate || warningLoginCredentialsValidate) {
-      return NextResponse.json(
-        {
-          message:
-            errorLoginCredentialsValidate?.message ?? warningLoginCredentialsValidate?.message,
-        },
-        { status: 401 }
-      );
-    }
-
-    const salt = crypto.randomBytes(16).toString('hex');
-
-    const derivedKey = async () => {
-      return new Promise<Buffer<ArrayBufferLike>>((resolve, reject) => {
-        crypto.pbkdf2(
-          loginCredentialsValidate.password,
-          salt,
-          1000,
-          64,
-          'sha512',
-          async (error, derivedKey) => {
-            if (error) reject(error);
-            else resolve(derivedKey);
-          }
-        );
-      });
-    };
-
-    const hashPassword = (await derivedKey()).toString('hex');
-
-    const {
-      error: errorUserValidate,
-      warning: warningUserValidate,
-      value: userValidate,
-    } = UserSchema.validate({
-      username,
-      email: loginCredentialsValidate.email,
-      hash_password: hashPassword,
-      salt,
-    });
-
-    if (errorUserValidate || warningUserValidate) {
-      return NextResponse.json(
-        { message: errorUserValidate?.message ?? warningUserValidate?.message },
-        { status: 401 }
-      );
-    }
-
-    const newUser = await usersCollection.insertOne(userValidate as IUser);
-    const newUserId = newUser.insertedId;
+    const new_user = await prisma.users.registration({ email, password, username });
 
     return NextResponse.json({
-      access_token: createAccessToken({ ...userValidate, _id: newUserId }),
-      refresh_token: createRefreshToken(newUserId),
-      user_id: newUserId,
+      access_token: createAccessToken(new_user),
+      refresh_token: createRefreshToken(new_user.id),
+      user_id: new_user.id,
     });
   } finally {
-    await client.close();
+    await prisma.$disconnect();
   }
 };
 
-export const POST = await errorCatchingApiHandlerDecorator(handler, errorStatusCode);
+export const POST = errorCatchingApiHandlerDecorator(handler, 401);

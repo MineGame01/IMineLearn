@@ -1,12 +1,12 @@
 import type { NextConfig } from 'next';
-import { PHASE_PRODUCTION_BUILD, PHASE_PRODUCTION_SERVER } from 'next/constants';
 import AnalyzerInit from '@next/bundle-analyzer';
 
-export default (phase) => {
+export default () => {
   const nextConfig: NextConfig = {
-    env: {
-      APP_MODE:
-        phase === PHASE_PRODUCTION_BUILD || phase === PHASE_PRODUCTION_SERVER ? 'prod' : 'dev',
+    experimental: {
+      turbo: {
+        treeShaking: false,
+      },
     },
   };
   const withBundleAnalyzer = AnalyzerInit({

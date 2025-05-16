@@ -2,6 +2,7 @@ import { FC } from 'react';
 import Image from 'next/image';
 import { ITopic, TTopicId } from '@entities/Topic';
 import { getEnvVar } from '@shared/lib';
+import { IServerErrorResponse } from '@shared/model';
 
 interface IProps {
   topic_id: TTopicId;
@@ -14,18 +15,17 @@ export const LastTopic: FC<IProps> = async ({ topic_id }) => {
       cache: 'no-store',
     }
   );
-  const data = (await response.json()) as ITopic | { message: string };
+  const data = (await response.json()) as ITopic | IServerErrorResponse | undefined;
 
   if (!response.ok) {
-    const errorMessage = 'message' in data && data.message;
+    const errorMessage = data ? 'message' in data && data.message : 'Unknown error!';
 
-    return <div>{errorMessage ?? 'Unknown Error!'}</div>;
+    return <div>{errorMessage || response.statusText}</div>;
   }
 
   if (data && !('message' in data)) {
     return (
       <div className="grow-1 basis-full">
-        <span className="uppercase text-[0.9rem] text-muted">Last Topic</span>
         <div className="flex items-center gap-[13px] mt-[10px]">
           <div className="rounded-full overflow-hidden">
             <Image width="42" height="42" src={'/defaultUser.png'} alt={'User'} />

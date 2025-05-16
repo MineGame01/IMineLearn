@@ -1,19 +1,18 @@
 import { checkAuthAccessToken } from '@app/api/_lib/check-auth-access-token';
-import { getClient } from '@app/api/db';
 import { errorCatchingApiHandlerDecorator } from '@app/api/error-catching-api-handler-decorator';
 import { FiltersDataResponse, IFilterQueryParams } from '@app/api/_model/filters-data-response';
-import { IReport, ReportSchema } from '@entities/Report';
-import { Filter, FindOptions } from 'mongodb';
+import { IReport, TReportId } from '@entities/Report';
 import { NextRequest, NextResponse } from 'next/server';
+import { getPrisma } from '@app/api/_prisma/get-prisma';
 
 interface IRequestQuery extends IFilterQueryParams {
-  report_id: IReport['_id'] | null;
+  report_id: TReportId | null;
 }
 
 const handlerGet = async (request: NextRequest) => {
-  const client = getClient();
+  const prisma = getPrisma();
   try {
-    await client.connect();
+    await prisma.$connect();
     const authUser = request.auth;
     if (!authUser) {
       return;
@@ -24,11 +23,12 @@ const handlerGet = async (request: NextRequest) => {
     if (!is_admin) {
       return NextResponse.json(
         { message: 'You have no right of administration!' },
-        { status: 401 }
+        { status: 403 }
       );
     }
 
     const searchParams = request.nextUrl.searchParams;
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     const { getFilterQueryParams } = new FiltersDataResponse();
 
     const queryParams: IRequestQuery = {
@@ -39,67 +39,65 @@ const handlerGet = async (request: NextRequest) => {
     const { return_ids_only, created_after, created_before, limit_count, offset_count, report_id } =
       queryParams;
 
-    const reportsCollection = client.db('db').collection<IReport>('reports');
-
-    const reportsDefaultFind: Filter<IReport> = created_after
-      ? { created_at: { $gte: +created_after, $lt: +(created_before ?? new Date().getTime()) } }
+    const find = created_after
+      ? { created_at: { gte: +created_after, lt: +(created_before ?? new Date().getTime()) } }
       : {};
-    const reportsDefaultFindOptions: FindOptions = {
-      limit: limit_count,
+
+    const find_options = {
+      take: limit_count,
       skip: offset_count,
     };
 
     if (return_ids_only) {
-      return NextResponse.json(
-        await reportsCollection
-          .find(reportsDefaultFind, reportsDefaultFindOptions)
-          .map((report) => report._id)
-          .toArray()
+      return NextResponse.json<string[]>(
+        (await prisma.reports.findMany({ where: find, ...find_options, select: { id: true } })).map(
+          (report) => report.id
+        )
       );
     }
 
     if (report_id) {
-      return NextResponse.json(
-        await reportsCollection
-          .find({ ...reportsDefaultFind, _id: report_id }, reportsDefaultFindOptions)
-          .toArray()
-      );
+      const report = await prisma.reports.findFirst({ where: { ...find, id: report_id } });
+
+      if (!report) {
+        return NextResponse.json({ message: 'Report not found!' }, { status: 404 });
+      } else {
+        return NextResponse.json<IReport>(report);
+      }
     }
 
-    return NextResponse.json(
-      await reportsCollection.find(reportsDefaultFind, reportsDefaultFindOptions).toArray()
+    return NextResponse.json<IReport[]>(
+      await prisma.reports.findMany({ where: find, ...find_options })
     );
   } finally {
-    await client.close();
+    await prisma.$disconnect();
   }
 };
 
 export const GET = await errorCatchingApiHandlerDecorator(await checkAuthAccessToken(handlerGet));
 
-interface IDataRequest extends Pick<IReport, 'content' | 'reason' | 'target_id' | 'target_type'> {}
+type TDataRequestPost = Pick<IReport, 'target_id' | 'content' | 'reason' | 'target_type'>;
 
 const handlerPost = async (request: NextRequest) => {
-  const client = getClient();
+  const prisma = getPrisma();
   try {
-    await client.connect();
-    const body = await request.json();
+    await prisma.$connect();
+    const body = (await request.json()) as TDataRequestPost;
     const authUser = request.auth;
 
     if (!authUser) {
       return;
     }
 
-    const { _id: user_id } = authUser;
+    const { id: auth_user_id } = authUser;
 
-    const { target_id } = body as IDataRequest;
+    const { target_id, content, reason, target_type } = body;
 
     if (!target_id) {
       return NextResponse.json({ message: 'Query param target_id is required!' }, { status: 400 });
     }
 
-    const reportCollection = client.db('db').collection<IReport>('reports');
-
-    const report = await reportCollection.findOne({ target_id, user_id });
+    const report = await prisma.reports.findFirst({ where: { target_id, user_id: auth_user_id } });
 
     if (report) {
       return NextResponse.json(
@@ -108,46 +106,50 @@ const handlerPost = async (request: NextRequest) => {
       );
     }
 
-    const { error, warning, value: reportValidate } = ReportSchema.validate({ ...body, user_id });
+    await prisma.reports.create({
+      data: { content, target_id, user_id: auth_user_id, reason, target_type },
+    });
 
-    if (error || warning) {
-      return NextResponse.json({ message: error?.message ?? warning?.message }, { status: 400 });
-    }
-
-    await reportCollection.insertOne(reportValidate);
     return NextResponse.json(null);
   } finally {
-    await client.close();
+    await prisma.$disconnect();
   }
 };
 
 export const POST = await errorCatchingApiHandlerDecorator(await checkAuthAccessToken(handlerPost));
 
-interface IDataRequest {
-  report_id: IReport['_id'] | null;
+interface IDataRequestDelete {
+  report_id: TReportId | null;
 }
 
 const handlerDelete = async (request: NextRequest) => {
-  const client = getClient();
+  const prisma = getPrisma();
   try {
-    await client.connect();
-    const data = await request.json();
+    await prisma.$connect();
+    const data = (await request.json()) as IDataRequestDelete;
     const authUser = request.auth;
 
     if (!authUser) {
       return;
     }
 
-    const { report_id } = data as IDataRequest;
+    if (!authUser.is_admin) {
+      return NextResponse.json(
+        { message: 'You have no right of administration!' },
+        { status: 403 }
+      );
+    }
+
+    const { report_id } = data;
 
     if (!report_id) {
       return NextResponse.json({ message: 'report_id is required!' }, { status: 400 });
     }
 
-    await client.db('db').collection<IReport>('reports').deleteOne({ _id: report_id });
+    await prisma.reports.delete({ where: { id: report_id } });
     return NextResponse.json(null);
   } finally {
-    await client.close();
+    await prisma.$disconnect();
   }
 };
 

@@ -1,65 +1,46 @@
-import { getClient } from '@app/api/db';
 import { errorCatchingApiHandlerDecorator } from '@app/api/error-catching-api-handler-decorator';
 import { FiltersDataResponse, IFilterQueryParams } from '@app/api/_model/filters-data-response';
-import { ICategory } from '@entities/Category';
-import { FindOptions } from 'mongodb';
 import { NextRequest, NextResponse } from 'next/server';
+import { getPrisma } from '@app/api/_prisma/get-prisma';
 
-interface IRequestQuery
-  extends Pick<IFilterQueryParams, 'limit_count' | 'offset_count' | 'return_ids_only'> {
-  category_id: string | null;
-}
+type TRequestQuery = Pick<IFilterQueryParams, 'limit_count' | 'offset_count' | 'return_ids_only'>;
 
-const handler = async (request: NextRequest) => {
-  const client = getClient();
+const handleGet = async (request: NextRequest) => {
+  const prisma = getPrisma();
   try {
-    await client.connect();
+    await prisma.$connect();
     const searchParams = request.nextUrl.searchParams;
 
-    const { defaultOptions, getFilterQueryParams } = new FiltersDataResponse();
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    const { getFilterQueryParams, defaultOptions } = new FiltersDataResponse();
 
-    const queryParams: IRequestQuery = {
-      category_id: searchParams.get('category_id'),
+    const queryParams: TRequestQuery = {
       ...getFilterQueryParams(searchParams),
     };
 
-    const { category_id, return_ids_only, offset_count, limit_count } = queryParams;
+    const {
+      return_ids_only,
+      offset_count = defaultOptions.offset_count,
+      limit_count = defaultOptions.limit_count,
+    } = queryParams;
 
-    const defaultFindOptions: FindOptions = {
-      limit: limit_count ?? defaultOptions.limit_count,
-      skip: offset_count ?? defaultOptions.offset_count,
+    const defaultFindOptions = {
+      skip: offset_count,
+      take: limit_count,
     };
 
-    const categoriesCollection = client.db('db').collection<ICategory>('categories');
-
     if (return_ids_only) {
-      const categoriesIds = await categoriesCollection
-        .find({}, defaultFindOptions)
-        .project({ _id: 1 })
-        .map((category) => category._id)
-        .toArray();
-
-      return NextResponse.json<string[]>(categoriesIds);
+      const categoriesIds = (
+        await prisma.categories.findMany({ ...defaultFindOptions, select: { id: true } })
+      ).map((category) => category.id);
+      return NextResponse.json(categoriesIds);
     }
 
-    if (category_id) {
-      const categories = await categoriesCollection
-        .find({ _id: category_id }, defaultFindOptions)
-        .toArray();
-
-      if (categories.length === 0) {
-        return NextResponse.json({ message: 'Category not found!' }, { status: 404 });
-      } else {
-        return NextResponse.json<ICategory>(categories[0]);
-      }
-    }
-
-    const categories = await categoriesCollection.find({}, defaultFindOptions).toArray();
-
-    return NextResponse.json<ICategory[]>(categories);
+    const categories = await prisma.categories.findMany({ ...defaultFindOptions });
+    return NextResponse.json(categories);
   } finally {
-    await client.close();
+    await prisma.$disconnect();
   }
 };
 
-export const GET = await errorCatchingApiHandlerDecorator(handler);
+export const GET = errorCatchingApiHandlerDecorator(handleGet);

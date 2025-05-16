@@ -15,7 +15,7 @@ export const Body: FC<IProps> = ({ children, className, ...props }) => {
     <Paper
       className={'transition-box-shadow duration-100 ease-in-out min-h-[280px] hover:shadow-2xl'}
     >
-      <Link {...props} className={twMerge('inline-block w-full', className)}>
+      <Link {...props} className={twMerge('inline-block h-full w-full', className)}>
         {children}
       </Link>
     </Paper>

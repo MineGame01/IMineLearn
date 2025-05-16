@@ -18,7 +18,13 @@ const PreviewPage: FC = () => {
         Test
       </Button>
       <div>
-        <input type="checkbox" checked={isLoading} onChange={() => setIsLoading(!isLoading)} />
+        <input
+          type="checkbox"
+          checked={isLoading}
+          onChange={() => {
+            setIsLoading(!isLoading);
+          }}
+        />
       </div>
       <div>Outlined Loading</div>
       <Button loading={isLoading}>Test</Button>

@@ -7,8 +7,18 @@ import prettierEslint from 'eslint-config-prettier/flat';
 
 export default tseslint.config(
   { ignores: ['dist', '.next', '.vercel'] },
+  js.configs.recommended,
+  tseslint.configs.strictTypeChecked,
+  tseslint.configs.stylisticTypeChecked,
   {
-    extends: [js.configs.recommended, ...tseslint.configs.recommended],
+    languageOptions: {
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+  },
+  {
     files: ['./src/**/*.{ts,tsx}'],
     languageOptions: {
       ecmaVersion: 2020,

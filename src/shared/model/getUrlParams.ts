@@ -1,6 +1,6 @@
 // TODO Переименовать на generateUrlParams или что-то подобное
 
-export const getUrlParams = (params: object | void) => {
+export const getUrlParams = (params?: object) => {
   if (params) {
     let urlParams = '';
 
@@ -9,7 +9,7 @@ export const getUrlParams = (params: object | void) => {
     Object.keys(params).forEach((param, index) => {
       urlParams =
         urlParams +
-        `${param}=${paramsValue[index]}${index < Object.keys(params).length - 1 ? '&' : ' '}`;
+        `${param}=${String(paramsValue[index])}${index < Object.keys(params).length - 1 ? '&' : ' '}`;
     });
 
     return urlParams;

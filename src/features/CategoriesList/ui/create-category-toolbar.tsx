@@ -23,7 +23,9 @@ export const CreateCategoryToolbar: FC = () => {
         <Button
           variant="contained"
           className="w-auto"
-          onClick={() => setShowCreateCategoryModal(true)}
+          onClick={() => {
+            setShowCreateCategoryModal(true);
+          }}
         >
           New Category
         </Button>

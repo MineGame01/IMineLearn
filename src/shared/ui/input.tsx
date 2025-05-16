@@ -79,11 +79,11 @@ export const Input: FC<IProps> = ({
           {...inputAttr}
           onBlur={(event) => {
             setIsFocus(false);
-            onBlur && onBlur(event);
+            if (onBlur) onBlur(event);
           }}
           onFocus={(event) => {
             setIsFocus(true);
-            onFocus && onFocus(event);
+            if (onFocus) onFocus(event);
           }}
           className={twMerge(
             `${defaultStyleInput} ${errorStyleInput} ${animationStyle}`,

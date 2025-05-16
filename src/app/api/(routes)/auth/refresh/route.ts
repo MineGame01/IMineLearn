@@ -1,69 +1,70 @@
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
-import { getClient } from '@app/api/db';
 import { createAccessToken } from '@app/api/_lib/create-access-token';
-import { IUser } from '@entities/User';
 import { getEnvVar } from '@shared/lib';
 import { errorCatchingApiHandlerDecorator } from '@app/api/error-catching-api-handler-decorator';
+import { getPrisma } from '@app/api/_prisma/get-prisma';
+import { IServerErrorResponse } from '@shared/model';
 
 interface IDataRequest {
-  refresh_token: string;
+  refresh_token: string | null;
 }
 
-const errorStatusCode = 401;
-
 const handler = async (request: NextRequest) => {
-  const client = getClient();
+  const prisma = getPrisma();
   try {
-    await client.connect();
-    const body = await request.json();
+    await prisma.$connect();
+    const body = (await request.json()) as IDataRequest;
 
-    const { refresh_token } = body as IDataRequest;
+    const { refresh_token } = body;
 
     if (!refresh_token) {
       return NextResponse.json({ message: 'Refresh token not found!' }, { status: 401 });
     }
 
-    const jwtPayload = async () => {
+    const jwtVerify = async (refresh_token: NonNullable<IDataRequest['refresh_token']>) => {
       return new Promise<string | jwt.JwtPayload | undefined>((resolve, reject) => {
-        jwt.verify(
-          refresh_token,
-          getEnvVar('PRIVATE_KEY_JWT') as string,
-          async (error, jwtPayload) => {
-            if (error) reject(error);
-            else resolve(jwtPayload);
-          }
-        );
+        jwt.verify(refresh_token, getEnvVar('PRIVATE_KEY_JWT'), (error, jwtPayload) => {
+          if (error) reject(error);
+          else resolve(jwtPayload);
+        });
       });
     };
 
-    const loginCredentials = await jwtPayload();
+    const login_credentials = await jwtVerify(refresh_token);
 
-    if (loginCredentials && typeof loginCredentials === 'object') {
-      if ('user_id' in loginCredentials) {
-        if (typeof loginCredentials.user_id === 'string') {
-          const user = await client.db('db').collection<IUser>('users').findOne({
-            _id: loginCredentials.user_id,
-          });
+    if (login_credentials && typeof login_credentials === 'object') {
+      if ('user_id' in login_credentials) {
+        if (typeof login_credentials.user_id === 'string') {
+          const user = await prisma.users.findFirst({ where: { id: login_credentials.user_id } });
 
           if (!user) {
-            return NextResponse.json({ message: 'User not found!' }, { status: 401 });
+            return NextResponse.json<IServerErrorResponse>(
+              { message: 'User not found!' },
+              { status: 401 }
+            );
           }
 
           return NextResponse.json({
-            access_token: createAccessToken({ ...user, _id: user._id }),
-            user_id: user._id,
+            access_token: createAccessToken({ ...user, id: user.id }),
+            user_id: user.id,
           });
         } else {
-          return NextResponse.json({ message: 'Refresh token is wrong!' }, { status: 401 });
+          return NextResponse.json<IServerErrorResponse>(
+            { message: 'Refresh token is wrong!' },
+            { status: 401 }
+          );
         }
       }
     } else {
-      return NextResponse.json({ message: 'Refresh token is wrong!' }, { status: 401 });
+      return NextResponse.json<IServerErrorResponse>(
+        { message: 'Refresh token is wrong!' },
+        { status: 401 }
+      );
     }
   } finally {
-    await client.close();
+    await prisma.$disconnect();
   }
 };
 
-export const POST = await errorCatchingApiHandlerDecorator(handler, errorStatusCode);
+export const POST = errorCatchingApiHandlerDecorator(handler, 401);

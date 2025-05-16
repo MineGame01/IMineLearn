@@ -1,22 +1,22 @@
 import { checkAuthAccessToken } from '@app/api/_lib/check-auth-access-token';
-import { getClient } from '@app/api/db';
 import { errorCatchingApiHandlerDecorator } from '@app/api/error-catching-api-handler-decorator';
 import { FiltersDataResponse, IFilterQueryParams } from '@app/api/_model/filters-data-response';
-import { IReaction, ReactionSchema, TReactionType } from '@entities/Reaction';
-import { ITopic, TTopicId } from '@entities/Topic';
-import { FindOptions } from 'mongodb';
+import { TTopicId } from '@entities/Topic';
 import { NextRequest, NextResponse } from 'next/server';
+import { getPrisma } from '@app/api/_prisma/get-prisma';
+import { TReactionType } from '@entities/Reaction';
 
 interface IRequestQuery extends Pick<IFilterQueryParams, 'limit_count' | 'offset_count'> {
   topic_id: TTopicId | null;
 }
 
 const handlerGet = async (request: NextRequest) => {
-  const client = getClient();
+  const prisma = getPrisma();
   try {
-    await client.connect();
+    await prisma.$connect();
     const searchParams = request.nextUrl.searchParams;
 
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     const { getFilterQueryParams } = new FiltersDataResponse();
 
     const queryParams: IRequestQuery = {
@@ -30,76 +30,71 @@ const handlerGet = async (request: NextRequest) => {
       return NextResponse.json({ message: 'Query param topic_id is required!' }, { status: 400 });
     }
 
-    const db = client.db('db');
-
-    const topic = await db.collection<ITopic>('topics').findOne({ _id: topic_id });
+    const topic = await prisma.topics.findFirst({ where: { id: topic_id } });
 
     if (!topic) {
       return NextResponse.json({ message: 'Topic not found!' }, { status: 404 });
     }
 
-    const reactionCollection = db.collection<IReaction>('reactions');
-    const defaultFindOptions: FindOptions = {
-      limit: limit_count,
+    const find_options = {
+      take: limit_count,
       skip: offset_count,
     };
 
     return NextResponse.json(
-      await reactionCollection.find({ topic_id }, defaultFindOptions).toArray()
+      await prisma.reactions.findMany({ where: { topic_id }, ...find_options })
     );
   } finally {
-    await client.close();
+    await prisma.$disconnect();
   }
 };
 
-export const GET = await errorCatchingApiHandlerDecorator(handlerGet);
+export const GET = errorCatchingApiHandlerDecorator(handlerGet);
 
-interface IDataRequest {
-  topic_id: TTopicId;
-  type_reaction: TReactionType;
+interface IDataRequestPost {
+  topic_id: TTopicId | null;
+  type_reaction: TReactionType | null;
 }
 
 const handlerPost = async (request: NextRequest) => {
-  const client = getClient();
+  const prisma = getPrisma();
   try {
-    await client.connect();
-    const data = await request.json();
+    await prisma.$connect();
+    const data = (await request.json()) as IDataRequestPost;
     const authUser = request.auth;
 
     if (!authUser) {
       return;
     }
 
-    const { topic_id, type_reaction } = data as IDataRequest;
-    const { _id: user_id } = authUser;
+    const { topic_id, type_reaction } = data;
+    const { id: user_id } = authUser;
 
-    const {
-      error,
-      warning,
-      value: reaction,
-    } = ReactionSchema.validate({ topic_id, type_reaction, user_id });
-
-    if (error || warning) {
-      return NextResponse.json({ message: error?.message ?? warning?.message }, { status: 400 });
+    if (!topic_id || !type_reaction) {
+      return NextResponse.json(
+        { message: `Param '${!topic_id ? 'topic_id' : 'type_reaction'}' is required!` },
+        { status: 400 }
+      );
     }
 
-    const reactionCollection = client.db('db').collection<IReaction>('reactions');
+    if (type_reaction !== 'like') {
+      return NextResponse.json({ message: "Accessible reaction 'like'" });
+    }
 
-    const reactionFind = await reactionCollection.findOneAndDelete({
-      topic_id,
-      user_id,
-      type_reaction,
+    const reaction = await prisma.reactions.findFirst({
+      where: { topic_id, type_reaction, user_id },
     });
 
-    if (reactionFind) {
-      return NextResponse.json(null);
+    if (!reaction) {
+      await prisma.reactions.create({ data: { topic_id, type_reaction, user_id } });
+    } else {
+      await prisma.reactions.delete({ where: { id: reaction.id } });
     }
 
-    await reactionCollection.insertOne(reaction);
     return NextResponse.json(null);
   } finally {
-    await client.close();
+    await prisma.$disconnect();
   }
 };
 
-export const POST = await errorCatchingApiHandlerDecorator(await checkAuthAccessToken(handlerPost));
+export const POST = errorCatchingApiHandlerDecorator(checkAuthAccessToken(handlerPost));

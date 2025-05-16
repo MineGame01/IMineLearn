@@ -6,10 +6,10 @@ import { getServerErrorMessage } from '@shared/model';
 import { Body } from './body';
 import { Skeleton } from '@shared/ui';
 
-export const TopicPreview: FC<ITopic> = ({ _id, user_id, title, views_count }) => {
+export const TopicPreview: FC<ITopic> = ({ id, user_id, title, views_count }) => {
   const {
     data: user,
-    isLoading: isLoadingUser,
+    isFetching: isFetchingUser,
     isError: isErrorUser,
     error: errorUser,
   } = useGetUserQuery({ user_id });
@@ -17,11 +17,11 @@ export const TopicPreview: FC<ITopic> = ({ _id, user_id, title, views_count }) =
   const errorMessageUser = getServerErrorMessage(errorUser);
 
   return (
-    <Body href={'/topic/' + _id}>
+    <Body href={'/topic/' + id}>
       <div className="flex items-center">
         {isErrorUser && <div>{errorMessageUser}</div>}
-        {isLoadingUser && <Skeleton />}
-        {user && !isLoadingUser && (
+        {isFetchingUser && <Skeleton />}
+        {user && !isFetchingUser && (
           <Fragment>
             <div className="inline-block rounded-full overflow-hidden">
               <Image src="/defaultUser.png" alt={user.username} width="42" height="42" />
