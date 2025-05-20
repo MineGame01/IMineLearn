@@ -17,6 +17,7 @@ import { ActionBar } from './action-bar';
 import { SkeletonTopic } from './skeleton-topic';
 import * as m from 'motion/react-m';
 import { AnimatePresence } from 'motion/react';
+import Link from 'next/link';
 
 dayjs.extend(relativeTimePlugin);
 
@@ -76,7 +77,9 @@ export const Topic: FC<IProps> = ({ topic_id }) => {
                 <div className="inline-block rounded-full overflow-hidden w-[42px] h-[42px]">
                   <Image width={42} height={42} src="/defaultUser.png" alt={user.username} />
                 </div>
-                <div className="ml-3 font-medium">{user.username}</div>
+                <Link href={`/user/${user.username}`} className="ml-3 hover:underline font-medium">
+                  {user.username}
+                </Link>
               </Fragment>
             )}
             {isErrorUser && <div>{errorMessageUser}</div>}

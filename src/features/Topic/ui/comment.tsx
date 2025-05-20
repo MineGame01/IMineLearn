@@ -11,6 +11,7 @@ import { IconButton } from '@shared/ui';
 import { useAppSelector } from '@app/lib';
 import { selectAuthUserInfo } from '@widgets/LoginModal';
 import DeleteIcon from '@mui/icons-material/Delete';
+import Link from 'next/link';
 
 dayjs.extend(relativeTimePlugin);
 
@@ -50,7 +51,9 @@ export const Comment: FC<IComment> = ({ created_at, content, id, user_id }) => {
               <Image width={42} height={42} src="/defaultUser.png" alt={user.username} />
             </div>
             <div className="ml-3 flex items-center">
-              <div className="font-medium">{user.username}</div>
+              <Link href={`/user/${user.username}`} className="font-medium hover:underline">
+                {user.username}
+              </Link>
             </div>
           </Fragment>
         )}
