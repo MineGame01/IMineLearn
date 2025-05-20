@@ -1,5 +1,5 @@
 import { checkAuthAccessToken } from '@app/api/_lib/check-auth-access-token';
-import { errorCatchingApiHandlerDecorator } from '@app/api/error-catching-api-handler-decorator';
+import { withErrorHandlerRequest } from '@app/api/with-error-handler-request';
 import { FiltersDataResponse, IFilterQueryParams } from '@app/api/_model/filters-data-response';
 import { IReport, TReportId } from '@entities/Report';
 import { NextRequest, NextResponse } from 'next/server';
@@ -74,7 +74,7 @@ const handlerGet = async (request: NextRequest) => {
   }
 };
 
-export const GET = errorCatchingApiHandlerDecorator(checkAuthAccessToken(handlerGet));
+export const GET = withErrorHandlerRequest(checkAuthAccessToken(handlerGet));
 
 type TDataRequestPost = Pick<IReport, 'target_id' | 'content' | 'reason' | 'target_type'>;
 
@@ -116,7 +116,7 @@ const handlerPost = async (request: NextRequest) => {
   }
 };
 
-export const POST = errorCatchingApiHandlerDecorator(checkAuthAccessToken(handlerPost));
+export const POST = withErrorHandlerRequest(checkAuthAccessToken(handlerPost));
 
 interface IDataRequestDelete {
   report_id: TReportId | null;
@@ -153,4 +153,4 @@ const handlerDelete = async (request: NextRequest) => {
   }
 };
 
-export const DELETE = errorCatchingApiHandlerDecorator(checkAuthAccessToken(handlerDelete));
+export const DELETE = withErrorHandlerRequest(checkAuthAccessToken(handlerDelete));

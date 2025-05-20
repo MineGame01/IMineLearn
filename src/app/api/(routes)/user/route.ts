@@ -1,10 +1,13 @@
+import { checkAuthAccessToken } from '@app/api/_lib/check-auth-access-token';
 import { getPrisma } from '@app/api/_prisma/get-prisma';
-import { errorCatchingApiHandlerDecorator } from '@app/api/error-catching-api-handler-decorator';
-import { TUserId } from '@entities/User';
+import { withErrorHandlerRequest } from '@app/api/with-error-handler-request';
+import { TUserBio, TUserId, TUserUserName } from '@entities/User';
+import { ParamIsRequiredError, UsernameAlreadyUsedError, UserNotFoundError } from '@shared/api';
 import { NextRequest, NextResponse } from 'next/server';
 
 interface IRequestQuery {
-  user_id: TUserId | undefined;
+  user_id: TUserId | null;
+  username: TUserUserName | null;
 }
 
 const handlerGet = async (request: NextRequest) => {
@@ -13,13 +16,20 @@ const handlerGet = async (request: NextRequest) => {
     await prisma.$connect();
     const searchParams = request.nextUrl.searchParams;
 
-    const user_id = searchParams.get('user_id') as IRequestQuery['user_id'];
+    const queryParams: IRequestQuery = {
+      user_id: searchParams.get('user_id'),
+      username: searchParams.get('username'),
+    };
 
-    if (!user_id) {
-      return NextResponse.json({ message: 'Query params user_id is required!' }, { status: 400 });
+    const { user_id, username } = queryParams;
+
+    if (!user_id && !username) {
+      return new ParamIsRequiredError(true, 'user_id', 'username');
     }
 
-    const user = await prisma.users.findFirst({ where: { id: user_id } });
+    const user = await prisma.users.findFirst({
+      where: { id: user_id ?? undefined, username: username ?? undefined },
+    });
 
     if (user) {
       return NextResponse.json({
@@ -28,11 +38,56 @@ const handlerGet = async (request: NextRequest) => {
         salt: null,
       });
     } else {
-      return NextResponse.json({ message: 'User not found!' }, { status: 400 });
+      throw new UserNotFoundError(username ?? undefined);
     }
   } finally {
     await prisma.$disconnect();
   }
 };
 
-export const GET = errorCatchingApiHandlerDecorator(handlerGet);
+export const GET = withErrorHandlerRequest(handlerGet);
+
+interface IDataRequestPut {
+  username?: TUserUserName;
+  bio?: TUserBio;
+}
+
+const handlerPut = async (request: NextRequest) => {
+  const prisma = getPrisma();
+  try {
+    await prisma.$connect();
+    const data = (await request.json()) as IDataRequestPut;
+    const authUser = request.auth;
+
+    if (!authUser) return;
+
+    const { username, bio } = data;
+
+    if (!username && bio === undefined) {
+      throw new ParamIsRequiredError(false, 'username', 'bio');
+    }
+
+    const user = await prisma.users.findFirst({
+      where: { username },
+    });
+    if (user && user.id !== authUser.id) {
+      throw new UsernameAlreadyUsedError(username);
+    }
+
+    const updated_data = await prisma.users.update({
+      where: { id: authUser.id },
+      data: {
+        username: username,
+        bio: bio,
+      },
+    });
+    return NextResponse.json({
+      username: updated_data.username,
+      bio: updated_data.bio,
+    });
+  } finally {
+    await prisma.$disconnect();
+  }
+};
+
+export const PUT = withErrorHandlerRequest(checkAuthAccessToken(handlerPut));

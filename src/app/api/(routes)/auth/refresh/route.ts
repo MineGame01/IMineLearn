@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import { createAccessToken } from '@app/api/_lib/create-access-token';
 import { getEnvVar } from '@shared/lib';
-import { errorCatchingApiHandlerDecorator } from '@app/api/error-catching-api-handler-decorator';
+import { withErrorHandlerRequest } from '@app/api/with-error-handler-request';
 import { getPrisma } from '@app/api/_prisma/get-prisma';
 import { IServerErrorResponse } from '@shared/model';
 
@@ -67,4 +67,4 @@ const handler = async (request: NextRequest) => {
   }
 };
 
-export const POST = errorCatchingApiHandlerDecorator(handler, 401);
+export const POST = withErrorHandlerRequest(handler, 401);

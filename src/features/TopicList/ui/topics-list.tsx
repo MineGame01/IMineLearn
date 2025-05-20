@@ -5,7 +5,7 @@ import { TDatePickerState } from '@features/TopicList/model/TDatePickerState.ts'
 import { TTypeSorted } from '@features/TopicList/model/TTypeSorted.ts';
 import { changeDatePickerStates } from '@features/TopicList/model/changeDatePickerStates.ts';
 import { TCategoryId } from '@entities/Category';
-import { useGetTopicsByCategoryQuery } from '@app/api';
+import { useGetTopicsQuery } from '@app/api';
 import { List } from './list.tsx';
 import { ITopic } from '@entities/Topic';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
@@ -14,8 +14,8 @@ import { TopicCreateModal } from '@widgets/TopicCreateModal';
 import { Button, Dropdown, DropdownItem, DropdownList, Input } from '@shared/ui';
 import dayjs from 'dayjs';
 import dynamic from 'next/dynamic';
-import { getServerErrorMessage } from '@shared/model/get-server-error-message.ts';
-import { SkeletonTopicPreview } from './topic-preview/skeleton.tsx';
+import { getServerErrorMessage, removeUndefinedKey } from '@shared/model';
+import { TopicPreviewSkeleton } from './topic-preview/skeleton.tsx';
 
 const MemoDatePickers = dynamic(async () =>
   import('./date-pickers.tsx').then((el) => el.DatePickers)
@@ -41,25 +41,20 @@ export const TopicsList: FC<{ categoryId: TCategoryId }> = ({ categoryId }) => {
     isLoading,
     isError,
     error: _error,
-  } = useGetTopicsByCategoryQuery({
-    ...(searchContent ? { search: searchContent } : {}),
-    ...(createdAtAfter && createdAtBefore
-      ? {
-          created_after: createdAtBefore === createdAtAfter ? undefined : String(createdAtAfter),
-          created_before: String(createdAtBefore),
-        }
-      : {}),
-    category_id: categoryId,
-  });
-  const MAX_SKELETON_COUNT = 10;
+  } = useGetTopicsQuery(
+    removeUndefinedKey({
+      created_after: createdAtBefore === createdAtAfter ? undefined : String(createdAtAfter),
+      created_before: createdAtBefore ? String(createdAtBefore) : undefined,
+      search: searchContent,
+      category_id: categoryId,
+    })
+  );
 
-  const skeletonTopicCount = useMemo(() => {
-    const counts: number[] = [];
-    for (let i = 1; i <= MAX_SKELETON_COUNT; i++) {
-      counts.push(i);
-    }
-    return counts;
-  }, [MAX_SKELETON_COUNT]);
+  const topicPreviewSkeletons = useMemo(() => {
+    return Array(10)
+      .fill(TopicPreviewSkeleton)
+      .map((TopicPreviewSkeleton, index) => <TopicPreviewSkeleton key={index} />);
+  }, []);
 
   const errorMessage = getServerErrorMessage(_error);
 
@@ -172,7 +167,7 @@ export const TopicsList: FC<{ categoryId: TCategoryId }> = ({ categoryId }) => {
         />
       </div>
       {data && <List topics={data as ITopic[]} />}
-      {isLoading && skeletonTopicCount.map((num) => <SkeletonTopicPreview key={num} />)}
+      {isLoading && topicPreviewSkeletons}
     </div>
   );
 };

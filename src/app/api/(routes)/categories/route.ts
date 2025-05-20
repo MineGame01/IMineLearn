@@ -1,4 +1,4 @@
-import { errorCatchingApiHandlerDecorator } from '@app/api/error-catching-api-handler-decorator';
+import { withErrorHandlerRequest } from '@app/api/with-error-handler-request';
 import { FiltersDataResponse, IFilterQueryParams } from '@app/api/_model/filters-data-response';
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@app/api/_prisma/get-prisma';
@@ -43,4 +43,4 @@ const handleGet = async (request: NextRequest) => {
   }
 };
 
-export const GET = errorCatchingApiHandlerDecorator(handleGet);
+export const GET = withErrorHandlerRequest(handleGet);

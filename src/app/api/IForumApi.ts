@@ -8,7 +8,7 @@ import {
   TTopicTitle,
 } from '@entities/Topic';
 import { ICategory, TCategoryId } from '@entities/Category';
-import { IAuthUser, TUserEmail, TUserId, TUserUserName } from '@entities/User';
+import { IAuthUser, TUserBio, TUserEmail, TUserId, TUserUserName } from '@entities/User';
 import { IReport, TReportId } from '@entities/Report';
 import { IReaction } from '@entities/Reaction';
 
@@ -31,16 +31,17 @@ interface ILoginCredentials {
 
 export interface IForumApi {
   endpoints: {
-    getUser: createEndpoint<IAuthUser, { user_id: TUserId }>;
+    getUser: createEndpoint<IAuthUser, { user_id?: TUserId; username?: TUserUserName }>;
     addReaction: createEndpoint<null, Pick<IReaction, 'topic_id' | 'type_reaction'>>;
     getReactions: createEndpoint<IReaction[], { topic_id: TTopicId }>;
-    getTopicsByCategory: createEndpoint<
+    getTopics: createEndpoint<
       ITopic[] | TTopicId[],
       {
+        user_id?: TUserId;
         search?: string;
         created_after?: string;
         created_before?: string;
-        category_id: TCategoryId;
+        category_id?: TCategoryId;
         limit_count?: number;
         offset_count?: number;
         return_ids_only?: boolean;
@@ -101,5 +102,9 @@ export interface IForumApi {
     createCategory: createEndpoint<null, Pick<ICategory, 'name'> & { image_base64: string | null }>;
     deleteCategory: createEndpoint<null, { category_id: TCategoryId }>;
     deleteComment: createEndpoint<null, TCommentId>;
+    updateUser: createEndpoint<
+      { username: TUserUserName; bio: TUserBio },
+      { username?: TUserUserName; bio?: TUserBio }
+    >;
   };
 }

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAccessToken } from '@app/api/_lib/create-access-token';
 import { createRefreshToken } from '@app/api/_lib/create-refresh-token';
-import { errorCatchingApiHandlerDecorator } from '@app/api/error-catching-api-handler-decorator';
+import { withErrorHandlerRequest } from '@app/api/with-error-handler-request';
 import { getPrisma } from '@app/api/_prisma/get-prisma';
 
 interface IDataRequest {
@@ -30,4 +30,4 @@ const handler = async (request: NextRequest) => {
   }
 };
 
-export const POST = errorCatchingApiHandlerDecorator(handler, 401);
+export const POST = withErrorHandlerRequest(handler, 401);

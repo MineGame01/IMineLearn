@@ -1,5 +1,5 @@
 import { checkAuthAccessToken } from '@app/api/_lib/check-auth-access-token';
-import { errorCatchingApiHandlerDecorator } from '@app/api/error-catching-api-handler-decorator';
+import { withErrorHandlerRequest } from '@app/api/with-error-handler-request';
 import { FiltersDataResponse, IFilterQueryParams } from '@app/api/_model/filters-data-response';
 import { IComment, TTopicId } from '@entities/Topic';
 import { NextRequest, NextResponse } from 'next/server';
@@ -54,7 +54,7 @@ const handlerGet = async (request: NextRequest) => {
   }
 };
 
-export const GET = errorCatchingApiHandlerDecorator(handlerGet);
+export const GET = withErrorHandlerRequest(handlerGet);
 
 interface IDataRequest {
   topic_id: TTopicId;
@@ -82,4 +82,4 @@ const handlerPost = checkAuthAccessToken(async (request: NextRequest) => {
   }
 });
 
-export const POST = errorCatchingApiHandlerDecorator(handlerPost);
+export const POST = withErrorHandlerRequest(handlerPost);

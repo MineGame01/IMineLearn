@@ -1,6 +1,6 @@
 import { checkAuthAccessToken } from '@app/api/_lib/check-auth-access-token';
 import { getPrisma } from '@app/api/_prisma/get-prisma';
-import { errorCatchingApiHandlerDecorator } from '@app/api/error-catching-api-handler-decorator';
+import { withErrorHandlerRequest } from '@app/api/with-error-handler-request';
 import { IComment, TCommentId } from '@entities/Topic';
 import { IServerErrorResponse } from '@shared/model';
 import { NextRequest, NextResponse } from 'next/server';
@@ -38,7 +38,7 @@ const handlerGet = async (request: NextRequest) => {
   }
 };
 
-export const GET = errorCatchingApiHandlerDecorator(handlerGet);
+export const GET = withErrorHandlerRequest(handlerGet);
 
 interface IDataRequest {
   comment_id: TCommentId | null;
@@ -91,4 +91,4 @@ const handlerDelete = async (request: NextRequest) => {
   }
 };
 
-export const DELETE = errorCatchingApiHandlerDecorator(checkAuthAccessToken(handlerDelete));
+export const DELETE = withErrorHandlerRequest(checkAuthAccessToken(handlerDelete));

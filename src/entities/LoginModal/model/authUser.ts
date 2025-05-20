@@ -12,5 +12,6 @@ export const authUser: IAuthUser & { access_token: string | null } = {
   email: 'unknown',
   is_admin: false,
   created_at: 0,
+  updated_at: null,
   access_token: null,
 };

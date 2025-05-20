@@ -10,6 +10,7 @@ export interface IUser {
   hash_password: string;
   is_admin: boolean;
   created_at: number;
+  updated_at: number | null;
   salt: string;
 }
 
@@ -25,3 +26,4 @@ export type TUserHashPassword = IUser['hash_password'];
 export type TUserIsAdmin = IUser['is_admin'];
 export type TUserCreatedAt = IUser['created_at'];
 export type TUserSalt = IUser['salt'];
+export type TUserUpdatedAt = IUser['updated_at'];

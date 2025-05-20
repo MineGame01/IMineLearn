@@ -49,7 +49,7 @@ const RootLayout: FC<{ children: ReactNode }> = ({ children }) => {
       <head>
         <title>IMineLearn</title>
       </head>
-      <body>
+      <body className="h-full">
         <Analytics />
         <SpeedInsights />
         <StrictMode>
