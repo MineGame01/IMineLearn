@@ -13,7 +13,7 @@ import { twMerge } from 'tailwind-merge';
 
 interface IProps {
   label?: string;
-  helperText?: ReactNode;
+  helperText?: ReactNode | string;
   isError?: boolean;
   inputAttr?: InputHTMLAttributes<HTMLInputElement>;
   labelAttr?: LabelHTMLAttributes<HTMLLabelElement>;
@@ -48,7 +48,7 @@ export const Input: FC<IProps> = ({
   const defaultStyleLabel =
     'p-[2px] absolute left-[10px] bg-input-bg transform-[translate(0,-50%)]';
   const defaultStyleInput =
-    'w-full outline-none focus:border-input-focus border-3 rounded-[10px] px-[9px] py-[10px] bg-input-bg text-text';
+    'w-full outline-none focus:border-input-focus border-2 rounded-[10px] px-[9px] text-[0.9rem] py-2 bg-input-bg';
   const defaultStyleHelperText = 'text-[0.8rem] ml-2';
 
   const animationStyle = 'transition-top duration-200 ease-in-out';

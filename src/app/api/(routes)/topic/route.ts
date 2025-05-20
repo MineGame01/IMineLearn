@@ -1,7 +1,7 @@
 import { ITopic, TTopicId } from '@entities/Topic';
 import { NextRequest, NextResponse } from 'next/server';
 import { checkAuthAccessToken } from '@app/api/_lib/check-auth-access-token';
-import { errorCatchingApiHandlerDecorator } from '@app/api/error-catching-api-handler-decorator';
+import { withErrorHandlerRequest } from '@app/api/with-error-handler-request';
 import { getPrisma } from '@app/api/_prisma/get-prisma';
 import { IServerErrorResponse } from '@shared/model';
 
@@ -43,7 +43,7 @@ const handlerGet = async (request: NextRequest) => {
   }
 };
 
-export const GET = errorCatchingApiHandlerDecorator(handlerGet);
+export const GET = withErrorHandlerRequest(handlerGet);
 
 type IDataRequestPost = Pick<ITopic, 'category_id' | 'content' | 'title'>;
 
@@ -81,7 +81,7 @@ const handlerPost = async (request: NextRequest) => {
   }
 };
 
-export const POST = errorCatchingApiHandlerDecorator(checkAuthAccessToken(handlerPost));
+export const POST = withErrorHandlerRequest(checkAuthAccessToken(handlerPost));
 
 interface IDataRequestDelete {
   topic_id: TTopicId | null;
@@ -126,4 +126,4 @@ const handlerDelete = async (request: NextRequest) => {
   }
 };
 
-export const DELETE = errorCatchingApiHandlerDecorator(checkAuthAccessToken(handlerDelete));
+export const DELETE = withErrorHandlerRequest(checkAuthAccessToken(handlerDelete));

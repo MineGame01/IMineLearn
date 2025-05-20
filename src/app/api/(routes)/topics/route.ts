@@ -1,13 +1,17 @@
-import { errorCatchingApiHandlerDecorator } from '@app/api/error-catching-api-handler-decorator';
+import { withErrorHandlerRequest } from '@app/api/with-error-handler-request';
 import { FiltersDataResponse, IFilterQueryParams } from '@app/api/_model/filters-data-response';
 import { ITopic } from '@entities/Topic';
 import { NextRequest, NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { getPrisma } from '@app/api/_prisma/get-prisma';
+import { TCategoryId } from '@entities/Category';
+import { TUserId } from '@entities/User';
+import { IServerErrorResponse } from '@shared/model';
 
 interface IRequestQuery extends IFilterQueryParams {
   search: string | null;
-  category_id: string | null;
+  category_id: TCategoryId | null;
+  user_id: TUserId | null;
 }
 
 const handlerGet = async (request: NextRequest) => {
@@ -22,6 +26,7 @@ const handlerGet = async (request: NextRequest) => {
     const queryParams: IRequestQuery = {
       search: searchParams.get('search'),
       category_id: searchParams.get('category_id'),
+      user_id: searchParams.get('user_id'),
       ...getFilterQueryParams(searchParams),
     };
 
@@ -33,11 +38,12 @@ const handlerGet = async (request: NextRequest) => {
       search,
       limit_count,
       offset_count,
+      user_id,
     } = queryParams;
 
-    if (!category_id) {
-      return NextResponse.json(
-        { message: 'Param query "category_id" is required!' },
+    if (!user_id && !category_id) {
+      return NextResponse.json<IServerErrorResponse>(
+        { message: "Query param 'category_id' or 'user_id' is required!" },
         { status: 400 }
       );
     }
@@ -49,11 +55,12 @@ const handlerGet = async (request: NextRequest) => {
         created_at: 'desc',
       },
       where: {
-        category_id,
-        ...(created_after
-          ? { created_at: { gte: +created_after, lt: +(created_before ?? new Date().getTime()) } }
-          : {}),
-        ...(search ? { title: { startsWith: search } } : {}),
+        category_id: category_id ?? undefined,
+        created_at: created_after
+          ? { gte: +created_after, lt: +(created_before ?? new Date().getTime()) }
+          : undefined,
+        title: search ? { startsWith: search } : undefined,
+        user_id: user_id ?? undefined,
       },
     };
 
@@ -71,4 +78,4 @@ const handlerGet = async (request: NextRequest) => {
   }
 };
 
-export const GET = errorCatchingApiHandlerDecorator(handlerGet);
+export const GET = withErrorHandlerRequest(handlerGet);

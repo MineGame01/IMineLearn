@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import { IUser } from '@entities/User';
 import { getEnvVar } from '@shared/lib';
-import { TApiHandler } from '../_model/api-handler.type';
+import { THandlerRequest } from '../_model/handler-request.type';
 
-export const checkAuthAccessToken = (handler: TApiHandler) => {
+type TDecoded = string | jwt.JwtPayload | undefined;
+
+export const checkAuthAccessToken = (handler: THandlerRequest) => {
   return async (request: NextRequest) => {
     const authorization: string | null = request.headers.get('Authorization');
 
@@ -12,30 +14,31 @@ export const checkAuthAccessToken = (handler: TApiHandler) => {
       return NextResponse.json({ message: 'Request not authorized!' }, { status: 401 });
     }
 
-    try {
-      const getDecoded = async () => {
-        return new Promise<string | jwt.JwtPayload | undefined>((resolve, reject) => {
-          jwt.verify(authorization, getEnvVar('PRIVATE_KEY_JWT'), (error, decoded) => {
-            if (error) {
-              reject(new Error('Authorization failed! Please try again'));
-            }
-            resolve(decoded);
-          });
+    const getDecoded = async () => {
+      return new Promise<TDecoded>((resolve, reject) => {
+        jwt.verify(authorization, getEnvVar('PRIVATE_KEY_JWT'), (error, decoded) => {
+          if (error) {
+            reject(new Error('Authorization failed! Please try again'));
+          }
+          resolve(decoded);
         });
-      };
+      });
+    };
 
-      const decoded = await getDecoded();
+    let decoded: TDecoded = undefined;
 
-      if (decoded && typeof decoded === 'object') {
-        request.auth = decoded as IUser;
-        return await handler(request);
-      }
+    try {
+      decoded = await getDecoded();
     } catch (error) {
       if (error instanceof Error) {
         return NextResponse.json({ message: error.message }, { status: 401 });
       } else {
         throw error;
       }
+    }
+    if (decoded && typeof decoded === 'object') {
+      request.auth = decoded as IUser;
+      return await handler(request);
     }
   };
 };

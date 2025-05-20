@@ -8,3 +8,5 @@ export * from './app-logo.tsx';
 export * from './paper.tsx';
 export * from './icon-button.tsx';
 export * from './skeleton.tsx';
+export * from './error-layout.tsx';
+export * from './textarea.tsx';

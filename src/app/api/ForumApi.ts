@@ -12,6 +12,7 @@ export const ForumApi = createApi({
     'refetch-reports',
     'refetch-reactions',
     'refetch-categories',
+    'refetch-user',
   ],
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.NEXT_PUBLIC_REST_API_URL,
@@ -24,9 +25,9 @@ export const ForumApi = createApi({
     },
   }),
   endpoints: (builder) => ({
-    getTopicsByCategory: builder.query<
-      IForumApi['endpoints']['getTopicsByCategory']['dataResponse'],
-      IForumApi['endpoints']['getTopicsByCategory']['bodyRequest']
+    getTopics: builder.query<
+      IForumApi['endpoints']['getTopics']['dataResponse'],
+      IForumApi['endpoints']['getTopics']['bodyRequest']
     >({
       query: (bodyRequest) => {
         return `/topics?${getUrlParams(bodyRequest)}`;
@@ -102,6 +103,7 @@ export const ForumApi = createApi({
       IForumApi['endpoints']['getUser']['bodyRequest']
     >({
       query: (bodyRequest) => `/user?${getUrlParams(bodyRequest)}`,
+      providesTags: ['refetch-user'],
     }),
     getCommentById: builder.query<
       IForumApi['endpoints']['getCommentById']['dataResponse'],
@@ -219,6 +221,17 @@ export const ForumApi = createApi({
       }),
       invalidatesTags: ['refetch-comment'],
     }),
+    updateUser: builder.mutation<
+      IForumApi['endpoints']['updateUser']['dataResponse'],
+      IForumApi['endpoints']['updateUser']['bodyRequest']
+    >({
+      query: (bodyRequest) => ({
+        url: '/user',
+        method: 'PUT',
+        body: bodyRequest,
+      }),
+      invalidatesTags: ['refetch-user'],
+    }),
   }),
 });
 
@@ -230,7 +243,7 @@ export const {
   useSendReportMutation,
   useLazyGetTopicByIdQuery,
   useLazyGetCommentByIdQuery,
-  useGetTopicsByCategoryQuery,
+  useGetTopicsQuery,
   useLazyGetCategoriesQuery,
   useGetCategoriesQuery,
   useDeleteTopicMutation,
@@ -244,4 +257,5 @@ export const {
   useDeleteCategoryMutation,
   useDeleteCommentMutation,
   useGetCategoryByIdQuery,
+  useUpdateUserMutation,
 } = ForumApi;

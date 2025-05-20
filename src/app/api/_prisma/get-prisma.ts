@@ -4,11 +4,19 @@ import { validateManySchema } from './validate-many-shema';
 import { CommentSchema, TopicSchema } from '@entities/Topic';
 import { updateCategoryToLatestTopic } from './update-category-to-latest-topic';
 import { updateAllCategoriesToLatestTopic } from './update-all-categories-to-latest-topic';
-import { TUserEmail, TUserUserName, UserSchema } from '@entities/User';
+import {
+  TUserBio,
+  TUserEmail,
+  TUserUserName,
+  UserBioSchema,
+  UserSchema,
+  UserUsernameSchema,
+} from '@entities/User';
 import { AuthSchema } from '@entities/LoginModal';
 import crypto from 'crypto';
 import { ReactionSchema } from '@entities/Reaction';
 import { ReportSchema } from '@entities/Report';
+import Joi from 'joi';
 
 export const getPrisma = () => {
   const prisma = new PrismaClient().$extends({
@@ -96,6 +104,14 @@ export const getPrisma = () => {
         async create({ query, args }) {
           const { username, email, hash_password, salt } = args.data;
           args.data = await UserSchema.validateAsync({ username, email, hash_password, salt });
+          return query(args);
+        },
+        async update({ query, args }) {
+          args.data = await Joi.object<{ username?: TUserUserName; bio?: TUserBio | null }>({
+            username: UserUsernameSchema,
+            bio: UserBioSchema.allow(null),
+          }).validateAsync(args.data);
+          args.data.updated_at = new Date().getTime();
           return query(args);
         },
       },

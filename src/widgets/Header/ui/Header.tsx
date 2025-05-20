@@ -32,7 +32,7 @@ export const Header: FC = () => {
   };
 
   return (
-    <div className="h-[50px] bg-surface">
+    <header className="h-[50px] bg-surface">
       <div className="px-[20px] h-full flex items-center justify-between">
         <Link href={'/'}>
           <AppLogo theme="dark" />
@@ -97,6 +97,6 @@ export const Header: FC = () => {
         )}
         <LoginModal isOpen={isOpenLoginModal} onClose={handleCloseModal} />
       </div>
-    </div>
+    </header>
   );
 };

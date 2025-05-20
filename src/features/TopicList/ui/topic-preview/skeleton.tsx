@@ -1,7 +1,7 @@
 import { Skeleton } from '@shared/ui';
 import { FC } from 'react';
 
-export const SkeletonTopicPreview: FC = () => {
+export const TopicPreviewSkeleton: FC = () => {
   return (
     <div className="flex items-center p-3">
       <div>

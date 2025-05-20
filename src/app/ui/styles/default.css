@@ -2,8 +2,8 @@
 
 @theme {
     /* Основные цвета для белой темы */
-    --color-background: #ffffff;       /* Фоновый цвет страницы */
-    --color-surface: #f8f9fa;          /* Фон элементов (карточек, панелей) */
+    --color-background: #f8f9fa;       /* Фоновый цвет страницы */
+    --color-surface: #ffffff;          /* Фон элементов (карточек, панелей) */
     --color-text: #212529;             /* Основной цвет текста */
     --color-muted: #6c757d;            /* Второстепенный (подсказки, неактивный текст) */
 
@@ -39,7 +39,7 @@
     --color-alert-bg: #fff3cd;         /* Фон для сообщений предупреждений */
     --color-alert-text: #856404;       /* Текст предупреждений */
 
-    --radius-border-default: 7px;
+    --radius-border-default: 5px;
 }
 
 body {

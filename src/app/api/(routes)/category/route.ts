@@ -1,6 +1,6 @@
 import { checkAuthAccessToken } from '@app/api/_lib/check-auth-access-token';
 import { getPrisma } from '@app/api/_prisma/get-prisma';
-import { errorCatchingApiHandlerDecorator } from '@app/api/error-catching-api-handler-decorator';
+import { withErrorHandlerRequest } from '@app/api/with-error-handler-request';
 import { ICategory, TCategoryId, TCategoryImageBase64 } from '@entities/Category';
 import { IServerErrorResponse } from '@shared/model';
 import { NextRequest, NextResponse } from 'next/server';
@@ -42,7 +42,7 @@ const handleGet = async (request: NextRequest) => {
   }
 };
 
-export const GET = errorCatchingApiHandlerDecorator(handleGet);
+export const GET = withErrorHandlerRequest(handleGet);
 
 interface IDataRequest extends Pick<ICategory, 'name'> {
   image_base64: TCategoryImageBase64;
@@ -111,7 +111,7 @@ const handlePost = async (request: NextRequest) => {
   }
 };
 
-export const POST = errorCatchingApiHandlerDecorator(checkAuthAccessToken(handlePost));
+export const POST = withErrorHandlerRequest(checkAuthAccessToken(handlePost));
 
 interface IDataRequest {
   category_id: TCategoryId | null;
@@ -160,4 +160,4 @@ const handleDelete = async (request: NextRequest) => {
   }
 };
 
-export const DELETE = errorCatchingApiHandlerDecorator(checkAuthAccessToken(handleDelete));
+export const DELETE = withErrorHandlerRequest(checkAuthAccessToken(handleDelete));
