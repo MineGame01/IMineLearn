@@ -112,6 +112,7 @@ export const TopicsList: FC<{ categoryId: TCategoryId }> = ({ categoryId }) => {
           {typeSorted}
         </Button>
         <Dropdown
+          id="topic-list-menu-type-sorted"
           open={showMenuTypeSorted}
           anchorEl={menuTypeSortedRef}
           close={() => {
@@ -120,18 +121,22 @@ export const TopicsList: FC<{ categoryId: TCategoryId }> = ({ categoryId }) => {
         >
           <DropdownList>
             <DropdownItem
+              active={typeSorted === 'latest'}
               onClick={() => {
                 setTypeSorted('latest');
               }}
+              leftIcon={<KeyboardArrowUpIcon />}
             >
-              <KeyboardArrowUpIcon /> Latest
+              Latest
             </DropdownItem>
             <DropdownItem
+              active={typeSorted === 'old'}
               onClick={() => {
                 setTypeSorted('old');
               }}
+              leftIcon={<KeyboardArrowDownIcon />}
             >
-              <KeyboardArrowDownIcon /> Old
+              Old
             </DropdownItem>
           </DropdownList>
         </Dropdown>

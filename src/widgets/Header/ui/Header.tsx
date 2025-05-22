@@ -1,3 +1,4 @@
+'use client';
 import { useState, FC, useCallback, Fragment, useRef } from 'react';
 import {
   authLogin,
@@ -5,7 +6,7 @@ import {
   selectAuthIsLoading,
   selectAuthUserInfo,
 } from '@widgets/LoginModal';
-import { AppLogo, Button, DropdownItem, DropdownList } from '@shared/ui';
+import { AppLogo, Button, DropdownItemLink, DropdownList } from '@shared/ui';
 import Link from 'next/link';
 import { useAppDispatch, useAppSelector } from '@app/lib';
 import Image from 'next/image';
@@ -76,15 +77,13 @@ export const Header: FC = () => {
                   }}
                 >
                   <DropdownList>
-                    <DropdownItem>
-                      <PersonIcon />
-                      <Link href={`/user/${username}`}>Profile</Link>
-                    </DropdownItem>
+                    <DropdownItemLink href={`/user/${username}`} leftIcon={<PersonIcon />}>
+                      Profile
+                    </DropdownItemLink>
                     {is_admin && (
-                      <DropdownItem>
-                        <ReportGmailerrorredIcon />
-                        <Link href="/moderation">Reports</Link>
-                      </DropdownItem>
+                      <DropdownItemLink href="/moderation" leftIcon={<ReportGmailerrorredIcon />}>
+                        Reports
+                      </DropdownItemLink>
                     )}
                   </DropdownList>
                 </MemoDropdown>
