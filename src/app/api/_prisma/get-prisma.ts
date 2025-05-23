@@ -17,6 +17,7 @@ import crypto from 'crypto';
 import { ReactionSchema } from '@entities/Reaction';
 import { ReportSchema } from '@entities/Report';
 import Joi from 'joi';
+import { revalidateTag } from 'next/cache';
 
 export const getPrisma = () => {
   const prisma = new PrismaClient().$extends({
@@ -24,19 +25,24 @@ export const getPrisma = () => {
       categories: {
         async create({ query, args }) {
           args.data = await CategorySchema.validateAsync(args.data);
-          return query(args);
+          return query(args).then((result) => {
+            revalidateTag('refetch-categories-list');
+            return result;
+          });
         },
         async createMany({ query, args }) {
           args.data = await validateManySchema(args.data, CategorySchema);
-          return query(args);
+          return query(args).then((result) => {
+            revalidateTag('refetch-categories-list');
+            return result;
+          });
         },
         async delete({ query, args }) {
-          return query(args)
-            .then(async (result) => {
-              if (result.id) await prisma.topics.deleteMany({ where: { category_id: result.id } });
-              return result;
-            })
-            .catch((error: unknown) => error);
+          return query(args).then(async (result) => {
+            if (result.id) await prisma.topics.deleteMany({ where: { category_id: result.id } });
+            revalidateTag('refetch-categories-list');
+            return result;
+          });
         },
         // async deleteMany({ query, args }) {
         //   return query(args)
@@ -51,45 +57,39 @@ export const getPrisma = () => {
       topics: {
         async create({ query, args }) {
           args.data = await TopicSchema.validateAsync(args.data);
-          return query(args)
-            .then(async (result) => {
-              await updateCategoryToLatestTopic(prisma, args.data.category_id);
-              return result;
-            })
-            .catch((error: unknown) => error);
+          return query(args).then(async (result) => {
+            await updateCategoryToLatestTopic(prisma, args.data.category_id);
+            return result;
+          });
         },
         async createMany({ args, query }) {
           args.data = await validateManySchema(args.data, TopicSchema);
           const { data } = args;
-          return query(args)
-            .then(async (result) => {
-              if (Array.isArray(data)) {
-                for (const topic of data) {
-                  await updateCategoryToLatestTopic(prisma, topic.category_id);
-                }
-              } else {
-                await updateCategoryToLatestTopic(prisma, data.category_id);
+          return query(args).then(async (result) => {
+            if (Array.isArray(data)) {
+              for (const topic of data) {
+                await updateCategoryToLatestTopic(prisma, topic.category_id);
               }
-              return result;
-            })
-            .catch((error: unknown) => error);
+            } else {
+              await updateCategoryToLatestTopic(prisma, data.category_id);
+            }
+            return result;
+          });
         },
         async delete({ query, args }) {
-          return query(args)
-            .then(async (result) => {
-              const { category_id, id } = result;
+          return query(args).then(async (result) => {
+            const { category_id, id } = result;
 
-              if (category_id) {
-                await prisma.reactions.deleteMany({ where: { topic_id: id } });
-                await prisma.comments.deleteMany({ where: { topic_id: id } });
-                await updateCategoryToLatestTopic(prisma, category_id.toString());
-              } else {
-                await updateAllCategoriesToLatestTopic(prisma);
-              }
+            if (category_id) {
+              await prisma.reactions.deleteMany({ where: { topic_id: id } });
+              await prisma.comments.deleteMany({ where: { topic_id: id } });
+              await updateCategoryToLatestTopic(prisma, category_id.toString());
+            } else {
+              await updateAllCategoriesToLatestTopic(prisma);
+            }
 
-              return result;
-            })
-            .catch((error: unknown) => error);
+            return result;
+          });
         },
         // async deleteMany({ query, args }) {
         //   return query(args)
