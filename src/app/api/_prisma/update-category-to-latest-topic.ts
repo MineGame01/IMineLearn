@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { TPrismaClientExtends } from './prisma-client-extends.type';
 import { TCategoryId } from '@entities/Category';
+import { revalidateTag } from 'next/cache';
 
 export const updateCategoryToLatestTopic = async (
   prisma: TPrismaClientExtends | PrismaClient,
@@ -22,4 +23,5 @@ export const updateCategoryToLatestTopic = async (
       topicsCount: topic_count,
     },
   });
+  revalidateTag(`refetch-categoryid-${category_id}`);
 };

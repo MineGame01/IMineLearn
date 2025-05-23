@@ -6,10 +6,11 @@ import { Body } from '@features/Category/ui/body';
 import { Container } from '@features/Category/ui/container';
 import { CategoryPhotoContainer } from '@features/Category/ui/category-photo-container';
 import { ContentContainer } from '@features/Category/ui/content-container';
-import { getEnvVar } from '@shared/lib';
 import { IServerErrorResponse } from '@shared/model';
 import { TitleSecondary } from './title-secondary';
 import dynamic from 'next/dynamic';
+import { appApi } from '@app/api';
+import { HTTPError } from 'ky';
 
 dayjs.extend(relativeTimePlugin);
 
@@ -23,21 +24,25 @@ const ServerLastTopic = dynamic(
 );
 
 export const Category: FC<Pick<ICategory, 'id'>> = async ({ id }) => {
-  const response = await fetch(
-    `${getEnvVar('NEXT_PUBLIC_REST_API_URL')}/category?category_id=${id}`,
-    {
-      cache: 'no-store',
+  let data: ICategory | null = null;
+
+  try {
+    data = await appApi
+      .get('category', {
+        next: { tags: [`refetch-categoryid-${id}`] },
+        searchParams: {
+          category_id: id,
+        },
+      })
+      .json<ICategory>();
+  } catch (error: unknown) {
+    if (error instanceof HTTPError) {
+      const messageResponse = (await error.response.json<IServerErrorResponse>()).message;
+      return <div>{messageResponse}</div>;
     }
-  );
-  const data = (await response.json()) as ICategory | IServerErrorResponse | undefined;
-
-  if (!response.ok) {
-    const errorMessage = data ? 'message' in data && data.message : 'Unknown error!';
-
-    return <Body href={'/category/' + id}>{errorMessage || response.statusText}</Body>;
   }
 
-  if (data && !('message' in data)) {
+  if (data) {
     const { image_base64_415x, name, lastTopicId, lastActivity, topicsCount } = data;
 
     const image_src = image_base64_415x ? `data:image/png;base64,${image_base64_415x}` : null;
