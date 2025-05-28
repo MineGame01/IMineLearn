@@ -2,7 +2,11 @@ import { checkAuthAccessToken } from '@app/api/_lib/check-auth-access-token';
 import { getPrisma } from '@app/api/_prisma/get-prisma';
 import { withErrorHandlerRequest } from '@app/api/with-error-handler-request';
 import { TUserBio, TUserId, TUserUserName } from '@entities/User';
-import { ParamIsRequiredError, UsernameAlreadyUsedError, UserNotFoundError } from '@shared/api';
+import {
+  ResponseParamIsRequiredError,
+  ResponseUsernameAlreadyUsedError,
+  ResponseUserNotFoundError,
+} from '@shared/model';
 import { NextRequest, NextResponse } from 'next/server';
 
 interface IRequestQuery {
@@ -24,7 +28,7 @@ const handlerGet = async (request: NextRequest) => {
     const { user_id, username } = queryParams;
 
     if (!user_id && !username) {
-      return new ParamIsRequiredError(true, 'user_id', 'username');
+      return new ResponseParamIsRequiredError(true, 'user_id', 'username');
     }
 
     const user = await prisma.users.findFirst({
@@ -38,7 +42,7 @@ const handlerGet = async (request: NextRequest) => {
         salt: null,
       });
     } else {
-      throw new UserNotFoundError(username ?? undefined);
+      throw new ResponseUserNotFoundError(username);
     }
   } finally {
     await prisma.$disconnect();
@@ -64,14 +68,14 @@ const handlerPut = async (request: NextRequest) => {
     const { username, bio } = data;
 
     if (!username && bio === undefined) {
-      throw new ParamIsRequiredError(false, 'username', 'bio');
+      throw new ResponseParamIsRequiredError(false, 'username', 'bio');
     }
 
     const user = await prisma.users.findFirst({
       where: { username },
     });
     if (user && user.id !== authUser.id) {
-      throw new UsernameAlreadyUsedError(username);
+      throw new ResponseUsernameAlreadyUsedError(username);
     }
 
     const updated_data = await prisma.users.update({

@@ -2,35 +2,21 @@ import { checkAuthAccessToken } from '@app/api/_lib/check-auth-access-token';
 import { getPrisma } from '@app/api/_prisma/get-prisma';
 import { withErrorHandlerRequest } from '@app/api/with-error-handler-request';
 import { IComment, TCommentId } from '@entities/Topic';
-import { IServerErrorResponse } from '@shared/model';
+import { IServerErrorResponse, ResponseParamIsRequiredError } from '@shared/model';
 import { NextRequest, NextResponse } from 'next/server';
-
-interface IQueryParams {
-  comment_id: TCommentId | undefined;
-}
 
 const handlerGet = async (request: NextRequest) => {
   const prisma = getPrisma();
   try {
     await prisma.$connect();
 
-    const comment_id = request.nextUrl.searchParams.get('comment_id') as IQueryParams['comment_id'];
+    const comment_id = request.nextUrl.searchParams.get('comment_id');
 
     if (!comment_id) {
-      return NextResponse.json<IServerErrorResponse>(
-        { message: "Query param 'comment_id' is required!" },
-        { status: 400 }
-      );
+      throw new ResponseParamIsRequiredError(true, 'comment_id');
     }
 
-    const comment = await prisma.comments.findFirst({ where: { id: comment_id } });
-
-    if (!comment) {
-      return NextResponse.json<IServerErrorResponse>(
-        { message: 'Comment not found!' },
-        { status: 404 }
-      );
-    }
+    const comment = (await prisma.comments.findFirst({ where: { id: comment_id } })) as IComment;
 
     return NextResponse.json<IComment>(comment);
   } finally {
@@ -61,20 +47,10 @@ const handlerDelete = async (request: NextRequest) => {
     const { comment_id } = body;
 
     if (!comment_id) {
-      return NextResponse.json<IServerErrorResponse>(
-        { message: "Param 'comment_id' is required!" },
-        { status: 400 }
-      );
+      throw new ResponseParamIsRequiredError(false, 'comment_id');
     }
 
-    const comment = await prisma.comments.findFirst({ where: { id: comment_id } });
-
-    if (!comment) {
-      return NextResponse.json<IServerErrorResponse>(
-        { message: 'Comment not found!' },
-        { status: 404 }
-      );
-    }
+    const comment = (await prisma.comments.findFirst({ where: { id: comment_id } })) as IComment;
 
     if (comment.user_id === auth_user_id || is_admin) {
       await prisma.comments.delete({ where: { id: comment_id } });

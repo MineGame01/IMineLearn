@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { checkAuthAccessToken } from '@app/api/_lib/check-auth-access-token';
 import { withErrorHandlerRequest } from '@app/api/with-error-handler-request';
 import { getPrisma } from '@app/api/_prisma/get-prisma';
-import { IServerErrorResponse } from '@shared/model';
+import { IServerErrorResponse, ResponseParamIsRequiredError } from '@shared/model';
 
 interface IRequestQuery {
   topic_id: TTopicId | null;
@@ -22,20 +22,10 @@ const handlerGet = async (request: NextRequest) => {
     const { topic_id } = queryParams;
 
     if (!topic_id) {
-      return NextResponse.json<IServerErrorResponse>(
-        { message: 'Topic id not found!' },
-        { status: 400 }
-      );
+      throw new ResponseParamIsRequiredError(true, 'topic_id');
     }
 
-    const topic = await prisma.topics.findFirst({ where: { id: topic_id } });
-
-    if (!topic) {
-      return NextResponse.json<IServerErrorResponse>(
-        { message: 'Topic not found!' },
-        { status: 404 }
-      );
-    }
+    const topic = (await prisma.topics.findFirst({ where: { id: topic_id } })) as ITopic;
 
     return NextResponse.json<ITopic>(topic);
   } finally {
@@ -62,14 +52,7 @@ const handlerPost = async (request: NextRequest) => {
 
     const { id } = authUser;
 
-    const category = await prisma.categories.findFirst({ where: { id: category_id } });
-
-    if (!category) {
-      return NextResponse.json<IServerErrorResponse>(
-        { message: 'Category not found! Please checked category_id' },
-        { status: 404 }
-      );
-    }
+    await prisma.categories.findFirst({ where: { id: category_id } });
 
     const insertedTopic = await prisma.topics.create({
       data: { user_id: id, category_id, content, title },
@@ -102,14 +85,10 @@ const handlerDelete = async (request: NextRequest) => {
     const { is_admin, id: auth_user_id } = authUser;
 
     if (!topic_id) {
-      return NextResponse.json({ message: 'topic_id param is required!' }, { status: 400 });
+      throw new ResponseParamIsRequiredError(false, 'topic_id');
     }
 
-    const topic = await prisma.topics.findFirst({ where: { id: topic_id } });
-
-    if (!topic) {
-      return NextResponse.json({ message: 'Topic not found!' }, { status: 404 });
-    }
+    const topic = (await prisma.topics.findFirst({ where: { id: topic_id } })) as ITopic;
 
     if (topic.user_id === auth_user_id || is_admin) {
       await prisma.topics.delete({ where: { id: topic_id, category_id: topic.category_id } });

@@ -6,7 +6,7 @@ import { Prisma } from '@prisma/client';
 import { getPrisma } from '@app/api/_prisma/get-prisma';
 import { TCategoryId } from '@entities/Category';
 import { TUserId } from '@entities/User';
-import { IServerErrorResponse } from '@shared/model';
+import { ResponseParamIsRequiredError } from '@shared/model';
 
 interface IRequestQuery extends IFilterQueryParams {
   search: string | null;
@@ -42,10 +42,7 @@ const handlerGet = async (request: NextRequest) => {
     } = queryParams;
 
     if (!user_id && !category_id) {
-      return NextResponse.json<IServerErrorResponse>(
-        { message: "Query param 'category_id' or 'user_id' is required!" },
-        { status: 400 }
-      );
+      throw new ResponseParamIsRequiredError(true, 'user_id', 'category_id');
     }
 
     const defaultFindOptions: Prisma.topicsFindManyArgs = {

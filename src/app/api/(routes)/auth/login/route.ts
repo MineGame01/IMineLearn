@@ -27,4 +27,4 @@ const handler = async (request: NextRequest) => {
   }
 };
 
-export const POST = withErrorHandlerRequest(handler, 401);
+export const POST = withErrorHandlerRequest(handler);

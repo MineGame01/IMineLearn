@@ -5,6 +5,7 @@ import { TTopicId } from '@entities/Topic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@app/api/_prisma/get-prisma';
 import { TReactionType } from '@entities/Reaction';
+import { ResponseParamIsRequiredError } from '@shared/model';
 
 interface IRequestQuery extends Pick<IFilterQueryParams, 'limit_count' | 'offset_count'> {
   topic_id: TTopicId | null;
@@ -27,14 +28,10 @@ const handlerGet = async (request: NextRequest) => {
     const { topic_id, limit_count, offset_count } = queryParams;
 
     if (!topic_id) {
-      return NextResponse.json({ message: 'Query param topic_id is required!' }, { status: 400 });
+      throw new ResponseParamIsRequiredError(true, 'topic_id');
     }
 
-    const topic = await prisma.topics.findFirst({ where: { id: topic_id } });
-
-    if (!topic) {
-      return NextResponse.json({ message: 'Topic not found!' }, { status: 404 });
-    }
+    await prisma.topics.findFirst({ where: { id: topic_id } });
 
     const find_options = {
       take: limit_count,
@@ -71,10 +68,7 @@ const handlerPost = async (request: NextRequest) => {
     const { id: user_id } = authUser;
 
     if (!topic_id || !type_reaction) {
-      return NextResponse.json(
-        { message: `Param '${!topic_id ? 'topic_id' : 'type_reaction'}' is required!` },
-        { status: 400 }
-      );
+      throw new ResponseParamIsRequiredError(true, 'topic_id', 'type_reaction');
     }
 
     if (type_reaction !== 'like') {

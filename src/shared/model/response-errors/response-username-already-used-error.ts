@@ -1,6 +1,6 @@
 import { ResponseError } from './response-error';
 
-export class UsernameAlreadyUsedError extends ResponseError {
+export class ResponseUsernameAlreadyUsedError extends ResponseError {
   constructor(username?: string) {
     super(
       `Username ${username ? `'${username}'` : ''} already in use!`,

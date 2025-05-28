@@ -2,7 +2,7 @@ import { checkAuthAccessToken } from '@app/api/_lib/check-auth-access-token';
 import { getPrisma } from '@app/api/_prisma/get-prisma';
 import { withErrorHandlerRequest } from '@app/api/with-error-handler-request';
 import { ICategory, TCategoryId, TCategoryImageBase64 } from '@entities/Category';
-import { IServerErrorResponse } from '@shared/model';
+import { ResponseParamIsRequiredError } from '@shared/model';
 import { NextRequest, NextResponse } from 'next/server';
 import sharp from 'sharp';
 
@@ -21,20 +21,12 @@ const handleGet = async (request: NextRequest) => {
     const { category_id } = queryParams;
 
     if (!category_id) {
-      return NextResponse.json<IServerErrorResponse>(
-        { message: 'Query param category_id is required!' },
-        { status: 400 }
-      );
+      throw new ResponseParamIsRequiredError(true, 'category_id');
     }
 
-    const category = await prisma.categories.findFirst({ where: { id: category_id } });
-
-    if (!category) {
-      return NextResponse.json<IServerErrorResponse>(
-        { message: 'Category not found!' },
-        { status: 404 }
-      );
-    }
+    const category = (await prisma.categories.findFirst({
+      where: { id: category_id },
+    })) as ICategory;
 
     return NextResponse.json<ICategory>(category);
   } finally {
@@ -57,15 +49,6 @@ const handlePost = async (request: NextRequest) => {
 
     if (!authUser) {
       return;
-    }
-
-    const { is_admin } = authUser;
-
-    if (!is_admin) {
-      return NextResponse.json<IServerErrorResponse>(
-        { message: 'You have no right of administration!' },
-        { status: 401 }
-      );
     }
 
     const { image_base64: query_image_base64, name: query_name } = data;
@@ -111,7 +94,7 @@ const handlePost = async (request: NextRequest) => {
   }
 };
 
-export const POST = withErrorHandlerRequest(checkAuthAccessToken(handlePost));
+export const POST = withErrorHandlerRequest(checkAuthAccessToken(handlePost, true));
 
 interface IDataRequest {
   category_id: TCategoryId | null;
@@ -128,29 +111,13 @@ const handleDelete = async (request: NextRequest) => {
       return;
     }
 
-    const { is_admin } = authUser;
-
-    if (!is_admin) {
-      return NextResponse.json<IServerErrorResponse>(
-        { message: 'You have no right of administration!' },
-        { status: 403 }
-      );
-    }
-
     const { category_id } = data;
 
     if (!category_id) {
-      return NextResponse.json<IServerErrorResponse>(
-        { message: "Param query 'category_id' is required!" },
-        { status: 400 }
-      );
+      throw new ResponseParamIsRequiredError(false, 'category_id');
     }
 
-    const category = await prisma.categories.findFirst({ where: { id: category_id } });
-
-    if (!category) {
-      return NextResponse.json({ message: 'Category not found! ' }, { status: 404 });
-    }
+    await prisma.categories.findFirst({ where: { id: category_id } });
 
     await prisma.categories.delete({ where: { id: category_id } });
 
@@ -160,4 +127,4 @@ const handleDelete = async (request: NextRequest) => {
   }
 };
 
-export const DELETE = withErrorHandlerRequest(checkAuthAccessToken(handleDelete));
+export const DELETE = withErrorHandlerRequest(checkAuthAccessToken(handleDelete, true));

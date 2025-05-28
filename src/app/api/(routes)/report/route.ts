@@ -4,6 +4,7 @@ import { FiltersDataResponse, IFilterQueryParams } from '@app/api/_model/filters
 import { IReport, TReportId } from '@entities/Report';
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@app/api/_prisma/get-prisma';
+import { ResponseNotFoundError, ResponseParamIsRequiredError } from '@shared/model';
 
 interface IRequestQuery extends IFilterQueryParams {
   report_id: TReportId | null;
@@ -16,15 +17,6 @@ const handlerGet = async (request: NextRequest) => {
     const authUser = request.auth;
     if (!authUser) {
       return;
-    }
-
-    const { is_admin } = authUser;
-
-    if (!is_admin) {
-      return NextResponse.json(
-        { message: 'You have no right of administration!' },
-        { status: 403 }
-      );
     }
 
     const searchParams = request.nextUrl.searchParams;
@@ -60,7 +52,7 @@ const handlerGet = async (request: NextRequest) => {
       const report = await prisma.reports.findFirst({ where: { ...find, id: report_id } });
 
       if (!report) {
-        return NextResponse.json({ message: 'Report not found!' }, { status: 404 });
+        throw new ResponseNotFoundError('Report');
       } else {
         return NextResponse.json<IReport>(report);
       }
@@ -74,7 +66,7 @@ const handlerGet = async (request: NextRequest) => {
   }
 };
 
-export const GET = withErrorHandlerRequest(checkAuthAccessToken(handlerGet));
+export const GET = withErrorHandlerRequest(checkAuthAccessToken(handlerGet, true));
 
 type TDataRequestPost = Pick<IReport, 'target_id' | 'content' | 'reason' | 'target_type'>;
 
@@ -94,7 +86,7 @@ const handlerPost = async (request: NextRequest) => {
     const { target_id, content, reason, target_type } = body;
 
     if (!target_id) {
-      return NextResponse.json({ message: 'Query param target_id is required!' }, { status: 400 });
+      throw new ResponseParamIsRequiredError(false, 'target_id');
     }
 
     const report = await prisma.reports.findFirst({ where: { target_id, user_id: auth_user_id } });
@@ -133,17 +125,10 @@ const handlerDelete = async (request: NextRequest) => {
       return;
     }
 
-    if (!authUser.is_admin) {
-      return NextResponse.json(
-        { message: 'You have no right of administration!' },
-        { status: 403 }
-      );
-    }
-
     const { report_id } = data;
 
     if (!report_id) {
-      return NextResponse.json({ message: 'report_id is required!' }, { status: 400 });
+      throw new ResponseParamIsRequiredError(false, 'report_id');
     }
 
     await prisma.reports.delete({ where: { id: report_id } });
@@ -153,4 +138,4 @@ const handlerDelete = async (request: NextRequest) => {
   }
 };
 
-export const DELETE = withErrorHandlerRequest(checkAuthAccessToken(handlerDelete));
+export const DELETE = withErrorHandlerRequest(checkAuthAccessToken(handlerDelete, true));

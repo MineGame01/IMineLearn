@@ -3,10 +3,11 @@ import jwt from 'jsonwebtoken';
 import { IUser } from '@entities/User';
 import { getEnvVar } from '@shared/lib';
 import { THandlerRequest } from '../_model/handler-request.type';
+import { ResponseNoRightAdministrationError } from '@shared/model';
 
 type TDecoded = string | jwt.JwtPayload | undefined;
 
-export const checkAuthAccessToken = (handler: THandlerRequest) => {
+export const checkAuthAccessToken = (handler: THandlerRequest, is_admin?: boolean) => {
   return async (request: NextRequest) => {
     const authorization: string | null = request.headers.get('Authorization');
 
@@ -38,6 +39,9 @@ export const checkAuthAccessToken = (handler: THandlerRequest) => {
     }
     if (decoded && typeof decoded === 'object') {
       request.auth = decoded as IUser;
+      if (is_admin && !request.auth.is_admin) {
+        throw new ResponseNoRightAdministrationError();
+      }
       return await handler(request);
     }
   };

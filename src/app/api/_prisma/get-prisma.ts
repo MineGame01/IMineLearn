@@ -18,6 +18,13 @@ import { ReactionSchema } from '@entities/Reaction';
 import { ReportSchema } from '@entities/Report';
 import Joi from 'joi';
 import { revalidateTag } from 'next/cache';
+import {
+  ResponseLoginCredentialsIncorrectError,
+  ResponseNotFoundError,
+  ResponseParamIsRequiredError,
+  ResponseUsernameAlreadyUsedError,
+  ResponseUserNotFoundError,
+} from '@shared/model';
 
 export const getPrisma = () => {
   const prisma = new PrismaClient().$extends({
@@ -41,6 +48,14 @@ export const getPrisma = () => {
           return query(args).then(async (result) => {
             if (result.id) await prisma.topics.deleteMany({ where: { category_id: result.id } });
             revalidateTag('refetch-categories-list');
+            return result;
+          });
+        },
+        async findFirst({ query, args }) {
+          return query(args).then((result) => {
+            if (!result) {
+              throw new ResponseNotFoundError('Category');
+            }
             return result;
           });
         },
@@ -91,6 +106,14 @@ export const getPrisma = () => {
             return result;
           });
         },
+        async findFirst({ query, args }) {
+          return query(args).then((result) => {
+            if (!result) {
+              throw new ResponseNotFoundError('Topic');
+            }
+            return result;
+          });
+        },
         // async deleteMany({ query, args }) {
         //   return query(args)
         //     .then(async (result) => {
@@ -128,6 +151,14 @@ export const getPrisma = () => {
             args.data = await CommentSchema.validateAsync(args.data);
           }
           return query(args);
+        },
+        async findFirst({ query, args }) {
+          return query(args).then((result) => {
+            if (!result) {
+              throw new ResponseNotFoundError('Comment');
+            }
+            return result;
+          });
         },
       },
       reactions: {
@@ -172,13 +203,13 @@ export const getPrisma = () => {
           username: TUserUserName | null;
           password: string | null;
         }) {
-          if (!username) throw new Error('Username is required!');
+          if (!username) throw new ResponseParamIsRequiredError(false, 'Username');
           const login_credentials = (await AuthSchema.validateAsync({ email, password })) as {
             email: string;
             password: string;
           };
           const user = await prisma.users.findFirst({ where: { username } });
-          if (user) throw new Error('Username already in use!');
+          if (user) throw new ResponseUsernameAlreadyUsedError(username);
 
           const salt = crypto.randomBytes(16).toString('hex');
 
@@ -234,12 +265,12 @@ export const getPrisma = () => {
                 Buffer.from(derivedKey.toString('hex'))
               )
             ) {
-              throw new Error('Email or password is incorrect!');
+              throw new ResponseLoginCredentialsIncorrectError();
             } else {
               return user;
             }
           } else {
-            throw new Error('User not found!');
+            throw new ResponseUserNotFoundError();
           }
         },
       },
