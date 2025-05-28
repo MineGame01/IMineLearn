@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { TPrismaClientExtends } from './prisma-client-extends.type';
-import { TCategoryId } from '@entities/Category';
+import { TCategoryId } from '@entities/categories-list';
 import { revalidateTag } from 'next/cache';
 
 export const updateCategoryToLatestTopic = async (

@@ -1,4 +1,4 @@
-import { CategorySchema } from '@entities/Category';
+import { CategorySchema } from '@entities/categories-list';
 import { PrismaClient } from '@prisma/client';
 import { validateManySchema } from './validate-many-shema';
 import { CommentSchema, TopicSchema } from '@entities/Topic';

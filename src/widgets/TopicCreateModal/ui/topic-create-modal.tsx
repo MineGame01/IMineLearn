@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { Modal } from '@shared/ui';
-import { TCategoryId } from '@entities/Category';
+import { TCategoryId } from '@entities/categories-list/index.ts';
 import dynamic from 'next/dynamic';
 
 const LazyContentModal = dynamic(async () =>

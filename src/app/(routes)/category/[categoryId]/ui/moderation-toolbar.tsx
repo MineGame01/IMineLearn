@@ -1,5 +1,5 @@
 'use client';
-import { TCategoryId } from '@entities/Category';
+import { TCategoryId } from '@entities/categories-list';
 import { IconButton } from '@shared/ui';
 import { FC, useState } from 'react';
 import DeleteIcon from '@mui/icons-material/Delete';

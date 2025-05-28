@@ -1,6 +1,6 @@
 'use client';
 import { useDeleteCategoryMutation } from '@app/api';
-import { TCategoryId } from '@entities/Category';
+import { TCategoryId } from '@entities/categories-list';
 import { getServerErrorMessage } from '@shared/model';
 import { Button, Modal } from '@shared/ui';
 import { useRouter } from 'next/navigation';

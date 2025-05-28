@@ -9,7 +9,7 @@ const MemoCreateCategoryModal = dynamic(async () =>
   import('@widgets/CreateCategoryModal').then((file) => file.CreateCategoryModal)
 );
 
-export const CreateCategoryToolbar: FC = () => {
+export const CategoriesToolbar: FC = () => {
   const [showCreateCategoryModal, setShowCreateCategoryModal] = useState(false);
   const { is_admin } = useAppSelector(selectAuthUserInfo);
 

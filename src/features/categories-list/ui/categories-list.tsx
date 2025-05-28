@@ -1,17 +1,15 @@
 import { FC } from 'react';
-import { CreateCategoryToolbar } from './create-category-toolbar';
+import { CategoriesToolbar } from './categories-toolbar';
 import dynamic from 'next/dynamic';
-import { SkeletonCategory } from '@features/Category';
+import { SkeletonCategory } from './category/skeleton-category';
 import { appApi } from '@app/api';
 import { HTTPError } from 'ky';
 import { IServerErrorResponse, PageError } from '@shared/model';
 
 const ServerCategory = dynamic(
-  async () => import('@features/Category').then((file) => file.Category),
+  async () => import('./category/category').then((file) => file.Category),
   {
-    loading: () => {
-      return <SkeletonCategory />;
-    },
+    loading: () => <SkeletonCategory />,
   }
 );
 
@@ -36,7 +34,7 @@ export const CategoriesList: FC = async () => {
 
   return (
     <div>
-      <CreateCategoryToolbar />
+      <CategoriesToolbar />
       <div className="grid grid-cols-1 p-1 lg-p-2 lg:grid-cols-3 gap-[20px] lg:gap-[50px]">
         {data.map((categoryId) => (
           <ServerCategory key={categoryId} id={categoryId} />

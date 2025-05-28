@@ -1,7 +1,7 @@
 import Joi from 'joi';
 import { ITopic, MAX_TOPIC_TITLE_LENGTH, MIN_TOPIC_TITLE_LENGTH } from './ITopic';
 import { UserIdSchema } from '@entities/User';
-import { CategoryIdSchema } from '@entities/Category';
+import { CategoryIdSchema } from '@entities/categories-list';
 
 export const TopicSchema = Joi.object<ITopic>({
   title: Joi.string().min(MIN_TOPIC_TITLE_LENGTH).max(MAX_TOPIC_TITLE_LENGTH).required(),

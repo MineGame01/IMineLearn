@@ -1,7 +1,7 @@
 import { FC, useState } from 'react';
 import { useCreateTopicMutation, useGetCategoryByIdQuery } from '@app/api';
 import { Button, Input } from '@shared/ui';
-import { TCategoryId } from '@entities/Category';
+import { TCategoryId } from '@entities/categories-list';
 import { getServerErrorMessage } from '@shared/model';
 
 export const ContentModal: FC<{ category_id: TCategoryId; close: () => void }> = ({

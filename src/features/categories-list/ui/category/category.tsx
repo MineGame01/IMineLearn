@@ -1,11 +1,11 @@
 import { FC } from 'react';
-import { ICategory } from '@entities/Category';
+import { ICategory } from '@entities/categories-list';
 import dayjs from 'dayjs';
 import relativeTimePlugin from 'dayjs/plugin/relativeTime';
-import { Body } from '@features/Category/ui/body';
-import { Container } from '@features/Category/ui/container';
-import { CategoryPhotoContainer } from '@features/Category/ui/category-photo-container';
-import { ContentContainer } from '@features/Category/ui/content-container';
+import { Body } from './body';
+import { Container } from './container';
+import { CategoryPhotoContainer } from './category-photo-container';
+import { ContentContainer } from './content-container';
 import { IServerErrorResponse } from '@shared/model';
 import { TitleSecondary } from './title-secondary';
 import dynamic from 'next/dynamic';
@@ -14,14 +14,11 @@ import { HTTPError } from 'ky';
 
 dayjs.extend(relativeTimePlugin);
 
-const ServerLastTopic = dynamic(
-  async () => import('@features/Category/ui/last-topic').then((file) => file.LastTopic),
-  {
-    loading: () => {
-      return <div>Loading...</div>;
-    },
-  }
-);
+const ServerLastTopic = dynamic(async () => import('./last-topic').then((file) => file.LastTopic), {
+  loading: () => {
+    return <div>Loading...</div>;
+  },
+});
 
 export const Category: FC<Pick<ICategory, 'id'>> = async ({ id }) => {
   let data: ICategory | null = null;

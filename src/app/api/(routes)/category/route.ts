@@ -1,7 +1,7 @@
 import { checkAuthAccessToken } from '@app/api/_lib/check-auth-access-token';
 import { getPrisma } from '@app/api/_prisma/get-prisma';
 import { withErrorHandlerRequest } from '@app/api/with-error-handler-request';
-import { ICategory, TCategoryId, TCategoryImageBase64 } from '@entities/Category';
+import { ICategory, TCategoryId, TCategoryImageBase64 } from '@entities/categories-list';
 import { ResponseParamIsRequiredError } from '@shared/model';
 import { NextRequest, NextResponse } from 'next/server';
 import sharp from 'sharp';

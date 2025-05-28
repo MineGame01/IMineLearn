@@ -1,4 +1,4 @@
-import { TCategoryId } from '@entities/Category';
+import { TCategoryId } from '@entities/categories-list';
 import { TUserId } from '@entities/User';
 
 export const MAX_TOPIC_TITLE_LENGTH = 80;

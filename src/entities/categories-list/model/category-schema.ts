@@ -1,5 +1,5 @@
 import Joi from 'joi';
-import { ICategory, MAX_CATEGORY_NAME_LENGTH } from './Category';
+import { ICategory, MAX_CATEGORY_NAME_LENGTH } from './category';
 
 export const CategoryImageBase64Schema = Joi.string().base64();
 

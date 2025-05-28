@@ -7,7 +7,6 @@ import { makeStore, TStore } from './../app/model';
 import { Header } from '@widgets/Header';
 import { domAnimation, LazyMotion } from 'motion/react';
 import { Analytics } from '@vercel/analytics/react';
-import { SpeedInsights } from '@vercel/speed-insights/next';
 import { TechWorkPage } from './tech-work-page';
 import { Inter } from 'next/font/google';
 import { getDatabase, ref, onValue } from 'firebase/database';
@@ -51,7 +50,6 @@ const RootLayout: FC<{ children: ReactNode }> = ({ children }) => {
       </head>
       <body className="h-full">
         <Analytics />
-        <SpeedInsights />
         <StrictMode>
           {isTechWork === false && (
             <Provider store={storeRef.current}>

@@ -4,7 +4,7 @@ import { ITopic } from '@entities/Topic';
 import { NextRequest, NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { getPrisma } from '@app/api/_prisma/get-prisma';
-import { TCategoryId } from '@entities/Category';
+import { TCategoryId } from '@entities/categories-list';
 import { TUserId } from '@entities/User';
 import { ResponseParamIsRequiredError } from '@shared/model';
 

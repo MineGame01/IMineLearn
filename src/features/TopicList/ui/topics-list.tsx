@@ -4,7 +4,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { TDatePickerState } from '@features/TopicList/model/TDatePickerState.ts';
 import { TTypeSorted } from '@features/TopicList/model/TTypeSorted.ts';
 import { changeDatePickerStates } from '@features/TopicList/model/changeDatePickerStates.ts';
-import { TCategoryId } from '@entities/Category';
+import { TCategoryId } from '@entities/categories-list/index.ts';
 import { useGetTopicsQuery } from '@app/api';
 import { List } from './list.tsx';
 import { ITopic } from '@entities/Topic';

@@ -7,7 +7,7 @@ import {
   TTopicId,
   TTopicTitle,
 } from '@entities/Topic';
-import { ICategory, TCategoryId } from '@entities/Category';
+import { ICategory, TCategoryId } from '@entities/categories-list';
 import { IAuthUser, TUserBio, TUserEmail, TUserId, TUserUserName } from '@entities/User';
 import { IReport, TReportId } from '@entities/Report';
 import { IReaction } from '@entities/Reaction';

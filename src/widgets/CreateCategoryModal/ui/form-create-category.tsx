@@ -1,4 +1,4 @@
-import { MAX_CATEGORY_NAME_LENGTH } from '@entities/Category';
+import { MAX_CATEGORY_NAME_LENGTH } from '@entities/categories-list';
 import { Input } from '@shared/ui';
 import { ChangeEventHandler, FC, FormEvent, FormEventHandler, useId, useState } from 'react';
 

@@ -1,12 +1,14 @@
-import { SkeletonsCategories } from '@features/CategoriesList';
+import { SkeletonCategory } from '@features/categories-list';
 import dynamic from 'next/dynamic';
 import React from 'react';
 
 const ServerCategoriesList = dynamic(
-  async () => import('@features/CategoriesList').then((file) => file.CategoriesList),
+  async () => import('@features/categories-list').then((file) => file.CategoriesList),
   {
     loading: () => {
-      return <SkeletonsCategories />;
+      return Array(3)
+        .fill(SkeletonCategory)
+        .map((Skeleton, index) => <Skeleton key={index} />);
     },
   }
 );
