@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import jwt from 'jsonwebtoken';
 import { IUser } from '@entities/User';
 import { getEnvVar } from '@shared/lib';
 import { THandlerRequest } from '../_model/handler-request.type';
-import { ResponseNoRightAdministrationError } from '@shared/model';
+import { ResponseError, ResponseNoRightAdministrationError } from '@shared/model';
 
 type TDecoded = string | jwt.JwtPayload | undefined;
 
@@ -12,7 +12,7 @@ export const checkAuthAccessToken = (handler: THandlerRequest, is_admin?: boolea
     const authorization: string | null = request.headers.get('Authorization');
 
     if (!authorization) {
-      return NextResponse.json({ message: 'Request not authorized!' }, { status: 401 });
+      throw new ResponseError('Request not authorized!', 401, 'REQUEST-NOT-AUTHORIZED');
     }
 
     const getDecoded = async () => {
@@ -30,9 +30,13 @@ export const checkAuthAccessToken = (handler: THandlerRequest, is_admin?: boolea
 
     try {
       decoded = await getDecoded();
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof Error) {
-        return NextResponse.json({ message: error.message }, { status: 401 });
+        throw new ResponseError(
+          'Authorization failed! Please try again',
+          401,
+          'FAILED-AUTHORIZATION'
+        );
       } else {
         throw error;
       }

@@ -41,7 +41,7 @@ export const UpdateProfileForm: FC<IProps> = ({ setIsUpdateProfile, bio, usernam
     if (errorUpdateUserMessage) {
       setError('root', { message: errorUpdateUserMessage });
     }
-  }, [errorUpdateUserMessage]);
+  }, [errorUpdateUserMessage, setError]);
 
   const dispatch = useAppDispatch();
   const router = useRouter();

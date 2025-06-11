@@ -35,14 +35,14 @@ export const ContentModal: FC<{
     (comment_id?: IForumApi['endpoints']['getCommentById']['bodyRequest']) => {
       return _getCommentById(comment_id ?? target_id);
     },
-    [target_id]
+    [_getCommentById, target_id]
   );
 
   const getTopicById = useCallback(
     (topic_id?: IForumApi['endpoints']['getTopicById']['bodyRequest']) => {
       return _getTopicById(topic_id ?? target_id);
     },
-    [target_id]
+    [_getTopicById, target_id]
   );
 
   useEffect(() => {

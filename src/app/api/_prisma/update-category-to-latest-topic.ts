@@ -23,5 +23,5 @@ export const updateCategoryToLatestTopic = async (
       topicsCount: topic_count,
     },
   });
-  revalidateTag(`refetch-categoryid-${category_id}`);
+  revalidateTag(`categoryid-${category_id}`);
 };

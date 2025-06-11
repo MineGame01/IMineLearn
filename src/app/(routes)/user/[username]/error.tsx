@@ -1,6 +1,5 @@
 'use client';
 import { FC } from 'react';
-import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { ContainerErrorLayout, ErrorLayout } from '@shared/ui';
 import { PageError } from '@shared/model';
@@ -10,7 +9,6 @@ const ErrorComponent: FC<{
   error: Error | PageError;
   reset: () => void;
 }> = ({ error, reset }) => {
-  const router = useRouter();
   const isPageError = error instanceof PageError;
 
   return (
@@ -25,7 +23,6 @@ const ErrorComponent: FC<{
         />
       )}
       <ErrorLayout
-        router={router}
         reset={reset}
         type_error={isPageError ? error.code : error.name}
         message={error.message}

@@ -1,19 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { THandlerRequest } from './_model/handler-request.type';
 import Joi from 'joi';
-import { IServerErrorResponse } from '@shared/model';
-import { ResponseError } from '@shared/model';
+import { ResponseError, ResponseValidationError } from '@shared/model';
 
 export const withErrorHandlerRequest =
   (handler: THandlerRequest) => async (request: NextRequest) => {
     try {
       return await handler(request);
     } catch (error) {
-      console.error('REST API', error);
       if (error instanceof Joi.ValidationError) {
-        return NextResponse.json<IServerErrorResponse>({ message: error.message }, { status: 400 });
+        const { message, code, statusCode } = new ResponseValidationError(error);
+        return NextResponse.json({ message, code, statusCode }, { status: statusCode });
       } else if (error instanceof ResponseError) {
-        return NextResponse.json({ message: error.message }, { status: error.statusCode });
+        const { message, statusCode, code } = error;
+        return NextResponse.json({ message, statusCode, code }, { status: statusCode });
       } else {
         throw error;
       }

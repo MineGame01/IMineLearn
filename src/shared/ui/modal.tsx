@@ -63,7 +63,7 @@ export const Modal: FC<IProps> = ({
     return () => {
       removeEventListenerModal();
     };
-  }, [bodyElement, open]);
+  }, [bodyElement, onClose, open]);
 
   const modal = (
     <AnimatePresence mode={'wait'}>

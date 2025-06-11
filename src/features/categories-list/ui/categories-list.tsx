@@ -2,9 +2,9 @@ import { FC } from 'react';
 import { CategoriesToolbar } from './categories-toolbar';
 import dynamic from 'next/dynamic';
 import { SkeletonCategory } from './category/skeleton-category';
-import { appApi } from '@app/api';
-import { HTTPError } from 'ky';
-import { IServerErrorResponse, PageError } from '@shared/model';
+import { ResponseError } from '@shared/model';
+import { ContainerErrorLayout, ErrorLayout } from '@shared/ui';
+import { categoriesApi } from '@entities/categories-list/api/categories-api';
 
 const ServerCategory = dynamic(
   async () => import('./category/category').then((file) => file.Category),
@@ -14,32 +14,28 @@ const ServerCategory = dynamic(
 );
 
 export const CategoriesList: FC = async () => {
-  let data: string[] | null = null;
-
   try {
-    data = await appApi
-      .get('categories', {
-        next: { tags: ['refetch-categories-list'] },
-        searchParams: { return_ids_only: 'sdsd' },
-      })
-      .json<string[]>();
+    const data = (await categoriesApi.getCategories({ return_ids_only: true })) as string[];
+
+    return (
+      <div>
+        <CategoriesToolbar />
+        <div className="grid grid-cols-1 p-1 lg-p-2 lg:grid-cols-3 gap-[20px] lg:gap-[50px]">
+          {data.map((categoryId) => (
+            <ServerCategory key={categoryId} id={categoryId} />
+          ))}
+        </div>
+      </div>
+    );
   } catch (error: unknown) {
-    if (error instanceof HTTPError) {
-      const messageResponse = (await error.response.json<IServerErrorResponse>()).message;
-      throw new PageError('FAILED-LOAD-CATEGORIES', messageResponse);
+    if (error instanceof ResponseError) {
+      return (
+        <ContainerErrorLayout>
+          <ErrorLayout message={error.message} type_error={error.code} />
+        </ContainerErrorLayout>
+      );
     } else {
       throw error;
     }
   }
-
-  return (
-    <div>
-      <CategoriesToolbar />
-      <div className="grid grid-cols-1 p-1 lg-p-2 lg:grid-cols-3 gap-[20px] lg:gap-[50px]">
-        {data.map((categoryId) => (
-          <ServerCategory key={categoryId} id={categoryId} />
-        ))}
-      </div>
-    </div>
-  );
 };

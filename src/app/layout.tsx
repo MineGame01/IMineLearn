@@ -11,6 +11,7 @@ import { TechWorkPage } from './tech-work-page';
 import { Inter } from 'next/font/google';
 import { getDatabase, ref, onValue } from 'firebase/database';
 import { twMerge } from 'tailwind-merge';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const InterFont = Inter({
   display: 'swap',
@@ -20,12 +21,12 @@ const InterFont = Inter({
 type TIsTechWork = null | boolean;
 
 const RootLayout: FC<{ children: ReactNode }> = ({ children }) => {
-  const storeRef = useRef<TStore | null>(null);
+  const storeRef = useRef<TStore>(null);
+  const queryClientRef = useRef<QueryClient>(null);
   const [isTechWork, setIsTechWork] = useState<TIsTechWork>(null);
 
-  if (!storeRef.current) {
-    storeRef.current = makeStore();
-  }
+  storeRef.current ??= makeStore();
+  queryClientRef.current ??= new QueryClient();
 
   useEffect(() => {
     const db = getDatabase();
@@ -54,8 +55,10 @@ const RootLayout: FC<{ children: ReactNode }> = ({ children }) => {
           {isTechWork === false && (
             <Provider store={storeRef.current}>
               <LazyMotion features={domAnimation} strict>
-                <Header />
-                <main>{children}</main>
+                <QueryClientProvider client={queryClientRef.current}>
+                  <Header />
+                  <main>{children}</main>
+                </QueryClientProvider>
               </LazyMotion>
             </Provider>
           )}

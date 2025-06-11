@@ -12,7 +12,7 @@ const ModerationPage: FC = () => {
     if (!is_admin && !isLoadingAuth && access_token) {
       window.location.href = '/';
     }
-  }, [is_admin, isLoadingAuth]);
+  }, [is_admin, isLoadingAuth, access_token]);
 
   return <div>{access_token && <ReportsList />}</div>;
 };
