@@ -244,8 +244,6 @@ export const {
   useLazyGetTopicByIdQuery,
   useLazyGetCommentByIdQuery,
   useGetTopicsQuery,
-  useLazyGetCategoriesQuery,
-  useGetCategoriesQuery,
   useDeleteTopicMutation,
   useGetUserQuery,
   useLazyGetUserQuery,
@@ -253,9 +251,6 @@ export const {
   useDeleteReportMutation,
   useAddReactionMutation,
   useGetReactionsQuery,
-  useCreateCategoryMutation,
-  useDeleteCategoryMutation,
   useDeleteCommentMutation,
-  useGetCategoryByIdQuery,
   useUpdateUserMutation,
 } = ForumApi;

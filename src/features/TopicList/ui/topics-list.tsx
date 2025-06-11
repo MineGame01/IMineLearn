@@ -1,3 +1,4 @@
+'use client';
 import { FC, useState, useCallback, useRef, useMemo } from 'react';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';

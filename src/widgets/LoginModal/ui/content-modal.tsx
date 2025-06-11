@@ -22,7 +22,7 @@ export const ContentModal: FC<IProps> = ({ onClose }) => {
     if (authAccessToken) {
       onClose();
     }
-  }, [authAccessToken]);
+  }, [authAccessToken, onClose]);
 
   return (
     <div className="p-5">

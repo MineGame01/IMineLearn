@@ -1,7 +1,7 @@
 'use client';
 import { FC, HTMLAttributes, ReactNode, useRef, useEffect, useContext } from 'react';
 import { twMerge } from 'tailwind-merge';
-import { DropdownOptionsContext } from './dropdown';
+import { DropdownOptionsContext } from './dropdown-options-context';
 
 interface IProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
@@ -17,11 +17,13 @@ export const DropdownList: FC<IProps> = ({ children, className, ...props }) => {
       if (close) close();
     };
 
-    listRef.current?.addEventListener('click', handleClick);
+    const list = listRef.current;
+
+    list?.addEventListener('click', handleClick);
     return () => {
-      listRef.current?.removeEventListener('click', handleClick);
+      list?.removeEventListener('click', handleClick);
     };
-  }, []);
+  }, [dropdownOptions]);
 
   useEffect(() => {
     const list = listRef.current;

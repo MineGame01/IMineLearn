@@ -33,21 +33,22 @@ export const getPrisma = () => {
         async create({ query, args }) {
           args.data = await CategorySchema.validateAsync(args.data);
           return query(args).then((result) => {
-            revalidateTag('refetch-categories-list');
+            revalidateTag('categories-list');
             return result;
           });
         },
         async createMany({ query, args }) {
           args.data = await validateManySchema(args.data, CategorySchema);
           return query(args).then((result) => {
-            revalidateTag('refetch-categories-list');
+            revalidateTag('categories-list');
             return result;
           });
         },
         async delete({ query, args }) {
           return query(args).then(async (result) => {
             if (result.id) await prisma.topics.deleteMany({ where: { category_id: result.id } });
-            revalidateTag('refetch-categories-list');
+            revalidateTag('categories-list');
+            if (result.id) revalidateTag(`categoryid-${result.id}`);
             return result;
           });
         },

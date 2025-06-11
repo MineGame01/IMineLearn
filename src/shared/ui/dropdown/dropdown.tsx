@@ -1,8 +1,9 @@
 'use client';
 import { AnimatePresence } from 'motion/react';
-import { createContext, FC, ReactNode, RefObject, useEffect, useState } from 'react';
+import { FC, ReactNode, RefObject, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import * as m from 'motion/react-m';
+import { DropdownOptionsContext } from './dropdown-options-context';
 
 interface IProps {
   anchorEl: RefObject<HTMLElementTagNameMap[keyof HTMLElementTagNameMap] | null>;
@@ -11,16 +12,6 @@ interface IProps {
   children: ReactNode;
   id?: string;
 }
-
-interface IDropdownOptionsContext {
-  open: boolean;
-  close: (() => void) | null;
-}
-
-export const DropdownOptionsContext = createContext<IDropdownOptionsContext>({
-  close: null,
-  open: false,
-});
 
 export const Dropdown: FC<IProps> = ({ anchorEl, children, open, close, id }) => {
   const [position, setPosition] = useState<{ left: number; bottom: number }>({
@@ -70,7 +61,7 @@ export const Dropdown: FC<IProps> = ({ anchorEl, children, open, close, id }) =>
     return () => {
       removeAllChanges();
     };
-  }, [anchorEl, open]);
+  }, [anchorEl, close, open]);
 
   const dropdown = (
     <AnimatePresence mode="wait">

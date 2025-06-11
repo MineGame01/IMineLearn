@@ -1,4 +1,6 @@
-export class ResponseError extends Error {
+import { IResponseError } from './response-error.type';
+
+export class ResponseError extends Error implements IResponseError {
   readonly statusCode: number;
   readonly code: string;
   readonly details?: unknown;

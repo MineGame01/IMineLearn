@@ -1,25 +1,23 @@
-import { useCreateCategoryMutation } from '@app/api';
 import { arrayBufferToBase64 } from '@shared/lib';
-import { getServerErrorMessage } from '@shared/model';
 import { Button } from '@shared/ui';
 import { FC, useId } from 'react';
 import { FormCreateCategory, THandleSubmitCreateCategory } from './form-create-category';
+import { useMutation } from '@tanstack/react-query';
+import { categoriesApi } from '@entities/categories-list/api/categories-api';
 
 interface IProps {
   close: () => void;
 }
 
 export const ContentModal: FC<IProps> = ({ close }) => {
-  const [
-    createCategory,
-    {
-      isLoading: isLoadingCreateCategory,
-      isError: isErrorCreateCategory,
-      error: errorCreateCategory,
-    },
-  ] = useCreateCategoryMutation();
-
-  const errorMessageCreateCategory = getServerErrorMessage(errorCreateCategory);
+  const {
+    mutateAsync: createCategory,
+    isPending: isPendingCreateCategory,
+    isError: isErrorCreateCategory,
+    error: errorCreateCategory,
+  } = useMutation({
+    mutationFn: categoriesApi.createCategory,
+  });
 
   const handleSubmitCreateCategory: THandleSubmitCreateCategory = async (
     _unused,
@@ -30,7 +28,7 @@ export const ContentModal: FC<IProps> = ({ close }) => {
       await createCategory({
         image_base64: categoryImage ? arrayBufferToBase64(await categoryImage.arrayBuffer()) : null,
         name: categoryName,
-      }).unwrap();
+      });
       close();
     }
   };
@@ -41,10 +39,10 @@ export const ContentModal: FC<IProps> = ({ close }) => {
     <div className="p-3">
       <h1 className="font-bold text-4xl mb-5">New category</h1>
       <FormCreateCategory onSubmit={handleSubmitCreateCategory} formId={FORM_ID} />
-      {isErrorCreateCategory && <div>{errorMessageCreateCategory}</div>}
-      {isLoadingCreateCategory && <div>Loading...</div>}
+      {isErrorCreateCategory && <div>{errorCreateCategory.message}</div>}
+      {isPendingCreateCategory && <div>Loading...</div>}
       <div className="flex justify-between mt-5 ">
-        <Button className="w-auto" onClick={close} disabled={isLoadingCreateCategory}>
+        <Button className="w-auto" onClick={close} disabled={isPendingCreateCategory}>
           Close
         </Button>
         <Button
@@ -53,7 +51,7 @@ export const ContentModal: FC<IProps> = ({ close }) => {
           form={FORM_ID}
           className="w-auto"
           variant="contained"
-          disabled={isLoadingCreateCategory}
+          disabled={isPendingCreateCategory}
         >
           Create
         </Button>

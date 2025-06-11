@@ -6,11 +6,10 @@ import { Body } from './body';
 import { Container } from './container';
 import { CategoryPhotoContainer } from './category-photo-container';
 import { ContentContainer } from './content-container';
-import { IServerErrorResponse } from '@shared/model';
+import { ResponseError } from '@shared/model';
 import { TitleSecondary } from './title-secondary';
 import dynamic from 'next/dynamic';
-import { appApi } from '@app/api';
-import { HTTPError } from 'ky';
+import { categoriesApi } from '@entities/categories-list/api/categories-api';
 
 dayjs.extend(relativeTimePlugin);
 
@@ -21,25 +20,9 @@ const ServerLastTopic = dynamic(async () => import('./last-topic').then((file) =
 });
 
 export const Category: FC<Pick<ICategory, 'id'>> = async ({ id }) => {
-  let data: ICategory | null = null;
-
   try {
-    data = await appApi
-      .get('category', {
-        next: { tags: [`refetch-categoryid-${id}`] },
-        searchParams: {
-          category_id: id,
-        },
-      })
-      .json<ICategory>();
-  } catch (error: unknown) {
-    if (error instanceof HTTPError) {
-      const messageResponse = (await error.response.json<IServerErrorResponse>()).message;
-      return <div>{messageResponse}</div>;
-    }
-  }
+    const data = await categoriesApi.getCategoryById(id);
 
-  if (data) {
     const { image_base64_415x, name, lastTopicId, lastActivity, topicsCount } = data;
 
     const image_src = image_base64_415x ? `data:image/png;base64,${image_base64_415x}` : null;
@@ -68,5 +51,11 @@ export const Category: FC<Pick<ICategory, 'id'>> = async ({ id }) => {
         </Container>
       </Body>
     );
+  } catch (error: unknown) {
+    if (error instanceof ResponseError) {
+      return <div>{error.message}</div>;
+    } else {
+      throw error;
+    }
   }
 };
