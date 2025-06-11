@@ -18,9 +18,7 @@ const handler = async (request: NextRequest) => {
   const prisma = getPrisma();
   try {
     await prisma.$connect();
-    const body = (await request.json()) as IDataRequest;
-
-    const { refresh_token } = body;
+    const { refresh_token } = (await request.json()) as IDataRequest;
 
     if (!refresh_token) {
       throw new ResponseParamIsRequiredError(false, 'refresh_token');

@@ -14,16 +14,16 @@ const handler = async (request: NextRequest) => {
   const prisma = getPrisma();
   try {
     await prisma.$connect();
-    const body = (await request.json()) as IDataRequest;
 
-    const { email, password, username } = body;
-
-    const new_user = await prisma.users.registration({ email, password, username });
+    const new_user = await request
+      .json()
+      .then((body) => prisma.users.registration(body as IDataRequest));
+    const new_user_id = new_user.id;
 
     return NextResponse.json({
       access_token: createAccessToken(new_user),
-      refresh_token: createRefreshToken(new_user.id),
-      user_id: new_user.id,
+      refresh_token: createRefreshToken(new_user_id),
+      user_id: new_user_id,
     });
   } finally {
     await prisma.$disconnect();
