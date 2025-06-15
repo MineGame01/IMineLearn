@@ -1,12 +1,7 @@
 'use client';
 import { FC, Fragment, useState } from 'react';
 import { TTopicId } from '@entities/Topic';
-import {
-  useCreateCommentMutation,
-  useGetCommentsByTopicIdQuery,
-  useGetTopicByIdQuery,
-  useGetUserQuery,
-} from '@app/api';
+import { useCreateCommentMutation, useGetCommentsByTopicIdQuery, useGetUserQuery } from '@app/api';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { Button, Input, Skeleton } from '@shared/ui';
@@ -18,6 +13,8 @@ import { SkeletonTopic } from './skeleton-topic';
 import * as m from 'motion/react-m';
 import { AnimatePresence } from 'motion/react';
 import Link from 'next/link';
+import { useQuery } from '@tanstack/react-query';
+import { topicsApi } from '@entities/Topic/api/topics-api';
 
 dayjs.extend(relativeTimePlugin);
 
@@ -32,9 +29,14 @@ interface IProps {
 export const Topic: FC<IProps> = ({ topic_id }) => {
   const {
     data: topic,
-    isError: isErrorTopic,
     isLoading: isLoadingTopic,
-  } = useGetTopicByIdQuery(topic_id);
+    isError: isErrorTopic,
+    error: errorTopic,
+  } = useQuery({
+    queryFn: () => topicsApi.getTopicById(topic_id),
+    queryKey: ['topic', topic_id],
+  });
+
   const {
     data: user,
     isLoading: isLoadingUser,
@@ -58,7 +60,7 @@ export const Topic: FC<IProps> = ({ topic_id }) => {
   }
 
   if (isErrorTopic) {
-    return <div>Error</div>;
+    return <div>{errorTopic.message}</div>;
   }
 
   if (topic) {
@@ -89,6 +91,7 @@ export const Topic: FC<IProps> = ({ topic_id }) => {
             <div>{content}</div>
           </section>
           <ActionBar
+            category_id={topic.category_id}
             topic_id={topic_id}
             user_id_topic={user_id}
             showComments={showComments}

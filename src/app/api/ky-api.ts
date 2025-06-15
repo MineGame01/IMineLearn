@@ -2,6 +2,15 @@ import { getEnvVar } from '@shared/lib';
 import { ResponseError } from '@shared/model';
 import ky from 'ky';
 
+const is_server_environment = (() => {
+  try {
+    getEnvVar('IS_SERVER_ENVIRONMENT', 'SERVER_ENVIRONMENT');
+    return true;
+  } catch {
+    return false;
+  }
+})();
+
 export const appApi = ky.create({
   prefixUrl: process.env.NEXT_PUBLIC_REST_API_URL,
   hooks: {
@@ -29,27 +38,16 @@ export const appApi = ky.create({
     ],
     beforeRequest: [
       (request) => {
-        try {
-          getEnvVar('IS_SERVER_ENVIRONMENT', 'SERVER_ENVIRONMENT');
-        } catch (error: unknown) {
-          if (error instanceof Error && error.message === 'SERVER_ENVIRONMENT') {
-            try {
-              const { access_token } = JSON.parse(localStorage.getItem('session') ?? '{}') as {
-                access_token?: string;
-              };
-              if (access_token) {
-                request.headers.set('Authorization', access_token);
-              }
-            } catch (error: unknown) {
-              if (error instanceof SyntaxError) return;
-              throw error;
-            }
-          } else {
-            throw error;
+        if (!is_server_environment) {
+          const { access_token } = JSON.parse(localStorage.getItem('session') ?? '{}') as {
+            access_token?: string;
+          };
+          if (access_token) {
+            request.headers.set('Authorization', access_token);
           }
         }
       },
     ],
   },
-  cache: 'force-cache',
+  cache: is_server_environment ? 'force-cache' : undefined,
 });

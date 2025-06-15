@@ -1,10 +1,9 @@
 import { FC, useState } from 'react';
-import { useCreateTopicMutation } from '@app/api';
 import { Button, Input } from '@shared/ui';
 import { TCategoryId } from '@entities/categories-list';
-import { useQuery } from '@tanstack/react-query';
 import { categoriesApi } from '@entities/categories-list/api/categories-api';
-import { getServerErrorMessage } from '@shared/model';
+import { topicsApi } from '@entities/Topic/api/topics-api';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const ContentModal: FC<{ category_id: TCategoryId; close: () => void }> = ({
   category_id,
@@ -13,21 +12,28 @@ export const ContentModal: FC<{ category_id: TCategoryId; close: () => void }> =
   const [titleTopicValue, setTitleTopicValue] = useState('');
   const [contentTopicValue, setContentTopicValue] = useState('');
 
-  const [
-    createTopicDispatch,
-    { isError: isErrorCreateTopic, error: errorCreateTopic, isLoading: isLoadingCreateTopic },
-  ] = useCreateTopicMutation();
+  const queryClient = useQueryClient();
 
   const {
-    isPending: isPendingCategory,
+    mutate: createTopic,
+    isPending: isPendingCreateTopic,
+    error: errorCreateTopic,
+    isError: isErrorCreateTopic,
+  } = useMutation({
+    mutationFn: topicsApi.createTopic,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['topics', category_id] });
+      close();
+    },
+  });
+
+  const {
+    isLoading: isLoadingCategory,
     isError: isErrorCategory,
     error: errorCategory,
     data: category,
   } = useQuery({
-    queryFn: async () => {
-      const response = await categoriesApi.getCategoryById(category_id);
-      return response;
-    },
+    queryFn: async () => await categoriesApi.getCategoryById(category_id),
     queryKey: ['category', category_id],
   });
 
@@ -35,15 +41,11 @@ export const ContentModal: FC<{ category_id: TCategoryId; close: () => void }> =
 
   const handleClickCreateTopic = () => {
     if (titleTopicValue && contentTopicValue) {
-      void createTopicDispatch({
+      createTopic({
         category_id,
         title: titleTopicValue,
         content: contentTopicValue,
-      })
-        .unwrap()
-        .then(() => {
-          close();
-        });
+      });
     }
   };
 
@@ -51,7 +53,7 @@ export const ContentModal: FC<{ category_id: TCategoryId; close: () => void }> =
     <article className="p-3 flex min-w-[400px] min-h-[400px] flex-col">
       <section className="grow-1">
         <h1 className="text-4xl font-bold mb-5">
-          {isPendingCategory ? 'Loading...' : category?.name}
+          {isLoadingCategory ? 'Loading...' : category?.name}
         </h1>
         <form>
           <Input
@@ -81,7 +83,7 @@ export const ContentModal: FC<{ category_id: TCategoryId; close: () => void }> =
         {isError && (
           <div>
             {errorCategory?.message}
-            {getServerErrorMessage(errorCreateTopic)}
+            {errorCreateTopic?.message}
           </div>
         )}
       </section>
@@ -96,7 +98,7 @@ export const ContentModal: FC<{ category_id: TCategoryId; close: () => void }> =
         </Button>
         <Button
           onClick={handleClickCreateTopic}
-          disabled={isPendingCategory || isLoadingCreateTopic}
+          disabled={isLoadingCategory || isPendingCreateTopic}
           variant="contained"
           className="w-auto ml-auto"
         >

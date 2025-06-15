@@ -1,12 +1,5 @@
 /* eslint-disable @typescript-eslint/no-invalid-void-type */
-import {
-  IComment,
-  ITopic,
-  TCommentId,
-  TTopicContent,
-  TTopicId,
-  TTopicTitle,
-} from '@entities/Topic';
+import { IComment, TCommentId, TTopicContent, TTopicId } from '@entities/Topic';
 import { ICategory, TCategoryId } from '@entities/categories-list';
 import { IAuthUser, TUserBio, TUserEmail, TUserId, TUserUserName } from '@entities/User';
 import { IReport, TReportId } from '@entities/Report';
@@ -34,20 +27,6 @@ export interface IForumApi {
     getUser: createEndpoint<IAuthUser, { user_id?: TUserId; username?: TUserUserName }>;
     addReaction: createEndpoint<null, Pick<IReaction, 'topic_id' | 'type_reaction'>>;
     getReactions: createEndpoint<IReaction[], { topic_id: TTopicId }>;
-    getTopics: createEndpoint<
-      ITopic[] | TTopicId[],
-      {
-        user_id?: TUserId;
-        search?: string;
-        created_after?: string;
-        created_before?: string;
-        category_id?: TCategoryId;
-        limit_count?: number;
-        offset_count?: number;
-        return_ids_only?: boolean;
-      }
-    >;
-    getTopicById: createEndpoint<ITopic, TTopicId>;
     getCommentsByTopicId: createEndpoint<
       IComment[],
       {
@@ -64,15 +43,6 @@ export interface IForumApi {
         content: TTopicContent;
       }
     >;
-    createTopic: createEndpoint<
-      TTopicId,
-      {
-        category_id: TCategoryId;
-        title: TTopicTitle;
-        content: TTopicContent;
-      }
-    >;
-    deleteTopic: createEndpoint<null, { topic_id: TTopicId }>;
     getCommentById: createEndpoint<IComment, TCommentId>;
     sendReport: createEndpoint<
       null,

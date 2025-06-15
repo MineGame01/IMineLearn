@@ -25,21 +25,6 @@ export const ForumApi = createApi({
     },
   }),
   endpoints: (builder) => ({
-    getTopics: builder.query<
-      IForumApi['endpoints']['getTopics']['dataResponse'],
-      IForumApi['endpoints']['getTopics']['bodyRequest']
-    >({
-      query: (bodyRequest) => {
-        return `/topics?${getUrlParams(bodyRequest)}`;
-      },
-      providesTags: ['refetch-topics'],
-    }),
-    getTopicById: builder.query<
-      IForumApi['endpoints']['getTopicById']['dataResponse'],
-      IForumApi['endpoints']['getTopicById']['bodyRequest']
-    >({
-      query: (topicId) => `/topic?topic_id=${topicId}`,
-    }),
     getCommentsByTopicId: builder.query<
       IForumApi['endpoints']['getCommentsByTopicId']['dataResponse'],
       IForumApi['endpoints']['getCommentsByTopicId']['bodyRequest']
@@ -57,28 +42,6 @@ export const ForumApi = createApi({
         body: bodyRequest,
       }),
       invalidatesTags: ['refetch-comment'],
-    }),
-    createTopic: builder.mutation<
-      IForumApi['endpoints']['createTopic']['dataResponse'],
-      IForumApi['endpoints']['createTopic']['bodyRequest']
-    >({
-      query: (bodyRequest) => ({
-        url: '/topic',
-        method: 'POST',
-        body: bodyRequest,
-      }),
-      invalidatesTags: ['refetch-topics'],
-    }),
-    deleteTopic: builder.mutation<
-      IForumApi['endpoints']['deleteTopic']['dataResponse'],
-      IForumApi['endpoints']['deleteTopic']['bodyRequest']
-    >({
-      query: (bodyRequest) => ({
-        url: '/topic',
-        method: 'DELETE',
-        body: bodyRequest,
-      }),
-      invalidatesTags: ['refetch-topics'],
     }),
     addReaction: builder.mutation<
       IForumApi['endpoints']['addReaction']['dataResponse'],
@@ -237,14 +200,9 @@ export const ForumApi = createApi({
 
 export const {
   useCreateCommentMutation,
-  useCreateTopicMutation,
-  useGetTopicByIdQuery,
   useGetCommentsByTopicIdQuery,
   useSendReportMutation,
-  useLazyGetTopicByIdQuery,
   useLazyGetCommentByIdQuery,
-  useGetTopicsQuery,
-  useDeleteTopicMutation,
   useGetUserQuery,
   useLazyGetUserQuery,
   useGetReportsQuery,

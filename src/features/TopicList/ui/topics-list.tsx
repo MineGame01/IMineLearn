@@ -6,7 +6,6 @@ import { TDatePickerState } from '@features/TopicList/model/TDatePickerState.ts'
 import { TTypeSorted } from '@features/TopicList/model/TTypeSorted.ts';
 import { changeDatePickerStates } from '@features/TopicList/model/changeDatePickerStates.ts';
 import { TCategoryId } from '@entities/categories-list/index.ts';
-import { useGetTopicsQuery } from '@app/api';
 import { List } from './list.tsx';
 import { ITopic } from '@entities/Topic';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
@@ -15,8 +14,10 @@ import { TopicCreateModal } from '@widgets/TopicCreateModal';
 import { Button, Dropdown, DropdownItem, DropdownList, Input } from '@shared/ui';
 import dayjs from 'dayjs';
 import dynamic from 'next/dynamic';
-import { getServerErrorMessage, removeUndefinedKey } from '@shared/model';
+import { removeUndefinedKey } from '@shared/model';
 import { TopicPreviewSkeleton } from './topic-preview/skeleton.tsx';
+import { useQuery } from '@tanstack/react-query';
+import { topicsApi } from '@entities/Topic/api/topics-api.ts';
 
 const MemoDatePickers = dynamic(async () =>
   import('./date-pickers.tsx').then((el) => el.DatePickers)
@@ -37,27 +38,24 @@ export const TopicsList: FC<{ categoryId: TCategoryId }> = ({ categoryId }) => {
   const [typeSorted, setTypeSorted] = useState<TTypeSorted>('latest');
 
   const { createdAtAfter, createdAtBefore } = datePickerState;
-  const {
-    data,
-    isLoading,
-    isError,
-    error: _error,
-  } = useGetTopicsQuery(
-    removeUndefinedKey({
-      created_after: createdAtBefore === createdAtAfter ? undefined : String(createdAtAfter),
-      created_before: createdAtBefore ? String(createdAtBefore) : undefined,
-      search: searchContent,
-      category_id: categoryId,
-    })
-  );
+
+  const topicsQueryParams = removeUndefinedKey({
+    created_after: createdAtBefore === createdAtAfter ? undefined : String(createdAtAfter),
+    created_before: createdAtBefore ? String(createdAtBefore) : undefined,
+    search: searchContent,
+    category_id: categoryId,
+  });
+
+  const { data, isLoading, isError, error } = useQuery({
+    queryFn: () => topicsApi.getTopics(topicsQueryParams),
+    queryKey: ['topics', categoryId],
+  });
 
   const topicPreviewSkeletons = useMemo(() => {
     return Array(10)
       .fill(TopicPreviewSkeleton)
       .map((TopicPreviewSkeleton, index) => <TopicPreviewSkeleton key={index} />);
   }, []);
-
-  const errorMessage = getServerErrorMessage(_error);
 
   const changeCheckedMoreOptions = (checked: boolean) => {
     if (checked) {
@@ -97,7 +95,7 @@ export const TopicsList: FC<{ categoryId: TCategoryId }> = ({ categoryId }) => {
           isError={isError}
           label={'Search...'}
           className="grow-1"
-          helperText={isError ? <span>{errorMessage}</span> : undefined}
+          helperText={isError ? <span>{error.message}</span> : undefined}
         />
         <Button
           ref={menuTypeSortedRef}

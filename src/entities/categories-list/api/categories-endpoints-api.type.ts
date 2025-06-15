@@ -1,7 +1,7 @@
 import { IEndpointInfo } from '@shared/api';
 import { ICategory, TCategoryId } from '../model/category';
 
-export type TGetCategoriesEndpointData = IEndpointInfo<
+export type TGetCategoriesEndpointInfo = IEndpointInfo<
   {
     limit_count?: number;
     offset_count?: number;
@@ -10,14 +10,14 @@ export type TGetCategoriesEndpointData = IEndpointInfo<
   ICategory[] | string[]
 >;
 
-export type TGetCategoryByIdEndpointData = IEndpointInfo<TCategoryId, ICategory>;
+export type TGetCategoryByIdEndpointInfo = IEndpointInfo<TCategoryId, ICategory>;
 
-export type TCreateCategoryEndpointData = IEndpointInfo<
+export type TCreateCategoryEndpointInfo = IEndpointInfo<
   { image_base64: string | null } & Pick<ICategory, 'name'>,
   null
 >;
 
-export type TDeleteCategoryEndpointData = IEndpointInfo<
+export type TDeleteCategoryEndpointInfo = IEndpointInfo<
   {
     category_id: TCategoryId;
   },
@@ -25,8 +25,8 @@ export type TDeleteCategoryEndpointData = IEndpointInfo<
 >;
 
 export interface ICategoriesEndpointsApi {
-  getCategories: TGetCategoriesEndpointData['endpoint'];
-  getCategoryById: TGetCategoryByIdEndpointData['endpoint'];
-  createCategory: TCreateCategoryEndpointData['endpoint'];
-  deleteCategory: TDeleteCategoryEndpointData['endpoint'];
+  getCategories: TGetCategoriesEndpointInfo['endpoint'];
+  getCategoryById: TGetCategoryByIdEndpointInfo['endpoint'];
+  createCategory: TCreateCategoryEndpointInfo['endpoint'];
+  deleteCategory: TDeleteCategoryEndpointInfo['endpoint'];
 }

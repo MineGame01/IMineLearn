@@ -1,6 +1,5 @@
 import {
   useAddReactionMutation,
-  useDeleteTopicMutation,
   useGetCommentsByTopicIdQuery,
   useGetReactionsQuery,
 } from '@app/api';
@@ -10,18 +9,23 @@ import { getServerErrorMessage } from '@shared/model';
 import { ReportModal } from '@widgets/ReportModal';
 import { useRouter } from 'next/navigation';
 import { Dispatch, FC, MouseEventHandler, useCallback, useState } from 'react';
-import CommentsDisabledIcon from '@mui/icons-material/CommentsDisabled';
-import CommentIcon from '@mui/icons-material/Comment';
-import ReportGmailerrorredIcon from '@mui/icons-material/ReportGmailerrorred';
-import ThumbUpOffAltIcon from '@mui/icons-material/ThumbUpOffAlt';
-import ThumbUpAltIcon from '@mui/icons-material/ThumbUpAlt';
 import { IconButton } from '@shared/ui';
 import { useAppSelector } from '@app/lib';
 import { selectAuthUserInfo } from '@widgets/LoginModal';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { TUserId } from '@entities/User';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { topicsApi } from '@entities/Topic/api/topics-api';
+
+import CommentsDisabledIcon from '@mui/icons-material/CommentsDisabled';
+import CommentIcon from '@mui/icons-material/Comment';
+import ReportGmailerrorredIcon from '@mui/icons-material/ReportGmailerrorred';
+import ThumbUpOffAltIcon from '@mui/icons-material/ThumbUpOffAlt';
+import ThumbUpAltIcon from '@mui/icons-material/ThumbUpAlt';
+import { TCategoryId } from '@entities/categories-list';
 
 interface IProps {
+  category_id: TCategoryId;
   topic_id: TTopicId;
   user_id_topic: TUserId;
   showComments: boolean;
@@ -29,25 +33,40 @@ interface IProps {
 }
 
 export const ActionBar: FC<IProps> = ({
+  category_id,
   topic_id,
   user_id_topic,
   showComments,
   setShowComments,
 }) => {
-  const [
-    deleteTopic,
-    { isLoading: isLoadingDeleteTopic, isError: isErrorDeleteTopic, error: errorDeleteTopic },
-  ] = useDeleteTopicMutation();
+  const route = useRouter();
+  const queryClient = useQueryClient();
+
+  const {
+    isPending: isPendingDeleteTopic,
+    isError: isErrorDeleteTopic,
+    error: errorDeleteTopic,
+    mutate: deleteTopic,
+  } = useMutation({
+    mutationFn: topicsApi.deleteTopic,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['topics', category_id] });
+      route.back();
+    },
+  });
+
   const {
     data: reactions,
     isLoading: isLoadingReactions,
     isError: isErrorReactions,
     error: errorReactions,
   } = useGetReactionsQuery({ topic_id });
+
   const [
     addReaction,
     { isLoading: isLoadingAddReaction, isError: isErrorAddReaction, error: errorAddReaction },
   ] = useAddReactionMutation();
+
   const { data: comments, isLoading: isLoadingComments } = useGetCommentsByTopicIdQuery({
     topic_id,
   });
@@ -55,10 +74,7 @@ export const ActionBar: FC<IProps> = ({
   const [showReportModal, setShowReportModal] = useState(false);
   const { is_admin, id: auth_user_id } = useAppSelector(selectAuthUserInfo);
 
-  const route = useRouter();
-
-  const errorMessageDeleteTopic = getServerErrorMessage(errorDeleteTopic),
-    errorMessageAddReaction = getServerErrorMessage(errorAddReaction),
+  const errorMessageAddReaction = getServerErrorMessage(errorAddReaction),
     errorMessageReactions = getServerErrorMessage(errorReactions);
 
   const closeReportModal = useCallback(() => {
@@ -66,11 +82,7 @@ export const ActionBar: FC<IProps> = ({
   }, []);
 
   const handleClickDeleteTopic: MouseEventHandler = () => {
-    void deleteTopic({ topic_id })
-      .unwrap()
-      .then(() => {
-        route.back();
-      });
+    deleteTopic({ topic_id });
   };
 
   const handleClickAddReaction = (type_reaction: TReactionType) => {
@@ -133,7 +145,7 @@ export const ActionBar: FC<IProps> = ({
         <IconButton
           title="Delete topic"
           aria-label="Delete topic"
-          isLoading={isLoadingDeleteTopic}
+          isLoading={isPendingDeleteTopic}
           onClick={handleClickDeleteTopic}
         >
           <DeleteIcon />
@@ -141,7 +153,7 @@ export const ActionBar: FC<IProps> = ({
       )}
       {isErrorAddReaction && <span>{errorMessageAddReaction}</span>}
       {isErrorReactions && <span>{errorMessageReactions}</span>}
-      {isErrorDeleteTopic && <div>{errorMessageDeleteTopic}</div>}
+      {isErrorDeleteTopic && <div>{errorDeleteTopic.message}</div>}
     </section>
   );
 };

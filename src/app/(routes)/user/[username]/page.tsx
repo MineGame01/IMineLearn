@@ -1,5 +1,5 @@
 'use client';
-import { useGetTopicsQuery, useGetUserQuery, useUpdateUserMutation } from '@app/api';
+import { useGetUserQuery, useUpdateUserMutation } from '@app/api';
 import { useAppSelector } from '@app/lib';
 import { ITopic } from '@entities/Topic';
 import { TopicPreviewSkeleton, TopicPreview } from '@features/TopicList';
@@ -12,6 +12,8 @@ import { Fragment, useMemo } from 'react';
 import { AboutProfile } from './_ui/about-profile';
 import { UserNotFoundError } from './_model/user-not-found-error';
 import { FailedLoadingUserTopicsError } from './_model/failed-loading-user-topics-error';
+import { useQuery } from '@tanstack/react-query';
+import { topicsApi } from '@entities/Topic/api/topics-api';
 
 const UserPage = () => {
   const { username: username_param } = useParams();
@@ -38,10 +40,13 @@ const UserPage = () => {
     isLoading: isLoadingUserTopics,
     isError: isErrorUserTopics,
     error: errorUserTopics,
-  } = useGetTopicsQuery({ user_id: current_user?.id ?? '' }, { skip: !current_user });
+  } = useQuery({
+    queryFn: () => topicsApi.getTopics({ user_id: current_user?.id ?? '' }),
+    queryKey: ['topics', current_user?.id],
+    enabled: Boolean(current_user),
+  });
 
-  const errorUserMessage = getServerErrorMessage(errorUser),
-    errorUserTopicsMessage = getServerErrorMessage(errorUserTopics);
+  const errorUserMessage = getServerErrorMessage(errorUser);
 
   const topicPreviewSkeletons = useMemo(() => {
     return Array(7)
@@ -54,7 +59,7 @@ const UserPage = () => {
   }
 
   if (isErrorUserTopics) {
-    throw new FailedLoadingUserTopicsError(errorUserTopicsMessage);
+    throw new FailedLoadingUserTopicsError(errorUserTopics.message);
   }
 
   return (
