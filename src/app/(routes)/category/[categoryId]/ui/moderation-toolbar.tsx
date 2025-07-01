@@ -10,7 +10,7 @@ export const ModerationToolbar: FC<{ category_id: TCategoryId }> = ({ category_i
 
   return (
     <article className="bg-error-bg rounded-border-default border-error border-2 p-2">
-      <h1 className="text-error-text font-bold text-2xl">Danger Zone</h1>
+      <h1 className="text-error-text font-bold text-2xl m-0">Danger Zone</h1>
       <section>
         <IconButton
           onClick={() => {

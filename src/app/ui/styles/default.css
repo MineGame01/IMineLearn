@@ -1,47 +1,115 @@
-@import "tailwindcss";
+@import 'tailwindcss';
+
+:root {
+  --background: #f8f9fa;
+  --surface: #ffffff;
+  --text: #212529;
+  --muted: #6c757d;
+
+  --accent: #242424;
+
+  --border: #dee2e6;
+
+  --button-bg: var(--accent);
+  --button-text: #ffffff;
+  --input-bg: #ffffff;
+  --input-border: var(--border);
+  --input-focus: var(--accent);
+
+  --modal-bg: #ffffff;
+  --modal-border: var(--border);
+  --modal-shadow: rgba(0, 0, 0, 0.15);
+  --modal-backdrop: rgba(0, 0, 0, 0.5);
+
+  --link: var(--accent);
+
+  --error: #dc3545;
+  --error-bg: #f8d7da;
+  --error-text: #721c24;
+
+  --alert: #ffc107;
+  --alert-bg: #fff3cd;
+  --alert-text: #856404;
+
+  --border-default: 5px;
+}
 
 @theme {
-    /* Основные цвета для белой темы */
-    --color-background: #f8f9fa;       /* Фоновый цвет страницы */
-    --color-surface: #ffffff;          /* Фон элементов (карточек, панелей) */
-    --color-text: #212529;             /* Основной цвет текста */
-    --color-muted: #6c757d;            /* Второстепенный (подсказки, неактивный текст) */
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
 
-    /* Акцентные цвета */
-    --color-accent: #242424;           /* Основной акцент (например, для кнопок) */
+  --color-accent: var(--accent);
 
-    /* Границы и разделители */
-    --color-border: #dee2e6;           /* Цвет границ и разделителей */
+  --color-border: var(--border);
 
-    /* Элементы управления */
-    --color-button-bg: var(--color-accent);           /* Фон кнопок */
-    --color-button-text: #ffffff;                     /* Текст на кнопках */
-    --color-input-bg: #ffffff;                        /* Фон для полей ввода */
-    --color-input-border: var(--color-border);         /* Граница полей ввода */
-    --color-input-focus: var(--color-accent);          /* Граница при фокусе */
+  --color-button-bg: var(--color-accent);
+  --color-button-text: var(--button-text);
+  --color-input-bg: var(--input-bg);
+  --color-input-border: var(--color-border);
+  --color-input-focus: var(--color-accent);
 
-    /* Модальные окна */
-    --color-modal-bg: #ffffff;         /* Фон модальных окон */
-    --color-modal-border: var(--color-border);  /* Граница модальных окон */
-    --color-modal-shadow: rgba(0, 0, 0, 0.15); /* Тень для модальных окон */
-    --color-modal-backdrop: rgba(0, 0, 0, 0.5); /* Тень на фоне модального окна */
+  --color-modal-bg: var(--modal-bg);
+  --color-modal-border: var(--color-border);
+  --color-modal-shadow: var(--modal-shadow);
+  --color-modal-backdrop: var(--modal-backdrop);
 
-    /* Ссылки */
-    --color-link: var(--color-accent);
+  --color-link: var(--color-accent);
 
-    /* Цвета для ошибок */
-    --color-error: #dc3545;            /* Основной цвет для ошибок (красный) */
-    --color-error-bg: #f8d7da;         /* Фон для сообщений об ошибках */
-    --color-error-text: #721c24;       /* Текст ошибок */
+  --color-error: var(--error);
+  --color-error-bg: var(--error-bg);
+  --color-error-text: var(--error-text);
 
-    /* Цвета для алертов */
-    --color-alert: #ffc107;            /* Основной цвет для предупреждений (желтый) */
-    --color-alert-bg: #fff3cd;         /* Фон для сообщений предупреждений */
-    --color-alert-text: #856404;       /* Текст предупреждений */
+  --color-alert: var(--alert);
+  --color-alert-bg: var(--alert-bg);
+  --color-alert-text: var(--alert-text);
 
-    --radius-border-default: 5px;
+  --radius-border-default: 5px;
+}
+
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    display: block;
+    font-weight: bold;
+    margin: 0.67em 0;
+    line-height: normal;
+  }
+
+  h1 {
+    font-size: 2em;
+  }
+  h2 {
+    font-size: 1.5em;
+  }
+  h3 {
+    font-size: 1.17em;
+  }
+  h4 {
+    font-size: 1em;
+  }
+  h5 {
+    font-size: 0.83em;
+  }
+  h6 {
+    font-size: 0.67em;
+  }
+  hr {
+    color: var(--border);
+  }
+
+  label {
+    color: var(--muted);
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
 }
 
 body {
-    background-color: var(--color-background);
+  background-color: var(--color-background);
 }

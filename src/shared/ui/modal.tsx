@@ -3,7 +3,8 @@ import { FC, Fragment, ReactNode, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { twMerge } from 'tailwind-merge';
 import { AnimatePresence } from 'motion/react';
-import * as m from 'motion/react-m';
+import * as m from 'motion/react-client';
+import { smoothTransition } from '@shared/config';
 
 interface IProps {
   open: boolean;
@@ -66,12 +67,13 @@ export const Modal: FC<IProps> = ({
   }, [bodyElement, onClose, open]);
 
   const modal = (
-    <AnimatePresence mode={'wait'}>
+    <AnimatePresence mode="wait">
       {open && (
         <m.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
+          variants={smoothTransition}
+          initial="hidden"
+          animate="visible"
+          exit="hidden"
           ref={modalBackdrop}
           className={twMerge(
             'absolute top-0 left-0 w-full h-screen bg-modal-backdrop z-1000 flex justify-center items-center',
@@ -80,7 +82,7 @@ export const Modal: FC<IProps> = ({
         >
           <div
             className={twMerge(
-              'relative inline-block bg-modal-bg border-2 overflow-auto border-modal-border z-1001 rounded-[10px]',
+              'relative bg-modal-bg w-auto border-2 overflow-auto border-modal-border z-1001 rounded-[10px]',
               classNameModal
             )}
           >

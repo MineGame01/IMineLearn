@@ -5,7 +5,6 @@ import { authLogin } from '@widgets/LoginModal';
 import { Provider } from 'react-redux';
 import { makeStore, TStore } from './../app/model';
 import { Header } from '@widgets/Header';
-import { domAnimation, LazyMotion } from 'motion/react';
 import { Analytics } from '@vercel/analytics/react';
 import { TechWorkPage } from './tech-work-page';
 import { Inter } from 'next/font/google';
@@ -26,7 +25,13 @@ const RootLayout: FC<{ children: ReactNode }> = ({ children }) => {
   const [isTechWork, setIsTechWork] = useState<TIsTechWork>(null);
 
   storeRef.current ??= makeStore();
-  queryClientRef.current ??= new QueryClient();
+  queryClientRef.current ??= new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: 0,
+      },
+    },
+  });
 
   useEffect(() => {
     const db = getDatabase();
@@ -54,12 +59,10 @@ const RootLayout: FC<{ children: ReactNode }> = ({ children }) => {
         <StrictMode>
           {isTechWork === false && (
             <Provider store={storeRef.current}>
-              <LazyMotion features={domAnimation} strict>
-                <QueryClientProvider client={queryClientRef.current}>
-                  <Header />
-                  <main>{children}</main>
-                </QueryClientProvider>
-              </LazyMotion>
+              <QueryClientProvider client={queryClientRef.current}>
+                <Header />
+                <main>{children}</main>
+              </QueryClientProvider>
             </Provider>
           )}
           {isTechWork === true && <TechWorkPage />}

@@ -2,8 +2,9 @@
 import { AnimatePresence } from 'motion/react';
 import { FC, ReactNode, RefObject, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import * as m from 'motion/react-m';
+import * as m from 'motion/react-client';
 import { DropdownOptionsContext } from './dropdown-options-context';
+import { twMerge } from 'tailwind-merge';
 
 interface IProps {
   anchorEl: RefObject<HTMLElementTagNameMap[keyof HTMLElementTagNameMap] | null>;
@@ -11,9 +12,10 @@ interface IProps {
   close: () => void;
   children: ReactNode;
   id?: string;
+  className?: string;
 }
 
-export const Dropdown: FC<IProps> = ({ anchorEl, children, open, close, id }) => {
+export const Dropdown: FC<IProps> = ({ anchorEl, children, open, close, id, className }) => {
   const [position, setPosition] = useState<{ left: number; bottom: number }>({
     left: 0,
     bottom: 0,
@@ -74,7 +76,7 @@ export const Dropdown: FC<IProps> = ({ anchorEl, children, open, close, id }) =>
           onClick={() => {
             close();
           }}
-          className="absolute z-900 top-0 left-0 w-full h-full"
+          className={twMerge('absolute z-900 top-0 left-0 w-full h-full', className)}
         >
           <div
             style={{ top: `${String(position.bottom)}px`, left: `${String(position.left)}px` }}

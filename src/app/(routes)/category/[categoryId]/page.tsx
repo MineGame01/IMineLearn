@@ -23,10 +23,7 @@ const CategoryPage: FC = () => {
     isError,
     error,
   } = useQuery({
-    queryFn: async () => {
-      const response = await categoriesApi.getCategoryById(category_id ?? '');
-      return response;
-    },
+    queryFn: () => categoriesApi.getCategoryById(category_id ?? ''),
     queryKey: ['category', category_id],
     enabled: Boolean(category_id),
   });
