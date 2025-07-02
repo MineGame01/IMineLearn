@@ -1,5 +1,5 @@
 import { FC, ReactNode } from 'react';
-import { Button } from './button';
+import { Button } from './button/button';
 
 export const ContainerErrorLayout: FC<{ children: ReactNode }> = ({ children }) => {
   return (

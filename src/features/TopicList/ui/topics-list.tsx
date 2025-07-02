@@ -1,5 +1,5 @@
 'use client';
-import { FC, useState, useCallback, useRef, useMemo } from 'react';
+import { FC, useState, useRef, useMemo } from 'react';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { TDatePickerState } from '@features/TopicList/model/TDatePickerState.ts';
@@ -10,8 +10,7 @@ import { List } from './list.tsx';
 import { ITopic } from '@entities/Topic';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
-import { TopicCreateModal } from '@widgets/TopicCreateModal';
-import { Button, Dropdown, DropdownItem, DropdownList, Input } from '@shared/ui';
+import { Button, Dropdown, DropdownItem, DropdownList, Input, Link } from '@shared/ui';
 import dayjs from 'dayjs';
 import dynamic from 'next/dynamic';
 import { removeUndefinedKey } from '@shared/model';
@@ -32,7 +31,6 @@ export const TopicsList: FC<{ categoryId: TCategoryId }> = ({ categoryId }) => {
   });
   const [searchContent, setSearchContent] = useState('');
   const [isOpenMoreOptions, setOpenMoreOptions] = useState(false);
-  const [isOpenTopicCreateModal, setOpenTopicCreateModal] = useState(false);
   const [showMenuTypeSorted, setShowMenuTypeSorted] = useState(false);
   const menuTypeSortedRef = useRef<HTMLButtonElement | null>(null);
   const [typeSorted, setTypeSorted] = useState<TTypeSorted>('latest');
@@ -75,10 +73,6 @@ export const TopicsList: FC<{ categoryId: TCategoryId }> = ({ categoryId }) => {
     }
     setOpenMoreOptions(checked);
   };
-
-  const handleCloseTopicCreateModal = useCallback(() => {
-    setOpenTopicCreateModal(false);
-  }, [setOpenTopicCreateModal]);
 
   const changeDatePickerState = changeDatePickerStates(setDatePickerState, datePickerState);
 
@@ -155,20 +149,13 @@ export const TopicsList: FC<{ categoryId: TCategoryId }> = ({ categoryId }) => {
             />
           )}
         </LocalizationProvider>
-        <Button
+        <Link
+          href={`/topic/create/${categoryId}`}
           className="lg:w-auto mt-2 lg:mt-0 lg:ml-auto"
           variant="contained"
-          onClick={() => {
-            setOpenTopicCreateModal(true);
-          }}
         >
           Create Topic
-        </Button>
-        <TopicCreateModal
-          category_id={categoryId}
-          open={isOpenTopicCreateModal}
-          onClose={handleCloseTopicCreateModal}
-        />
+        </Link>
       </div>
       {data && <List topics={data as ITopic[]} />}
       {isLoading && topicPreviewSkeletons}

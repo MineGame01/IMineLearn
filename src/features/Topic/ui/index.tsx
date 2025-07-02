@@ -10,11 +10,13 @@ import relativeTimePlugin from 'dayjs/plugin/relativeTime';
 import { getServerErrorMessage } from '@shared/model';
 import { ActionBar } from './action-bar';
 import { SkeletonTopic } from './skeleton-topic';
-import * as m from 'motion/react-m';
+import * as m from 'motion/react-client';
 import { AnimatePresence } from 'motion/react';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { topicsApi } from '@entities/Topic/api/topics-api';
+import { TopicEditorContent } from '@features/topic-editor';
+import { JSONContent } from '@tiptap/react';
 
 dayjs.extend(relativeTimePlugin);
 
@@ -66,6 +68,25 @@ export const Topic: FC<IProps> = ({ topic_id }) => {
   if (topic) {
     const { title, created_at, content, user_id } = topic;
 
+    const topicEditorContent = ((): JSONContent[] => {
+      try {
+        const JSONContent = JSON.parse(topic.content) as JSONContent[];
+        return JSONContent;
+      } catch {
+        return [
+          {
+            type: 'paragraph',
+            content: [
+              {
+                type: 'text',
+                text: topic.content,
+              },
+            ],
+          },
+        ];
+      }
+    })();
+
     return (
       <article className="mt-5">
         <h1 className="font-bold grow-1 text-4xl break-words overflow-hidden max-h-[140px]">
@@ -88,7 +109,14 @@ export const Topic: FC<IProps> = ({ topic_id }) => {
             <div className="ml-auto text-muted">{dayjs(created_at).toNow()}</div>
           </section>
           <section className="mt-1">
-            <div>{content}</div>
+            {content && (
+              <TopicEditorContent
+                topicEditorOptions={{
+                  content: { type: 'doc', content: topicEditorContent },
+                  editable: false,
+                }}
+              />
+            )}
           </section>
           <ActionBar
             category_id={topic.category_id}

@@ -2,7 +2,7 @@ import { IUser } from '@entities/User';
 import { Button } from '@shared/ui';
 import { FC, useState } from 'react';
 import { UpdateProfileForm } from './update-profile-form';
-import * as motion from 'motion/react-m';
+import * as motion from 'motion/react-client';
 import { AnimatePresence } from 'motion/react';
 import { useAppSelector } from '@app/lib';
 import { selectAuthUserInfo } from '@widgets/LoginModal';

@@ -5,3 +5,4 @@ export * from './remove-undefined-key.ts';
 export * from './page-error.ts';
 export * from './get-response-error.ts';
 export * from './response-errors';
+export * from './get-word-with-capital-letter.ts';

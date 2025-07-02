@@ -1,9 +1,12 @@
 'use client';
-import { Button } from '@shared/ui';
+import { Button, Tab, Tabs } from '@shared/ui';
 import { FC, useState } from 'react';
+
+type TTabs = 'menu' | 'about';
 
 const PreviewPage: FC = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [selectTabId, setSelectTabId] = useState<TTabs>('menu');
 
   return (
     <div className="*:w-auto">
@@ -32,6 +35,19 @@ const PreviewPage: FC = () => {
       <Button loading={isLoading} variant="contained">
         Test
       </Button>
+      <Tabs
+        currentTabId={selectTabId}
+        onChange={(id: TTabs) => {
+          setSelectTabId(id);
+        }}
+      >
+        <Tab key="1" id="menu">
+          Menu
+        </Tab>
+        <Tab key="2" id="about">
+          About
+        </Tab>
+      </Tabs>
     </div>
   );
 };
