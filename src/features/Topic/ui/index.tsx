@@ -1,7 +1,7 @@
 'use client';
 import { FC, Fragment, useState } from 'react';
 import { TTopicId } from '@entities/Topic';
-import { useCreateCommentMutation, useGetCommentsByTopicIdQuery, useGetUserQuery } from '@app/api';
+import { useGetUserQuery } from '@app/api';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { Button, Input, Skeleton } from '@shared/ui';
@@ -13,10 +13,11 @@ import { SkeletonTopic } from './skeleton-topic';
 import * as m from 'motion/react-client';
 import { AnimatePresence } from 'motion/react';
 import Link from 'next/link';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { topicsApi } from '@entities/Topic/api/topics-api';
 import { TopicEditorContent } from '@features/topic-editor';
 import { JSONContent } from '@tiptap/react';
+import { commentsApiHooks } from '@entities/Topic/api/comments-api-hooks';
 
 dayjs.extend(relativeTimePlugin);
 
@@ -29,14 +30,16 @@ interface IProps {
 }
 
 export const Topic: FC<IProps> = ({ topic_id }) => {
+  const queryClient = useQueryClient();
+
   const {
     data: topic,
     isLoading: isLoadingTopic,
     isError: isErrorTopic,
     error: errorTopic,
   } = useQuery({
-    queryFn: () => topicsApi.getTopicById(topic_id),
-    queryKey: ['topic', topic_id],
+    queryFn: () => topicsApi.getTopicByIdAndComments({ topic_id }),
+    queryKey: ['topic', 'topic-comments', topic_id],
   });
 
   const {
@@ -45,17 +48,24 @@ export const Topic: FC<IProps> = ({ topic_id }) => {
     isError: isErrorUser,
     error: errorUser,
   } = useGetUserQuery({ user_id: topic ? topic.user_id : ' ' }, { skip: !topic });
+
   const {
-    data: comments,
-    isError: isErrorComments,
-    error: errorComments,
-  } = useGetCommentsByTopicIdQuery({ topic_id });
-  const [createComments, { isLoading: isLoadingCreateComments }] = useCreateCommentMutation();
+    mutate: createComment,
+    isPending: isPendingCreateComment,
+    isError: isErrorCreateComment,
+    error: errorCreateComment,
+  } = commentsApiHooks.useCreateCommentMutation({
+    onSuccess() {
+      void queryClient.invalidateQueries({
+        queryKey: ['topic', 'topic-comments', topic_id],
+      });
+    },
+  });
+
   const [contentComment, setContentComment] = useState('');
   const [showComments, setShowComments] = useState(false);
 
-  const errorMessageUser = getServerErrorMessage(errorUser),
-    errorMessageComments = getServerErrorMessage(errorComments);
+  const errorMessageUser = getServerErrorMessage(errorUser);
 
   if (isLoadingTopic) {
     return <SkeletonTopic />;
@@ -120,6 +130,7 @@ export const Topic: FC<IProps> = ({ topic_id }) => {
           </section>
           <ActionBar
             category_id={topic.category_id}
+            comments_length={topic.comments.length}
             topic_id={topic_id}
             user_id_topic={user_id}
             showComments={showComments}
@@ -129,21 +140,19 @@ export const Topic: FC<IProps> = ({ topic_id }) => {
         <section id={'comments-topic'}>
           <div className="p-5">
             <AnimatePresence mode="wait">
-              {showComments && comments && (
+              {showComments && (
                 <m.div
                   className="overflow-hidden"
                   initial={{ height: 0 }}
                   animate={{ height: 'auto' }}
                   exit={{ height: 0 }}
                 >
-                  {comments.map((comment) => (
+                  {topic.comments.map((comment) => (
                     <MemoComment key={comment.id} {...comment} />
                   ))}
                 </m.div>
               )}
             </AnimatePresence>
-
-            {showComments && isErrorComments && <div>{errorMessageComments}</div>}
           </div>
         </section>
         <Input
@@ -157,13 +166,14 @@ export const Topic: FC<IProps> = ({ topic_id }) => {
         />
         <Button
           variant="contained"
+          loading={isPendingCreateComment}
           onClick={() => {
-            void createComments({ content: contentComment, topic_id });
+            createComment({ content: contentComment, topic_id });
           }}
         >
           Create comment
         </Button>
-        {isLoadingCreateComments && <div>Loading...</div>}
+        {isErrorCreateComment && <div>{errorCreateComment.message}</div>}
       </article>
     );
   }

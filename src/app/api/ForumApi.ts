@@ -25,24 +25,6 @@ export const ForumApi = createApi({
     },
   }),
   endpoints: (builder) => ({
-    getCommentsByTopicId: builder.query<
-      IForumApi['endpoints']['getCommentsByTopicId']['dataResponse'],
-      IForumApi['endpoints']['getCommentsByTopicId']['bodyRequest']
-    >({
-      query: (bodyRequest) => `/comments?${getUrlParams(bodyRequest)}`,
-      providesTags: ['refetch-comment'],
-    }),
-    createComment: builder.mutation<
-      IForumApi['endpoints']['createComment']['dataResponse'],
-      IForumApi['endpoints']['createComment']['bodyRequest']
-    >({
-      query: (bodyRequest) => ({
-        url: '/comments',
-        method: 'POST',
-        body: bodyRequest,
-      }),
-      invalidatesTags: ['refetch-comment'],
-    }),
     addReaction: builder.mutation<
       IForumApi['endpoints']['addReaction']['dataResponse'],
       IForumApi['endpoints']['addReaction']['bodyRequest']
@@ -67,12 +49,6 @@ export const ForumApi = createApi({
     >({
       query: (bodyRequest) => `/user?${getUrlParams(bodyRequest)}`,
       providesTags: ['refetch-user'],
-    }),
-    getCommentById: builder.query<
-      IForumApi['endpoints']['getCommentById']['dataResponse'],
-      IForumApi['endpoints']['getCommentById']['bodyRequest']
-    >({
-      query: (comment_id) => `/comment?comment_id=${comment_id}`,
     }),
     sendReport: builder.mutation<
       IForumApi['endpoints']['sendReport']['dataResponse'],
@@ -101,19 +77,6 @@ export const ForumApi = createApi({
         body: bodyRequest,
       }),
       invalidatesTags: ['refetch-reports'],
-    }),
-    getCategories: builder.query<
-      IForumApi['endpoints']['getCategories']['dataResponse'],
-      IForumApi['endpoints']['getCategories']['bodyRequest']
-    >({
-      query: (bodyRequest) => `/categories?${bodyRequest ? getUrlParams(bodyRequest) : ''}`,
-      providesTags: ['refetch-categories'],
-    }),
-    getCategoryById: builder.query<
-      IForumApi['endpoints']['getCategoryById']['dataResponse'],
-      IForumApi['endpoints']['getCategoryById']['bodyRequest']
-    >({
-      query: (category_id) => `/category?category_id=${category_id}`,
     }),
     login: builder.mutation<
       IForumApi['endpoints']['login']['dataResponse'],
@@ -151,39 +114,6 @@ export const ForumApi = createApi({
     >({
       query: (bodyRequest) => `/console?${getUrlParams(bodyRequest)}`,
     }),
-    createCategory: builder.mutation<
-      IForumApi['endpoints']['createCategory']['dataResponse'],
-      IForumApi['endpoints']['createCategory']['bodyRequest']
-    >({
-      query: (bodyRequest) => ({
-        url: '/category',
-        method: 'POST',
-        body: bodyRequest,
-      }),
-      invalidatesTags: ['refetch-categories'],
-    }),
-    deleteCategory: builder.mutation<
-      IForumApi['endpoints']['deleteCategory']['dataResponse'],
-      IForumApi['endpoints']['deleteCategory']['bodyRequest']
-    >({
-      query: (bodyRequest) => ({
-        url: '/category',
-        method: 'DELETE',
-        body: bodyRequest,
-      }),
-      invalidatesTags: ['refetch-categories'],
-    }),
-    deleteComment: builder.mutation<
-      IForumApi['endpoints']['deleteComment']['dataResponse'],
-      IForumApi['endpoints']['deleteComment']['bodyRequest']
-    >({
-      query: (comment_id) => ({
-        url: '/comment',
-        method: 'DELETE',
-        body: { comment_id },
-      }),
-      invalidatesTags: ['refetch-comment'],
-    }),
     updateUser: builder.mutation<
       IForumApi['endpoints']['updateUser']['dataResponse'],
       IForumApi['endpoints']['updateUser']['bodyRequest']
@@ -199,16 +129,12 @@ export const ForumApi = createApi({
 });
 
 export const {
-  useCreateCommentMutation,
-  useGetCommentsByTopicIdQuery,
   useSendReportMutation,
-  useLazyGetCommentByIdQuery,
   useGetUserQuery,
   useLazyGetUserQuery,
   useGetReportsQuery,
   useDeleteReportMutation,
   useAddReactionMutation,
   useGetReactionsQuery,
-  useDeleteCommentMutation,
   useUpdateUserMutation,
 } = ForumApi;

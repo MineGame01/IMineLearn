@@ -1,8 +1,4 @@
-import {
-  useAddReactionMutation,
-  useGetCommentsByTopicIdQuery,
-  useGetReactionsQuery,
-} from '@app/api';
+import { useAddReactionMutation, useGetReactionsQuery } from '@app/api';
 import { TReactionType } from '@entities/Reaction';
 import { TTopicId } from '@entities/Topic';
 import { getServerErrorMessage } from '@shared/model';
@@ -16,7 +12,6 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { TUserId } from '@entities/User';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { topicsApi } from '@entities/Topic/api/topics-api';
-
 import CommentsDisabledIcon from '@mui/icons-material/CommentsDisabled';
 import CommentIcon from '@mui/icons-material/Comment';
 import ReportGmailerrorredIcon from '@mui/icons-material/ReportGmailerrorred';
@@ -26,6 +21,7 @@ import { TCategoryId } from '@entities/categories-list';
 
 interface IProps {
   category_id: TCategoryId;
+  comments_length: number;
   topic_id: TTopicId;
   user_id_topic: TUserId;
   showComments: boolean;
@@ -35,6 +31,7 @@ interface IProps {
 export const ActionBar: FC<IProps> = ({
   category_id,
   topic_id,
+  comments_length,
   user_id_topic,
   showComments,
   setShowComments,
@@ -66,10 +63,6 @@ export const ActionBar: FC<IProps> = ({
     addReaction,
     { isLoading: isLoadingAddReaction, isError: isErrorAddReaction, error: errorAddReaction },
   ] = useAddReactionMutation();
-
-  const { data: comments, isLoading: isLoadingComments } = useGetCommentsByTopicIdQuery({
-    topic_id,
-  });
 
   const [showReportModal, setShowReportModal] = useState(false);
   const { is_admin, id: auth_user_id } = useAppSelector(selectAuthUserInfo);
@@ -115,7 +108,6 @@ export const ActionBar: FC<IProps> = ({
       <IconButton
         title={showComments ? 'Close comments' : 'Show Comments'}
         aria-label={showComments ? 'Close comments' : 'Show Comments'}
-        isLoading={isLoadingComments}
         aria-expanded={showComments || undefined}
         aria-controls={showComments ? 'comments-topic' : undefined}
         onClick={() => {
@@ -123,7 +115,7 @@ export const ActionBar: FC<IProps> = ({
         }}
       >
         {showComments ? <CommentsDisabledIcon /> : <CommentIcon />}
-        {comments ? <span className="ml-1">{comments.length}</span> : undefined}
+        <span className="ml-1">{comments_length}</span>
       </IconButton>
       <IconButton
         className="ml-full"

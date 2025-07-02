@@ -1,6 +1,7 @@
 import { appApi } from '@app/api';
 import { ITopicsEndpointsApi } from './topics-endpoints-api.type';
 import { getResponseError } from '@shared/model';
+import { commentsApiEndpoints } from './comments-api-endpoints';
 
 export const topicsApi: ITopicsEndpointsApi = {
   async getTopicById(topic_id) {
@@ -46,5 +47,15 @@ export const topicsApi: ITopicsEndpointsApi = {
         code: 'FAILED-CREATE-TOPIC',
       });
     }
+  },
+  async getTopicByIdAndComments(
+    this: ITopicsEndpointsApi,
+    { topic_id, ...getCommentsByTopicIdArgs }
+  ) {
+    const [topic, comments] = await Promise.all([
+      this.getTopicById(topic_id),
+      commentsApiEndpoints.getCommentsByTopicId({ topic_id, ...getCommentsByTopicIdArgs }),
+    ]);
+    return { ...topic, comments };
   },
 };

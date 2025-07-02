@@ -1,7 +1,8 @@
 import { TCategoryId } from '@entities/categories-list';
 import { IEndpointInfo } from '@shared/api';
-import { TTopicTitle, TTopicContent, TTopicId, ITopic } from '../model/ITopic';
+import { TTopicTitle, TTopicContent, TTopicId, ITopic, IComment } from '../model/ITopic';
 import { TUserId } from '@entities/User';
+import { TGetCommentsByTopicIdEndpointInfo } from './comments-endpoints-api.type';
 
 export type TCreateTopicEndpointInfo = IEndpointInfo<
   {
@@ -30,9 +31,15 @@ export type TGetTopicsEndpointInfo = IEndpointInfo<
 
 export type TGetTopicByIdEndpointInfo = IEndpointInfo<TTopicId, ITopic>;
 
+export type TGetTopicByIdAndComments = IEndpointInfo<
+  { topic_id: TTopicId } & TGetCommentsByTopicIdEndpointInfo['payload'],
+  ITopic & { comments: IComment[] }
+>;
+
 export interface ITopicsEndpointsApi {
   createTopic: TCreateTopicEndpointInfo['endpoint'];
   deleteTopic: TDeleteTopicEndpointInfo['endpoint'];
   getTopics: TGetTopicsEndpointInfo['endpoint'];
   getTopicById: TGetTopicByIdEndpointInfo['endpoint'];
+  getTopicByIdAndComments: TGetTopicByIdAndComments['endpoint'];
 }

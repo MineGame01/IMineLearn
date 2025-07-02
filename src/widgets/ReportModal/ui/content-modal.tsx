@@ -1,12 +1,11 @@
 'use client';
-import { FC, useCallback, useEffect } from 'react';
+import { FC } from 'react';
 import { ReportForm } from '@widgets/ReportModal/ui/report-form';
-import { IForumApi, useLazyGetCommentByIdQuery } from '@app/api';
 import { TReportTargetId, TReportTargetType } from '@entities/Report';
-import { getServerErrorMessage } from '@shared/model';
 import { Button } from '@shared/ui';
 import { useQuery } from '@tanstack/react-query';
 import { topicsApi } from '@entities/Topic/api/topics-api';
+import { commentsApiHooks } from '@entities/Topic/api/comments-api-hooks';
 
 export const ContentModal: FC<{
   target_type: TReportTargetType;
@@ -26,45 +25,25 @@ export const ContentModal: FC<{
     enabled: target_type === 'topic',
   });
 
-  const [
-    _getCommentById,
-    {
-      data: dataComment,
-      error: errorGetComment,
-      isError: isErrorGetComment,
-      isFetching: isFetchingGetComment,
-      isLoading: isLoadingGetComment,
-    },
-  ] = useLazyGetCommentByIdQuery();
+  const {
+    data: comment,
+    isLoading: isLoadingComment,
+    isError: isErrorComment,
+    error: errorComment,
+    isFetching: isFetchinsComment,
+    refetch: refetchComment,
+  } = commentsApiHooks.useGetCommentByIdQuery(target_id, { enabled: target_type === 'comment' });
 
-  const getCommentById = useCallback(
-    (comment_id?: IForumApi['endpoints']['getCommentById']['bodyRequest']) => {
-      return _getCommentById(comment_id ?? target_id);
-    },
-    [_getCommentById, target_id]
-  );
+  const isFetching = isFetchingTopic || isFetchinsComment;
+  const isLoading = isLoadingComment || isLoadingTopic;
+  const isError = isErrorComment || isErrorTopic;
 
-  useEffect(() => {
-    switch (target_type) {
-      case 'comment': {
-        void getCommentById();
-        return;
-      }
-    }
-  }, [getCommentById, target_id, target_type]);
-
-  const isFetching = isFetchingTopic || isFetchingGetComment;
-  const isLoading = isLoadingGetComment || isLoadingTopic;
-  const reportContent = topic?.title ?? dataComment?.content;
-
-  const errorMessageGetComment = getServerErrorMessage(errorGetComment);
-
-  const isError = isErrorGetComment || isErrorTopic;
+  const reportContent = topic?.title ?? comment?.content;
 
   const handleClickReload = () => {
     switch (target_type) {
       case 'comment': {
-        void getCommentById();
+        void refetchComment();
         return;
       }
       case 'topic': {
@@ -76,7 +55,7 @@ export const ContentModal: FC<{
 
   const errorMessage = (
     <div className="text-error">
-      {errorMessageGetComment}
+      {errorComment?.message}
       {errorTopic?.message}
     </div>
   );
