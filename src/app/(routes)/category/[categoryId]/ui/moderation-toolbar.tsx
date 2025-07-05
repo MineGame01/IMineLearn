@@ -9,7 +9,7 @@ export const ModerationToolbar: FC<{ category_id: TCategoryId }> = ({ category_i
   const [showModalConfirm, setShowModalConfirm] = useState(false);
 
   return (
-    <article className="bg-error-bg rounded-border-default border-error border-2 p-2">
+    <article className="bg-error-bg rounded-default-radius border-error border-2 p-2">
       <h1 className="text-error-text font-bold text-2xl m-0">Danger Zone</h1>
       <section>
         <IconButton

@@ -54,7 +54,7 @@ export const Input: FC<IProps> = ({
           placeholder=" "
           {...inputAttr}
           className={twMerge(
-            'peer w-full outline-none focus:border-input-focus border-2 rounded-[10px] px-[9px] text-[0.9rem] py-2 bg-input-bg',
+            'peer w-full outline-none focus:border-input-focus border-[1.5px] rounded-default-radius px-[9px] text-[0.9rem] py-2 bg-input-bg',
             isError ? 'border-error' : 'border-input-border',
             animationStyle,
             classNameInput

@@ -83,7 +83,7 @@ export const Dropdown: FC<IProps> = ({ anchorEl, children, open, close, id, clas
             onClick={(event) => {
               event.stopPropagation();
             }}
-            className="bg-modal-bg shadow-2xl border-2 origin-top border-modal-border rounded-border-default p-1 absolute min-w-[100px]"
+            className="bg-modal-bg shadow-2xl border-2 origin-top border-modal-border rounded-default-radius p-1 absolute min-w-[100px]"
           >
             <DropdownOptionsContext.Provider value={{ close, open }}>
               {children}

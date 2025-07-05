@@ -31,7 +31,7 @@
   --alert-bg: #fff3cd;
   --alert-text: #856404;
 
-  --border-default: 5px;
+  --default-radius: 5px;
 }
 
 @theme {
@@ -65,7 +65,7 @@
   --color-alert-bg: var(--alert-bg);
   --color-alert-text: var(--alert-text);
 
-  --radius-border-default: 5px;
+  --radius-default-radius: 5px;
 }
 
 @layer base {

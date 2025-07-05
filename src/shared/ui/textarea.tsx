@@ -17,7 +17,7 @@ export const Textarea: FC<IProps> = ({
   ...props
 }) => {
   const defaultStyleTextarea =
-    'w-full outline-none focus:border-input-focus border-2 rounded-[10px] px-[9px] text-[0.9rem] py-2 bg-input-bg';
+    'w-full outline-none focus:border-input-focus border-[1.5px] rounded-[10px] px-[9px] text-[0.9rem] py-2 bg-input-bg';
   const animationStyle = 'transition-top duration-200 ease-in-out';
   const defaultStyleHelperText = 'text-[0.8rem] ml-2';
 
