@@ -1,10 +1,9 @@
 import { useUpdateUserMutation } from '@app/api';
-import { useAppDispatch } from '@app/lib';
+import { useAuthStore } from '@entities/auth';
 import { UserUsernameSchema, UserBioSchema, TUserBio, TUserUserName } from '@entities/User';
 import { joiResolver } from '@hookform/resolvers/joi';
 import { getServerErrorMessage } from '@shared/model';
 import { Input, Button, Textarea } from '@shared/ui';
-import { addAuthData } from '@widgets/LoginModal';
 import Joi from 'joi';
 import { useRouter } from 'next/navigation';
 import { Dispatch, FC, useEffect, useId } from 'react';
@@ -24,6 +23,7 @@ interface IProps {
 export const UpdateProfileForm: FC<IProps> = ({ setIsUpdateProfile, bio, username }) => {
   const [updateUser, { isLoading: isLoadingUpdateUser, error: errorUpdateUser }] =
     useUpdateUserMutation();
+
   const { register, handleSubmit, formState, watch, setError } = useForm<IFormUpdateProfileInputs>({
     mode: 'onChange',
     defaultValues: { bio, username },
@@ -43,7 +43,8 @@ export const UpdateProfileForm: FC<IProps> = ({ setIsUpdateProfile, bio, usernam
     }
   }, [errorUpdateUserMessage, setError]);
 
-  const dispatch = useAppDispatch();
+  const setAuthUser = useAuthStore((state) => state.setAuthUser);
+
   const router = useRouter();
   const form_update_profile_id = useId();
 
@@ -53,7 +54,7 @@ export const UpdateProfileForm: FC<IProps> = ({ setIsUpdateProfile, bio, usernam
     void updateUser(data)
       .unwrap()
       .then((response) => {
-        dispatch(addAuthData(response));
+        setAuthUser({ ...response });
         setIsUpdateProfile(false);
         router.push('/user/' + response.username);
       });

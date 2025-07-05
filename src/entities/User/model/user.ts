@@ -14,8 +14,9 @@ export interface IUser {
   salt: string;
 }
 
-export interface IAuthUser extends Omit<IUser, 'hash_password' | 'salt' | 'email'> {
-  email: TUserEmail | null;
+export interface IAuthUser extends Omit<IUser, 'hash_password' | 'salt'> {
+  hash_password: null;
+  salt: null;
 }
 
 export type TUserId = IUser['id'];

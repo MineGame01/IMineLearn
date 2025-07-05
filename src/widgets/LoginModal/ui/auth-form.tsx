@@ -1,8 +1,6 @@
 'use client';
 import React, { FC, useState } from 'react';
 import { TTypeAuth } from '@widgets/LoginModal/model/TTypeAuth.ts';
-import { useAppDispatch, useAppSelector } from '@app/lib';
-import { authLogin, selectAuthError, selectAuthIsLoading } from '@widgets/LoginModal';
 import { ButtonSubmitAuth } from './button-submit-auth.tsx';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -10,6 +8,7 @@ import { Input } from '@shared/ui';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { AuthSchema, RegistrationSchema } from '@entities/LoginModal';
 import { joiResolver } from '@hookform/resolvers/joi';
+import { authApiHooks } from '@entities/auth/api/auth-api-hooks.ts';
 
 interface IAuthFormInputs {
   username: string;
@@ -20,12 +19,8 @@ interface IAuthFormInputs {
 
 export const AuthForm: FC<{
   typeAuth: TTypeAuth;
-}> = ({ typeAuth }) => {
-  const authError = useAppSelector(selectAuthError);
-  const authIsLoading = useAppSelector(selectAuthIsLoading);
-  const isAuthError = Boolean(authError);
-
-  const dispatch = useAppDispatch();
+  close: () => void;
+}> = ({ typeAuth, close }) => {
   const [isVisibilityPassword, setIsVisibilityPassword] = useState(false);
 
   const { register, handleSubmit, formState, watch } = useForm<IAuthFormInputs>({
@@ -38,17 +33,41 @@ export const AuthForm: FC<{
     resolver: typeAuth === 'login' ? joiResolver(AuthSchema) : joiResolver(RegistrationSchema),
   });
 
+  const {
+    mutate: login,
+    isPending: isPendingLogin,
+    isError: isErrorLogin,
+    error: errorLogin,
+  } = authApiHooks.useLoginMutation({
+    onSuccess() {
+      close();
+    },
+  });
+  const {
+    mutate: registration,
+    isPending: isPendingRegistration,
+    isError: isErrorRegistration,
+    error: errorRegistration,
+  } = authApiHooks.useRegistrationMutation({
+    onSuccess() {
+      close();
+    },
+  });
+
   const { errors, isValid } = formState;
   const { email, username, password, password_repeated } = errors;
+
+  const isErrorAuth = isErrorLogin || isErrorRegistration;
+  const isPendingAuth = isPendingRegistration || isPendingLogin;
+  const errorAuth = errorLogin?.message ?? errorRegistration?.message;
 
   const isPasswordsMatch = watch('password') === watch('password_repeated');
 
   const onSubmit: SubmitHandler<IAuthFormInputs> = (data) => {
-    console.log(isValid);
     if (isValid && (isPasswordsMatch || typeAuth === 'login')) {
-      console.log(typeAuth);
       const { email, password, username } = data;
-      dispatch(authLogin(email, password, username, typeAuth));
+      if (typeAuth === 'login') login({ email, password });
+      else registration({ email, password, username });
     }
   };
 
@@ -126,8 +145,8 @@ export const AuthForm: FC<{
           />
         </div>
       )}
-      <ButtonSubmitAuth loading={authIsLoading} typeAuth={typeAuth} />
-      {isAuthError && <div className="text-center text-error mt-2">{authError}</div>}
+      <ButtonSubmitAuth loading={isPendingAuth} typeAuth={typeAuth} />
+      {isErrorAuth && <div className="text-center text-error mt-2">{errorAuth}</div>}
     </form>
   );
 };

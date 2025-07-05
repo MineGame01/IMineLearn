@@ -1,8 +1,7 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { IForumApi } from './IForumApi';
 import { getUrlParams } from '@shared/model';
-import { TState } from '@app/model';
-import { selectAuthAccessToken } from '@widgets/LoginModal';
+import { authStore } from '@entities/auth';
 
 export const ForumApi = createApi({
   reducerPath: 'api',
@@ -16,8 +15,8 @@ export const ForumApi = createApi({
   ],
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.NEXT_PUBLIC_REST_API_URL,
-    prepareHeaders(headers, { getState }) {
-      const access_token = selectAuthAccessToken(getState() as TState);
+    prepareHeaders(headers) {
+      const { access_token } = authStore.getState();
 
       if (access_token) {
         headers.set('Authorization', access_token);
@@ -77,42 +76,6 @@ export const ForumApi = createApi({
         body: bodyRequest,
       }),
       invalidatesTags: ['refetch-reports'],
-    }),
-    login: builder.mutation<
-      IForumApi['endpoints']['login']['dataResponse'],
-      IForumApi['endpoints']['login']['bodyRequest']
-    >({
-      query: (bodyRequest) => ({
-        url: '/auth/login',
-        method: 'POST',
-        body: bodyRequest,
-      }),
-    }),
-    registration: builder.mutation<
-      IForumApi['endpoints']['registration']['dataResponse'],
-      IForumApi['endpoints']['registration']['bodyRequest']
-    >({
-      query: (bodyRequest) => ({
-        url: '/auth/registration',
-        method: 'POST',
-        body: bodyRequest,
-      }),
-    }),
-    refreshAccessToken: builder.mutation<
-      IForumApi['endpoints']['refreshAccessToken']['dataResponse'],
-      IForumApi['endpoints']['refreshAccessToken']['bodyRequest']
-    >({
-      query: (bodyRequest) => ({
-        url: '/auth/refresh',
-        method: 'POST',
-        body: bodyRequest,
-      }),
-    }),
-    getConsoleParam: builder.mutation<
-      IForumApi['endpoints']['getConsoleParam']['dataResponse'],
-      IForumApi['endpoints']['getConsoleParam']['bodyRequest']
-    >({
-      query: (bodyRequest) => `/console?${getUrlParams(bodyRequest)}`,
     }),
     updateUser: builder.mutation<
       IForumApi['endpoints']['updateUser']['dataResponse'],

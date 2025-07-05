@@ -1,3 +1,4 @@
+import { authStore } from '@entities/auth';
 import { getEnvVar } from '@shared/lib';
 import { ResponseError } from '@shared/model';
 import ky from 'ky';
@@ -13,6 +14,7 @@ const is_server_environment = (() => {
 
 export const appApi = ky.create({
   prefixUrl: process.env.NEXT_PUBLIC_REST_API_URL,
+  credentials: 'include',
   hooks: {
     beforeError: [
       async (error) => {
@@ -27,7 +29,7 @@ export const appApi = ky.create({
               typeof response.code === 'string'
             ) {
               const { message, statusCode, code } = response;
-              error.cause = new ResponseError(message, statusCode, code);
+              error.cause = new ResponseError(message, statusCode, code, error);
               return error;
             }
           }
@@ -39,9 +41,7 @@ export const appApi = ky.create({
     beforeRequest: [
       (request) => {
         if (!is_server_environment) {
-          const { access_token } = JSON.parse(localStorage.getItem('session') ?? '{}') as {
-            access_token?: string;
-          };
+          const { access_token } = authStore.getState();
           if (access_token) {
             request.headers.set('Authorization', access_token);
           }

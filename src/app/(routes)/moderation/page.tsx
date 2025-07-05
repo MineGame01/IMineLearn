@@ -1,20 +1,27 @@
 'use client';
-import { useAppSelector } from '@app/lib';
-import { selectAuthIsLoading, selectAuthUserInfo } from '@widgets/LoginModal';
 import { FC, useEffect } from 'react';
 import { ReportsList } from './reports-list';
+import { selectAccessToken, selectAuthUser, useAuthStore } from '@entities/auth';
+import { useMutationState } from '@tanstack/react-query';
 
 const ModerationPage: FC = () => {
-  const { is_admin, access_token } = useAppSelector(selectAuthUserInfo);
-  const isLoadingAuth = useAppSelector(selectAuthIsLoading);
+  const authUser = useAuthStore(selectAuthUser);
+  const access_token = useAuthStore(selectAccessToken);
+
+  const refreshTokenStatus = useMutationState({
+    filters: { mutationKey: ['refreshToken'] },
+    select(mutate) {
+      return mutate.state;
+    },
+  }).at(-1)?.status;
 
   useEffect(() => {
-    if (!is_admin && !isLoadingAuth && access_token) {
+    if (!authUser?.is_admin && refreshTokenStatus !== 'pending' && access_token) {
       window.location.href = '/';
     }
-  }, [is_admin, isLoadingAuth, access_token]);
+  }, [authUser, refreshTokenStatus, access_token]);
 
-  return <div>{access_token && <ReportsList />}</div>;
+  return <div>{authUser?.is_admin && <ReportsList />}</div>;
 };
 
 export default ModerationPage;

@@ -1,6 +1,7 @@
 import { TEndpointFn } from '@shared/api';
 import {
   DefinedInitialDataOptions,
+  QueryClient,
   UndefinedInitialDataOptions,
   UseQueryOptions,
   UseQueryResult,
@@ -13,5 +14,6 @@ type TUseQueryOptions<TData = unknown> =
 
 export type TQueryHook<GEndpointFn extends TEndpointFn = TEndpointFn> = (
   payload: Parameters<GEndpointFn>[0],
-  options?: Omit<TUseQueryOptions<Awaited<ReturnType<GEndpointFn>>>, 'queryKey'>
+  options?: Omit<TUseQueryOptions<Awaited<ReturnType<GEndpointFn>>>, 'queryKey'>,
+  queryClient?: QueryClient
 ) => UseQueryResult<Awaited<ReturnType<GEndpointFn>>>;

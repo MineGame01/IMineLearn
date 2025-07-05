@@ -3,43 +3,51 @@ import { createAccessToken } from '@app/api/_lib/create-access-token';
 import { withErrorHandlerRequest } from '@app/api/with-error-handler-request';
 import { getPrisma } from '@app/api/_prisma/get-prisma';
 import {
+  ResponseTokenExpiredError,
   ResponseParamIsRequiredError,
-  ResponseRefreshTokenWrongError,
+  ResponseTokenError,
   ResponseUserNotFoundError,
 } from '@shared/model';
 import { RefreshTokenVerify } from '@app/api/_lib/refresh-token-verify';
-import { RefreshToken } from '@app/api/_model/refresh-token';
-
-interface IDataRequest {
-  refresh_token: string | null;
-}
+import jwt from 'jsonwebtoken';
 
 const handler = async (request: NextRequest) => {
   const prisma = getPrisma();
   try {
     await prisma.$connect();
-    const { refresh_token } = (await request.json()) as IDataRequest;
+
+    const refresh_token = request.cookies.get('refresh_token')?.value;
 
     if (!refresh_token) {
       throw new ResponseParamIsRequiredError(false, 'refresh_token');
     }
 
-    const verify_refresh_token = await RefreshTokenVerify(refresh_token);
+    try {
+      const verify_refresh_token = await RefreshTokenVerify(refresh_token);
 
-    if (!verify_refresh_token || !(verify_refresh_token instanceof RefreshToken)) {
-      throw new ResponseRefreshTokenWrongError();
+      if (!verify_refresh_token) {
+        throw new ResponseTokenError('refresh');
+      }
+
+      const user = await prisma.users.findFirst({ where: { id: verify_refresh_token.user_id } });
+
+      if (!user) {
+        throw new ResponseUserNotFoundError();
+      }
+
+      return NextResponse.json({
+        access_token: createAccessToken({ ...user, id: user.id }),
+        user_id: user.id,
+      });
+    } catch (error: unknown) {
+      if (error instanceof jwt.JsonWebTokenError) {
+        throw new ResponseTokenError('refresh');
+      } else if (error instanceof jwt.TokenExpiredError) {
+        throw new ResponseTokenExpiredError('refresh');
+      } else {
+        throw error;
+      }
     }
-
-    const user = await prisma.users.findFirst({ where: { id: verify_refresh_token.user_id } });
-
-    if (!user) {
-      throw new ResponseUserNotFoundError();
-    }
-
-    return NextResponse.json({
-      access_token: createAccessToken({ ...user, id: user.id }),
-      user_id: user.id,
-    });
   } finally {
     await prisma.$disconnect();
   }

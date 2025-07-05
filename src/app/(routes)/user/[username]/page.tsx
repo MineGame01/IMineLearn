@@ -1,39 +1,46 @@
 'use client';
-import { useGetUserQuery, useUpdateUserMutation } from '@app/api';
-import { useAppSelector } from '@app/lib';
+import { useGetUserQuery } from '@app/api';
 import { ITopic } from '@entities/Topic';
 import { TopicPreviewSkeleton, TopicPreview } from '@features/TopicList';
 import { getServerErrorMessage } from '@shared/model';
 import { Paper, Skeleton } from '@shared/ui';
-import { selectAuthUserInfo } from '@widgets/LoginModal';
 import Image from 'next/image';
 import { useParams } from 'next/navigation';
 import { Fragment, useMemo } from 'react';
 import { AboutProfile } from './_ui/about-profile';
 import { UserNotFoundError } from './_model/user-not-found-error';
 import { FailedLoadingUserTopicsError } from './_model/failed-loading-user-topics-error';
-import { useQuery } from '@tanstack/react-query';
+import { useMutationState, useQuery } from '@tanstack/react-query';
 import { topicsApi } from '@entities/Topic/api/topics-api';
+import { selectAuthUser, useAuthStore } from '@entities/auth';
 
 const UserPage = () => {
   const { username: username_param } = useParams();
 
   const username = username_param?.toString();
 
-  const auth_user = useAppSelector(selectAuthUserInfo);
+  const authUser = useAuthStore(selectAuthUser);
 
-  const is_auth_user = username === auth_user.username;
+  const isAuthUser = username === authUser?.username;
 
-  const { isLoading: isLoadingUpdateUser } = useUpdateUserMutation()[1];
+  const refreshTokenStatus = useMutationState({
+    filters: { mutationKey: ['refreshToken'] },
+    select(mutate) {
+      return mutate.state;
+    },
+  }).at(-1)?.status;
 
   const {
     data: user,
     isLoading: isLoadingUser,
     isError: isErrorUser,
     error: errorUser,
-  } = useGetUserQuery({ username: username ?? '' }, { skip: isLoadingUpdateUser || is_auth_user });
+  } = useGetUserQuery(
+    { username: username ?? '' },
+    { skip: refreshTokenStatus === 'pending' || isAuthUser }
+  );
 
-  const current_user = is_auth_user ? auth_user : user;
+  const current_user = isAuthUser ? authUser : user;
 
   const {
     data: userTopics,

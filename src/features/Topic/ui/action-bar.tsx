@@ -6,8 +6,6 @@ import { ReportModal } from '@widgets/ReportModal';
 import { useRouter } from 'next/navigation';
 import { Dispatch, FC, MouseEventHandler, useCallback, useState } from 'react';
 import { IconButton } from '@shared/ui';
-import { useAppSelector } from '@app/lib';
-import { selectAuthUserInfo } from '@widgets/LoginModal';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { TUserId } from '@entities/User';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -18,6 +16,7 @@ import ReportGmailerrorredIcon from '@mui/icons-material/ReportGmailerrorred';
 import ThumbUpOffAltIcon from '@mui/icons-material/ThumbUpOffAlt';
 import ThumbUpAltIcon from '@mui/icons-material/ThumbUpAlt';
 import { TCategoryId } from '@entities/categories-list';
+import { selectAuthUser, useAuthStore } from '@entities/auth';
 
 interface IProps {
   category_id: TCategoryId;
@@ -65,7 +64,8 @@ export const ActionBar: FC<IProps> = ({
   ] = useAddReactionMutation();
 
   const [showReportModal, setShowReportModal] = useState(false);
-  const { is_admin, id: auth_user_id } = useAppSelector(selectAuthUserInfo);
+
+  const authUser = useAuthStore(selectAuthUser);
 
   const errorMessageAddReaction = getServerErrorMessage(errorAddReaction),
     errorMessageReactions = getServerErrorMessage(errorReactions);
@@ -93,7 +93,7 @@ export const ActionBar: FC<IProps> = ({
         }}
       >
         {reactions?.find(
-          (reaction) => reaction.type_reaction === 'like' && reaction.user_id === auth_user_id
+          (reaction) => reaction.type_reaction === 'like' && reaction.user_id === authUser?.id
         ) ? (
           <ThumbUpAltIcon />
         ) : (
@@ -133,7 +133,7 @@ export const ActionBar: FC<IProps> = ({
         open={showReportModal}
         close={closeReportModal}
       />
-      {(is_admin || user_id_topic === auth_user_id) && (
+      {(Boolean(authUser?.is_admin) || user_id_topic === authUser?.id) && (
         <IconButton
           title="Delete topic"
           aria-label="Delete topic"
