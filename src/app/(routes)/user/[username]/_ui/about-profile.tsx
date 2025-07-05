@@ -4,8 +4,7 @@ import { FC, useState } from 'react';
 import { UpdateProfileForm } from './update-profile-form';
 import * as motion from 'motion/react-client';
 import { AnimatePresence } from 'motion/react';
-import { useAppSelector } from '@app/lib';
-import { selectAuthUserInfo } from '@widgets/LoginModal';
+import { selectAuthUser, useAuthStore } from '@entities/auth';
 
 export const AboutProfile: FC<Pick<IUser, 'id' | 'bio' | 'is_admin' | 'username'>> = ({
   id,
@@ -14,7 +13,7 @@ export const AboutProfile: FC<Pick<IUser, 'id' | 'bio' | 'is_admin' | 'username'
   username,
 }) => {
   const [isUpdateProfile, setIsUpdateProfile] = useState(false);
-  const authUserId = useAppSelector(selectAuthUserInfo).id;
+  const authUserId = useAuthStore((state) => selectAuthUser(state)?.id);
 
   const is_owner_profile = authUserId === id;
 

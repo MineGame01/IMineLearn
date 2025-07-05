@@ -8,12 +8,11 @@ import relativeTimePlugin from 'dayjs/plugin/relativeTime';
 import { useGetUserQuery } from '@app/api';
 import { getServerErrorMessage } from '@shared/model';
 import { IconButton } from '@shared/ui';
-import { useAppSelector } from '@app/lib';
-import { selectAuthUserInfo } from '@widgets/LoginModal';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Link from 'next/link';
 import { commentsApiHooks } from '@entities/Topic/api/comments-api-hooks';
 import { useQueryClient } from '@tanstack/react-query';
+import { selectAuthUser, useAuthStore } from '@entities/auth';
 
 dayjs.extend(relativeTimePlugin);
 
@@ -42,7 +41,7 @@ export const Comment: FC<IComment> = ({ created_at, content, id, user_id, topic_
     },
   });
 
-  const { is_admin, id: auth_user_id } = useAppSelector(selectAuthUserInfo);
+  const authUser = useAuthStore(selectAuthUser);
 
   const errorMessageUser = getServerErrorMessage(errorUser);
 
@@ -85,7 +84,7 @@ export const Comment: FC<IComment> = ({ created_at, content, id, user_id, topic_
           open={showReportModal}
           close={closeReportModal}
         />
-        {(is_admin || auth_user_id === user_id) && (
+        {(Boolean(authUser?.is_admin) || authUser?.id === user_id) && (
           <IconButton
             title="Delete comment"
             onClick={() => {

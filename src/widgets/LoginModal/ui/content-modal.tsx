@@ -1,5 +1,5 @@
 'use client';
-import { FC, useEffect, useState } from 'react';
+import { FC, useState } from 'react';
 import { GreetingUser } from '@widgets/LoginModal/ui/greeting-user';
 import { AuthForm } from '@widgets/LoginModal/ui/auth-form';
 import { ButtonChangeTypeAuth } from '@widgets/LoginModal/ui/button-change-type-auth';
@@ -7,8 +7,6 @@ import { TTypeAuth } from '@widgets/LoginModal/model/TTypeAuth.ts';
 import * as m from 'motion/react-client';
 import { AnimatePresence } from 'motion/react';
 import { AppLogo } from '@shared/ui';
-import { useAppSelector } from '@app/lib';
-import { selectAuthAccessToken } from '../model/authSlice';
 
 interface IProps {
   onClose: () => void;
@@ -16,13 +14,6 @@ interface IProps {
 
 export const ContentModal: FC<IProps> = ({ onClose }) => {
   const [typeAuth, setTypeAuth] = useState<TTypeAuth>('login');
-  const authAccessToken = useAppSelector(selectAuthAccessToken);
-
-  useEffect(() => {
-    if (authAccessToken) {
-      onClose();
-    }
-  }, [authAccessToken, onClose]);
 
   return (
     <div className="p-5">
@@ -36,7 +27,7 @@ export const ContentModal: FC<IProps> = ({ onClose }) => {
           className="mt-5"
         >
           <GreetingUser typeAuth={typeAuth} />
-          <AuthForm typeAuth={typeAuth} />
+          <AuthForm typeAuth={typeAuth} close={onClose} />
           <ButtonChangeTypeAuth
             typeAuth={typeAuth}
             onClickChangeTypeAuth={() => {

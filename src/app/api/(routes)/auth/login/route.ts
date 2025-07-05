@@ -17,11 +17,14 @@ const handler = async (request: NextRequest) => {
     const user = await request.json().then((body) => prisma.users.login(body as IDataRequest));
     const user_id = user.id;
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       access_token: createAccessToken(user),
-      refresh_token: createRefreshToken(user_id),
       user_id,
     });
+
+    response.cookies.set('refresh_token', createRefreshToken(user_id));
+
+    return response;
   } finally {
     await prisma.$disconnect();
   }

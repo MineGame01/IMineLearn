@@ -6,7 +6,7 @@ import { ContentContainer } from './content-container';
 export const SkeletonCategory: FC = () => {
   return (
     <Container>
-      <div className="w-full h-[80px] overflow-hidden rounded-border-default">
+      <div className="w-full h-[80px] overflow-hidden rounded-default-radius">
         <Skeleton className="w-full h-full" />
       </div>
       <ContentContainer>

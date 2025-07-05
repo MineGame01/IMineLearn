@@ -23,7 +23,7 @@ export const CategoryPhotoContainer: FC<IProps> = ({
     <div
       {...props}
       className={twMerge(
-        'flex items-center h-[80px] justify-center grow-1 overflow-hidden rounded-border-default',
+        'flex items-center h-[80px] justify-center grow-1 overflow-hidden rounded-default-radius',
         className
       )}
     >

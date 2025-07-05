@@ -3,7 +3,12 @@ import jwt from 'jsonwebtoken';
 import { IUser } from '@entities/User';
 import { getEnvVar } from '@shared/lib';
 import { THandlerRequest } from '../_model/handler-request.type';
-import { ResponseError, ResponseNoRightAdministrationError } from '@shared/model';
+import {
+  ResponseError,
+  ResponseNoRightAdministrationError,
+  ResponseTokenError,
+  ResponseTokenExpiredError,
+} from '@shared/model';
 
 type TDecoded = string | jwt.JwtPayload | undefined;
 
@@ -18,9 +23,7 @@ export const checkAuthAccessToken = (handler: THandlerRequest, is_admin?: boolea
     const getDecoded = async () => {
       return new Promise<TDecoded>((resolve, reject) => {
         jwt.verify(authorization, getEnvVar('PRIVATE_KEY_JWT'), (error, decoded) => {
-          if (error) {
-            reject(new Error('Authorization failed! Please try again'));
-          }
+          if (error) reject(error);
           resolve(decoded);
         });
       });
@@ -31,12 +34,10 @@ export const checkAuthAccessToken = (handler: THandlerRequest, is_admin?: boolea
     try {
       decoded = await getDecoded();
     } catch (error: unknown) {
-      if (error instanceof Error) {
-        throw new ResponseError(
-          'Authorization failed! Please try again',
-          401,
-          'FAILED-AUTHORIZATION'
-        );
+      if (error instanceof jwt.JsonWebTokenError) {
+        throw new ResponseTokenError();
+      } else if (error instanceof jwt.TokenExpiredError) {
+        throw new ResponseTokenExpiredError();
       } else {
         throw error;
       }

@@ -15,16 +15,19 @@ const handler = async (request: NextRequest) => {
   try {
     await prisma.$connect();
 
-    const new_user = await request
+    const user = await request
       .json()
       .then((body) => prisma.users.registration(body as IDataRequest));
-    const new_user_id = new_user.id;
+    const user_id = user.id;
 
-    return NextResponse.json({
-      access_token: createAccessToken(new_user),
-      refresh_token: createRefreshToken(new_user_id),
-      user_id: new_user_id,
+    const response = NextResponse.json({
+      access_token: createAccessToken(user),
+      user_id,
     });
+
+    response.cookies.set('refresh_token', createRefreshToken(user_id));
+
+    return response;
   } finally {
     await prisma.$disconnect();
   }

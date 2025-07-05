@@ -3,14 +3,16 @@ import { FC } from 'react';
 import { TopicsList } from '@features/TopicList';
 import { useParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
-import { useAppSelector } from '@app/lib';
-import { selectAuthUserInfo } from '@widgets/LoginModal';
 import { CategoryPhotoContainer } from '@features/categories-list';
 import { categoriesApi } from '@entities/categories-list/api/categories-api';
 import { useQuery } from '@tanstack/react-query';
+import { selectAuthUser, useAuthStore } from '@entities/auth';
 
-const MemoModerationToolbar = dynamic(async () =>
-  import('./ui/moderation-toolbar').then((file) => file.ModerationToolbar)
+const MemoModerationToolbar = dynamic(
+  async () => import('./ui/moderation-toolbar').then((file) => file.ModerationToolbar),
+  {
+    loading: () => <div></div>,
+  }
 );
 
 const CategoryPage: FC = () => {
@@ -28,7 +30,7 @@ const CategoryPage: FC = () => {
     enabled: Boolean(category_id),
   });
 
-  const { is_admin } = useAppSelector(selectAuthUserInfo);
+  const authUser = useAuthStore(selectAuthUser);
 
   if (isError) {
     return <div>{error.message}</div>;
@@ -45,7 +47,7 @@ const CategoryPage: FC = () => {
   return (
     <div className="container mx-auto">
       <CategoryPhotoContainer className="m-5" categoryName={name} src={image_src} />
-      {is_admin && <MemoModerationToolbar category_id={id} />}
+      {authUser?.is_admin && <MemoModerationToolbar category_id={id} />}
       <TopicsList categoryId={id} />
     </div>
   );

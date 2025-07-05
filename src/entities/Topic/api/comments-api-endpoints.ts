@@ -1,11 +1,8 @@
 import { appApi } from '@app/api';
-import {
-  ICommentsEndpointsApiQueries,
-  ICommentsEndpointsApiMutation,
-} from './comments-endpoints-api.type';
+import { TCommentsEndpointsApi } from './comments-endpoints-api.type';
 import { getResponseError } from '@shared/model';
 
-export const commentsApiEndpoints: ICommentsEndpointsApiQueries & ICommentsEndpointsApiMutation = {
+export const commentsApiEndpoints: TCommentsEndpointsApi = {
   async getCommentById(comment_id) {
     try {
       return await appApi
