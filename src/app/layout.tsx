@@ -26,7 +26,7 @@ type TIsTechWork = null | boolean;
 const RootLayout: FC<{ children: ReactNode }> = ({ children }) => {
   const storeRef = useRef<TStore>(null);
   const queryClientRef = useRef<QueryClient>(null);
-  const [isTechWork, setIsTechWork] = useState<TIsTechWork>(null);
+  const [isTechWork, setIsTechWork] = useState<TIsTechWork>(false);
 
   storeRef.current ??= makeStore();
   queryClientRef.current ??= new QueryClient({
@@ -60,12 +60,14 @@ const RootLayout: FC<{ children: ReactNode }> = ({ children }) => {
   });
 
   useEffect(() => {
-    const db = getDatabase();
-    const techWorkRef = ref(db, '/tech_work');
-    onValue(techWorkRef, (snapshot) => {
-      const data = snapshot.val() as boolean;
-      setIsTechWork(data);
-    });
+    if (process.env.NEXT_PUBLIC_DEVELOPMENT !== 'true') {
+      const db = getDatabase();
+      const techWorkRef = ref(db, '/tech_work');
+      onValue(techWorkRef, (snapshot) => {
+        const data = snapshot.val() as boolean;
+        setIsTechWork(data);
+      });
+    }
   }, [setIsTechWork]);
 
   const { mutateAsync: refreshTokenMutate } = authApiHooks.useRefreshTokenMutation(
