@@ -17,8 +17,11 @@ const handler = async (request: NextRequest) => {
     const user = await request.json().then((body) => prisma.users.login(body as IDataRequest));
     const user_id = user.id;
 
+    const profile = await prisma.profiles.findFirst({ where: { user_id } });
+    if (!profile) return;
+
     const response = NextResponse.json({
-      access_token: createAccessToken(user),
+      access_token: createAccessToken({ ...user, is_admin: profile.is_admin }),
       user_id,
     });
 

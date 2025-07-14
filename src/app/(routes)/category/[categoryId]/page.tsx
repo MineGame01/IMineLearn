@@ -6,7 +6,7 @@ import dynamic from 'next/dynamic';
 import { CategoryPhotoContainer } from '@features/categories-list';
 import { categoriesApi } from '@entities/categories-list/api/categories-api';
 import { useQuery } from '@tanstack/react-query';
-import { selectAuthUser, useAuthStore } from '@entities/auth';
+import { selectAuthUserProfile, useAuthStore } from '@entities/auth';
 
 const MemoModerationToolbar = dynamic(
   async () => import('./ui/moderation-toolbar').then((file) => file.ModerationToolbar),
@@ -30,7 +30,7 @@ const CategoryPage: FC = () => {
     enabled: Boolean(category_id),
   });
 
-  const authUser = useAuthStore(selectAuthUser);
+  const authUserProfile = useAuthStore(selectAuthUserProfile);
 
   if (isError) {
     return <div>{error.message}</div>;
@@ -47,7 +47,7 @@ const CategoryPage: FC = () => {
   return (
     <div className="container mx-auto">
       <CategoryPhotoContainer className="m-5" categoryName={name} src={image_src} />
-      {authUser?.is_admin && <MemoModerationToolbar category_id={id} />}
+      {authUserProfile?.is_admin && <MemoModerationToolbar category_id={id} />}
       <TopicsList categoryId={id} />
     </div>
   );

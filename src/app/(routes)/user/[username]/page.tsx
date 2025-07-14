@@ -1,5 +1,4 @@
 'use client';
-import { useGetUserQuery } from '@app/api';
 import { ITopic } from '@entities/Topic';
 import { TopicPreviewSkeleton, TopicPreview } from '@features/TopicList';
 import { getServerErrorMessage } from '@shared/model';
@@ -12,7 +11,8 @@ import { UserNotFoundError } from './_model/user-not-found-error';
 import { FailedLoadingUserTopicsError } from './_model/failed-loading-user-topics-error';
 import { useMutationState, useQuery } from '@tanstack/react-query';
 import { topicsApi } from '@entities/Topic/api/topics-api';
-import { selectAuthUser, useAuthStore } from '@entities/auth';
+import { selectAuthUser, selectAuthUserProfile, useAuthStore } from '@entities/auth';
+import { userHooksApi } from '@entities/User';
 
 const UserPage = () => {
   const { username: username_param } = useParams();
@@ -20,6 +20,7 @@ const UserPage = () => {
   const username = username_param?.toString();
 
   const authUser = useAuthStore(selectAuthUser);
+  const authUserProfile = useAuthStore(selectAuthUserProfile);
 
   const isAuthUser = username === authUser?.username;
 
@@ -35,12 +36,24 @@ const UserPage = () => {
     isLoading: isLoadingUser,
     isError: isErrorUser,
     error: errorUser,
-  } = useGetUserQuery(
-    { username: username ?? '' },
-    { skip: refreshTokenStatus === 'pending' || isAuthUser }
+  } = userHooksApi.useGetUserAndProfileQuery(
+    {
+      username,
+    },
+    {
+      enabled: refreshTokenStatus !== 'pending' || !isAuthUser,
+      initialData:
+        authUser && authUserProfile && isAuthUser
+          ? {
+              id: authUser.id,
+              username: authUser.username,
+              email: authUser.email,
+              created_at: authUser.created_at,
+              profile: authUserProfile,
+            }
+          : undefined,
+    }
   );
-
-  const current_user = isAuthUser ? authUser : user;
 
   const {
     data: userTopics,
@@ -48,9 +61,9 @@ const UserPage = () => {
     isError: isErrorUserTopics,
     error: errorUserTopics,
   } = useQuery({
-    queryFn: () => topicsApi.getTopics({ user_id: current_user?.id ?? '' }),
-    queryKey: ['topics', current_user?.id],
-    enabled: Boolean(current_user),
+    queryFn: () => topicsApi.getTopics({ user_id: user?.id ?? '' }),
+    queryKey: ['topics', user?.id],
+    enabled: Boolean(user),
   });
 
   const errorUserMessage = getServerErrorMessage(errorUser);
@@ -87,18 +100,25 @@ const UserPage = () => {
               <Image
                 src="/defaultUser.png"
                 className="w-[150px] h-auto lg:w-[200px]"
-                alt={current_user?.username ?? 'Loading...'}
+                alt={user?.username ?? ''}
                 width={200}
                 height={200}
                 priority
               />
-              {current_user && <AboutProfile {...current_user} />}
+              {user && (
+                <AboutProfile
+                  id={user.id}
+                  is_admin={user.profile.is_admin}
+                  bio={user.profile.bio}
+                  username={user.username}
+                />
+              )}
             </Fragment>
           )}
         </div>
       </Paper>
       <div className="grow-5 basis-full lg:basis-auto">
-        <h1 className="text-2xl font-bold">{current_user?.username} Topics</h1>
+        <h1 className="text-2xl font-bold">{isAuthUser ? 'Yours' : user?.username} Topics</h1>
         <div className="mt-3 flex flex-col gap-y-2">
           {isLoadingUserTopics && topicPreviewSkeletons}
           {!isLoadingUserTopics &&

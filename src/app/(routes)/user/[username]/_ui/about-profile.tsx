@@ -1,4 +1,4 @@
-import { IUser } from '@entities/User';
+import { IUser, TProfile } from '@entities/User';
 import { Button } from '@shared/ui';
 import { FC, useState } from 'react';
 import { UpdateProfileForm } from './update-profile-form';
@@ -6,12 +6,9 @@ import * as motion from 'motion/react-client';
 import { AnimatePresence } from 'motion/react';
 import { selectAuthUser, useAuthStore } from '@entities/auth';
 
-export const AboutProfile: FC<Pick<IUser, 'id' | 'bio' | 'is_admin' | 'username'>> = ({
-  id,
-  bio,
-  is_admin,
-  username,
-}) => {
+export const AboutProfile: FC<
+  Pick<TProfile, 'bio' | 'is_admin'> & Pick<IUser, 'id' | 'username'>
+> = ({ id, username, bio, is_admin }) => {
   const [isUpdateProfile, setIsUpdateProfile] = useState(false);
   const authUserId = useAuthStore((state) => selectAuthUser(state)?.id);
 

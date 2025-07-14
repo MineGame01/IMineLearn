@@ -1,30 +1,22 @@
+import { TGetUserEndpointInfo } from '../api/user-api-endpoints.type';
+
 export const MIN_USER_USERNAME_LENGTH = 3;
 export const MAX_USER_USERNAME_LENGTH = 16;
-export const MAX_USER_BIO_LENGTH = 255;
 
 export interface IUser {
   id: string;
   username: string;
-  bio: string | null;
   email: string;
   hash_password: string;
-  is_admin: boolean;
-  created_at: number;
-  updated_at: number | null;
+  created_at: number | null;
   salt: string;
 }
 
-export interface IAuthUser extends Omit<IUser, 'hash_password' | 'salt'> {
-  hash_password: null;
-  salt: null;
-}
+export type TAuthUser = TGetUserEndpointInfo['response'];
 
 export type TUserId = IUser['id'];
 export type TUserUserName = IUser['username'];
-export type TUserBio = IUser['bio'];
 export type TUserEmail = IUser['email'];
 export type TUserHashPassword = IUser['hash_password'];
-export type TUserIsAdmin = IUser['is_admin'];
 export type TUserCreatedAt = IUser['created_at'];
 export type TUserSalt = IUser['salt'];
-export type TUserUpdatedAt = IUser['updated_at'];

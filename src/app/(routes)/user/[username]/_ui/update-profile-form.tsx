@@ -1,63 +1,72 @@
-import { useUpdateUserMutation } from '@app/api';
 import { useAuthStore } from '@entities/auth';
-import { UserUsernameSchema, UserBioSchema, TUserBio, TUserUserName } from '@entities/User';
+import {
+  UserUsernameSchema,
+  TUserUserName,
+  ProfileBioSchema,
+  TProfileBio,
+} from '@entities/User';
+import { profileHooksApi } from '@entities/User/profile/api/profile-api-hooks';
 import { joiResolver } from '@hookform/resolvers/joi';
-import { getServerErrorMessage } from '@shared/model';
 import { Input, Button, Textarea } from '@shared/ui';
+import { useQueryClient } from '@tanstack/react-query';
 import Joi from 'joi';
 import { useRouter } from 'next/navigation';
-import { Dispatch, FC, useEffect, useId } from 'react';
+import { Dispatch, FC, useId } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 
 interface IFormUpdateProfileInputs {
   username: TUserUserName;
-  bio: TUserBio;
+  bio: TProfileBio;
 }
 
 interface IProps {
   setIsUpdateProfile: Dispatch<boolean>;
-  bio: TUserBio;
+  bio: TProfileBio;
   username: TUserUserName;
 }
 
 export const UpdateProfileForm: FC<IProps> = ({ setIsUpdateProfile, bio, username }) => {
-  const [updateUser, { isLoading: isLoadingUpdateUser, error: errorUpdateUser }] =
-    useUpdateUserMutation();
-
   const { register, handleSubmit, formState, watch, setError } = useForm<IFormUpdateProfileInputs>({
     mode: 'onChange',
     defaultValues: { bio, username },
     resolver: joiResolver(
       Joi.object<IFormUpdateProfileInputs>({
         username: UserUsernameSchema.required(),
-        bio: UserBioSchema.allow(null),
+        bio: ProfileBioSchema,
       })
     ),
   });
 
-  const errorUpdateUserMessage = getServerErrorMessage(errorUpdateUser);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    if (errorUpdateUserMessage) {
-      setError('root', { message: errorUpdateUserMessage });
-    }
-  }, [errorUpdateUserMessage, setError]);
+  const { isPending: isPendingUpdateProfile, mutateAsync: updateProfile } =
+    profileHooksApi.useUpdateProfileMutation({
+      onError(error) {
+        setError('root', { message: error.message });
+      },
+      async onSuccess(updatedProfile) {
+        console.log(updatedProfile);
+
+        setAuthUser({ username: updatedProfile.username });
+        setAuthUserProfile({ bio: updatedProfile.bio });
+        setIsUpdateProfile(false);
+
+        router.push(`/user/${updatedProfile.username}`);
+
+        await queryClient.invalidateQueries({ queryKey: ['user', 'user-profile', username] });
+      },
+    });
 
   const setAuthUser = useAuthStore((state) => state.setAuthUser);
+  const setAuthUserProfile = useAuthStore((state) => state.setAuthUserProfile);
 
   const router = useRouter();
   const form_update_profile_id = useId();
 
   const { username: errorUsernameField, bio: errorBioField, root: errorForm } = formState.errors;
 
-  const onSubmit: SubmitHandler<IFormUpdateProfileInputs> = (data) => {
-    void updateUser(data)
-      .unwrap()
-      .then((response) => {
-        setAuthUser({ ...response });
-        setIsUpdateProfile(false);
-        router.push('/user/' + response.username);
-      });
+  const onSubmit: SubmitHandler<IFormUpdateProfileInputs> = async (data) => {
+    await updateProfile(data);
   };
 
   return (
@@ -95,7 +104,7 @@ export const UpdateProfileForm: FC<IProps> = ({ setIsUpdateProfile, bio, usernam
       <div className="flex gap-2 *:w-auto mt-2">
         <Button
           variant="contained"
-          loading={isLoadingUpdateUser}
+          loading={isPendingUpdateProfile}
           formMethod="submit"
           type="submit"
           form={form_update_profile_id}
@@ -104,7 +113,7 @@ export const UpdateProfileForm: FC<IProps> = ({ setIsUpdateProfile, bio, usernam
           Submit
         </Button>
         <Button
-          disabled={isLoadingUpdateUser}
+          disabled={isPendingUpdateProfile}
           onClick={() => {
             setIsUpdateProfile(false);
           }}

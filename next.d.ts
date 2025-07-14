@@ -1,8 +1,8 @@
-import "next/server"
-import { IUser } from '@entities/User'
+import 'next/server';
+import { IUser } from '@entities/User';
 
 declare global {
-    interface Request {
-        auth: IUser | null
-    }
+  interface Request {
+    auth: IUser | null;
+  }
 }

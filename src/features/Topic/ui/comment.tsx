@@ -5,14 +5,14 @@ import { IComment } from '@entities/Topic';
 import { ReportModal } from '@widgets/ReportModal';
 import dayjs from 'dayjs';
 import relativeTimePlugin from 'dayjs/plugin/relativeTime';
-import { useGetUserQuery } from '@app/api';
 import { getServerErrorMessage } from '@shared/model';
 import { IconButton } from '@shared/ui';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Link from 'next/link';
 import { commentsApiHooks } from '@entities/Topic/api/comments-api-hooks';
 import { useQueryClient } from '@tanstack/react-query';
-import { selectAuthUser, useAuthStore } from '@entities/auth';
+import { selectAuthUser, selectAuthUserProfile, useAuthStore } from '@entities/auth';
+import { userHooksApi } from '@entities/User';
 
 dayjs.extend(relativeTimePlugin);
 
@@ -26,7 +26,7 @@ export const Comment: FC<IComment> = ({ created_at, content, id, user_id, topic_
     isFetching: isFetchingUser,
     isError: isErrorUser,
     error: errorUser,
-  } = useGetUserQuery({ user_id });
+  } = userHooksApi.useGetUserQuery({ user_id });
 
   const {
     mutate: deleteComment,
@@ -42,6 +42,7 @@ export const Comment: FC<IComment> = ({ created_at, content, id, user_id, topic_
   });
 
   const authUser = useAuthStore(selectAuthUser);
+  const authUserProfile = useAuthStore(selectAuthUserProfile);
 
   const errorMessageUser = getServerErrorMessage(errorUser);
 
@@ -84,7 +85,7 @@ export const Comment: FC<IComment> = ({ created_at, content, id, user_id, topic_
           open={showReportModal}
           close={closeReportModal}
         />
-        {(Boolean(authUser?.is_admin) || authUser?.id === user_id) && (
+        {(Boolean(authUserProfile?.is_admin) || authUser?.id === user_id) && (
           <IconButton
             title="Delete comment"
             onClick={() => {

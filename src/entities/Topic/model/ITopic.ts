@@ -12,7 +12,7 @@ export interface ITopic {
   user_id: TUserId;
   views_count: number;
   category_id: TCategoryId;
-  created_at: number | null;
+  created_at: number;
   title: string;
   content: string;
 }

@@ -8,7 +8,7 @@ import dynamic from 'next/dynamic';
 import PersonIcon from '@mui/icons-material/Person';
 import ReportGmailerrorredIcon from '@mui/icons-material/ReportGmailerrorred';
 import { authApiHooks } from '@entities/auth/api/auth-api-hooks';
-import { selectAuthUser, useAuthStore } from '@entities/auth';
+import { selectAuthUser, selectAuthUserProfile, useAuthStore } from '@entities/auth';
 import { useMutationState } from '@tanstack/react-query';
 
 const MemoDropdown = dynamic(async () => import('@shared/ui').then((el) => el.Dropdown));
@@ -19,6 +19,7 @@ export const Header: FC = () => {
   const showUserMenuButton = useRef<HTMLButtonElement | null>(null);
 
   const authUser = useAuthStore(selectAuthUser);
+  const authUserProflie = useAuthStore(selectAuthUserProfile);
 
   const { isPending: isPendingLogout, mutate: logout } = authApiHooks.useLogoutMutation();
 
@@ -109,7 +110,7 @@ export const Header: FC = () => {
                     <DropdownItemLink href={`/user/${authUser.username}`} leftIcon={<PersonIcon />}>
                       Profile
                     </DropdownItemLink>
-                    {authUser.is_admin && (
+                    {authUserProflie?.is_admin && (
                       <DropdownItemLink href="/moderation" leftIcon={<ReportGmailerrorredIcon />}>
                         Reports
                       </DropdownItemLink>

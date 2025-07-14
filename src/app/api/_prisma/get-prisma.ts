@@ -5,10 +5,13 @@ import { CommentSchema, TopicSchema } from '@entities/Topic';
 import { updateCategoryToLatestTopic } from './update-category-to-latest-topic';
 import { updateAllCategoriesToLatestTopic } from './update-all-categories-to-latest-topic';
 import {
-  TUserBio,
+  IUser,
+  ProfileBioSchema,
+  ProfileSchema,
+  TProfile,
+  TProfileBio,
   TUserEmail,
   TUserUserName,
-  UserBioSchema,
   UserSchema,
   UserUsernameSchema,
 } from '@entities/User';
@@ -16,7 +19,6 @@ import { AuthSchema } from '@entities/LoginModal';
 import crypto from 'crypto';
 import { ReactionSchema } from '@entities/Reaction';
 import { ReportSchema } from '@entities/Report';
-import Joi from 'joi';
 import { revalidateTag } from 'next/cache';
 import {
   ResponseLoginCredentialsIncorrectError,
@@ -25,6 +27,8 @@ import {
   ResponseUsernameAlreadyUsedError,
   ResponseUserNotFoundError,
 } from '@shared/model';
+import { IAccessToken } from '../_model/access-token.type';
+import Joi from 'joi';
 
 export const getPrisma = () => {
   const prisma = new PrismaClient().$extends({
@@ -115,27 +119,47 @@ export const getPrisma = () => {
             return result;
           });
         },
-        // async deleteMany({ query, args }) {
-        //   return query(args)
-        //     .then(async (result) => {
-        //       await updateAllCategoriesToLatestTopic(prisma);
-        //       return result;
-        //     })
-        //     .catch((error) => error);
-        // },
+      },
+      profiles: {
+        async create({ query, args }) {
+          args.data = await ProfileSchema.validateAsync(args.data);
+          return query(args);
+        },
+        async createMany({ query, args }) {
+          args.data = await validateManySchema(args.data, ProfileSchema);
+          return query(args);
+        },
+        async update({ query, args }) {
+          args.data = await Joi.object<{ bio: TProfileBio; updated_at: TProfile['updated_at'] }>({
+            bio: ProfileBioSchema.default(null),
+            updated_at: Joi.number().default(new Date().getTime()),
+          }).validateAsync(args.data);
+          return query(args);
+        },
       },
       users: {
         async create({ query, args }) {
           const { username, email, hash_password, salt } = args.data;
+
+          const user = await prisma.users.findFirst({ where: { username } });
+          if (user) throw new ResponseUsernameAlreadyUsedError(username);
+
           args.data = await UserSchema.validateAsync({ username, email, hash_password, salt });
-          return query(args);
+
+          return query(args)
+            .then(async (result) => {
+              if (result.id) await prisma.profiles.create({ data: { user_id: result.id } });
+              return result;
+            })
+            .catch((error: unknown) => {
+              void prisma.users.delete({ where: { username } });
+              throw error;
+            });
         },
         async update({ query, args }) {
-          args.data = await Joi.object<{ username?: TUserUserName; bio?: TUserBio | null }>({
-            username: UserUsernameSchema,
-            bio: UserBioSchema.allow(null),
+          args.data = await Joi.object<{ username: TUserUserName }>({
+            username: UserUsernameSchema.required(),
           }).validateAsync(args.data);
-          args.data.updated_at = new Date().getTime();
           return query(args);
         },
       },
@@ -203,14 +227,12 @@ export const getPrisma = () => {
           email: TUserEmail | null;
           username: TUserUserName | null;
           password: string | null;
-        }) {
+        }): Promise<[IUser, TProfile]> {
           if (!username) throw new ResponseParamIsRequiredError(false, 'Username');
           const login_credentials = (await AuthSchema.validateAsync({ email, password })) as {
             email: string;
             password: string;
           };
-          const user = await prisma.users.findFirst({ where: { username } });
-          if (user) throw new ResponseUsernameAlreadyUsedError(username);
 
           const salt = crypto.randomBytes(16).toString('hex');
 
@@ -232,16 +254,30 @@ export const getPrisma = () => {
 
           const hash_password = (await getDerivedKey()).toString('hex');
 
-          const new_user = await prisma.users.create({
+          const user = await prisma.users.create({
             data: { username, email: login_credentials.email, hash_password, salt },
           });
-          return new_user;
+
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          const profile = (await prisma.profiles.findFirst({
+            where: { user_id: user.id },
+          }))! as TProfile & { created_at: number };
+
+          return [user, profile];
         },
-        async login({ email, password }: { email: TUserEmail | null; password: string | null }) {
+        async login({
+          email,
+          password,
+        }: {
+          email: TUserEmail | null;
+          password: string | null;
+        }): Promise<IAccessToken> {
           const login_credentials = await AuthSchema.validateAsync({ email, password });
           const user = await prisma.users.findFirst({ where: { email: login_credentials.email } });
 
           if (user) {
+            const profile = await prisma.profiles.findFirst({ where: { user_id: user.id } });
+
             const getDerivedKey = async () => {
               return await new Promise<Buffer>((resolve, reject) => {
                 crypto.pbkdf2(
@@ -268,7 +304,7 @@ export const getPrisma = () => {
             ) {
               throw new ResponseLoginCredentialsIncorrectError();
             } else {
-              return user;
+              return { ...user, is_admin: Boolean(profile?.is_admin) };
             }
           } else {
             throw new ResponseUserNotFoundError();

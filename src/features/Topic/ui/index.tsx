@@ -1,7 +1,6 @@
 'use client';
 import { FC, Fragment, useState } from 'react';
 import { TTopicId } from '@entities/Topic';
-import { useGetUserQuery } from '@app/api';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { Button, Input, Skeleton } from '@shared/ui';
@@ -18,6 +17,7 @@ import { topicsApi } from '@entities/Topic/api/topics-api';
 import { TopicEditorContent } from '@features/topic-editor';
 import { JSONContent } from '@tiptap/react';
 import { commentsApiHooks } from '@entities/Topic/api/comments-api-hooks';
+import { userHooksApi } from '@entities/User';
 
 dayjs.extend(relativeTimePlugin);
 
@@ -47,7 +47,10 @@ export const Topic: FC<IProps> = ({ topic_id }) => {
     isLoading: isLoadingUser,
     isError: isErrorUser,
     error: errorUser,
-  } = useGetUserQuery({ user_id: topic ? topic.user_id : ' ' }, { skip: !topic });
+  } = userHooksApi.useGetUserQuery(
+    { user_id: topic ? topic.user_id : ' ' },
+    { enabled: Boolean(topic) }
+  );
 
   const {
     mutate: createComment,

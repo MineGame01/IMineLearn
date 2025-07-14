@@ -1,11 +1,11 @@
 'use client';
 import { FC, useEffect } from 'react';
 import { ReportsList } from './reports-list';
-import { selectAccessToken, selectAuthUser, useAuthStore } from '@entities/auth';
+import { selectAccessToken, selectAuthUserProfile, useAuthStore } from '@entities/auth';
 import { useMutationState } from '@tanstack/react-query';
 
 const ModerationPage: FC = () => {
-  const authUser = useAuthStore(selectAuthUser);
+  const authUserProfile = useAuthStore(selectAuthUserProfile);
   const access_token = useAuthStore(selectAccessToken);
 
   const refreshTokenStatus = useMutationState({
@@ -16,12 +16,12 @@ const ModerationPage: FC = () => {
   }).at(-1)?.status;
 
   useEffect(() => {
-    if (!authUser?.is_admin && refreshTokenStatus !== 'pending' && access_token) {
+    if (!authUserProfile?.is_admin && refreshTokenStatus !== 'pending' && access_token) {
       window.location.href = '/';
     }
-  }, [authUser, refreshTokenStatus, access_token]);
+  }, [authUserProfile, refreshTokenStatus, access_token]);
 
-  return <div>{authUser?.is_admin && <ReportsList />}</div>;
+  return <div>{authUserProfile?.is_admin && <ReportsList />}</div>;
 };
 
 export default ModerationPage;

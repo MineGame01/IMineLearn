@@ -15,13 +15,13 @@ const handler = async (request: NextRequest) => {
   try {
     await prisma.$connect();
 
-    const user = await request
+    const [user, profile] = await request
       .json()
       .then((body) => prisma.users.registration(body as IDataRequest));
     const user_id = user.id;
 
     const response = NextResponse.json({
-      access_token: createAccessToken(user),
+      access_token: createAccessToken({ ...user, is_admin: profile.is_admin }),
       user_id,
     });
 

@@ -42,13 +42,6 @@ export const ForumApi = createApi({
       query: (bodyRequest) => `/reaction?${getUrlParams(bodyRequest)}`,
       providesTags: ['refetch-reactions'],
     }),
-    getUser: builder.query<
-      IForumApi['endpoints']['getUser']['dataResponse'],
-      IForumApi['endpoints']['getUser']['bodyRequest']
-    >({
-      query: (bodyRequest) => `/user?${getUrlParams(bodyRequest)}`,
-      providesTags: ['refetch-user'],
-    }),
     sendReport: builder.mutation<
       IForumApi['endpoints']['sendReport']['dataResponse'],
       IForumApi['endpoints']['sendReport']['bodyRequest']
@@ -77,27 +70,13 @@ export const ForumApi = createApi({
       }),
       invalidatesTags: ['refetch-reports'],
     }),
-    updateUser: builder.mutation<
-      IForumApi['endpoints']['updateUser']['dataResponse'],
-      IForumApi['endpoints']['updateUser']['bodyRequest']
-    >({
-      query: (bodyRequest) => ({
-        url: '/user',
-        method: 'PUT',
-        body: bodyRequest,
-      }),
-      invalidatesTags: ['refetch-user'],
-    }),
   }),
 });
 
 export const {
   useSendReportMutation,
-  useGetUserQuery,
-  useLazyGetUserQuery,
   useGetReportsQuery,
   useDeleteReportMutation,
   useAddReactionMutation,
   useGetReactionsQuery,
-  useUpdateUserMutation,
 } = ForumApi;

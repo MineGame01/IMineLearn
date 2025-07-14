@@ -7,6 +7,7 @@ import {
   ResponseParamIsRequiredError,
   ResponseTokenError,
   ResponseUserNotFoundError,
+  responseErrors,
 } from '@shared/model';
 import { RefreshTokenVerify } from '@app/api/_lib/refresh-token-verify';
 import jwt from 'jsonwebtoken';
@@ -30,13 +31,13 @@ const handler = async (request: NextRequest) => {
       }
 
       const user = await prisma.users.findFirst({ where: { id: verify_refresh_token.user_id } });
+      if (!user) throw new ResponseUserNotFoundError();
 
-      if (!user) {
-        throw new ResponseUserNotFoundError();
-      }
+      const profile = await prisma.profiles.findFirst({ where: { user_id: user.id } });
+      if (!profile) throw new responseErrors.ResponseUserProfileNotFoundError();
 
       return NextResponse.json({
-        access_token: createAccessToken({ ...user, id: user.id }),
+        access_token: createAccessToken({ ...user, is_admin: profile.is_admin }),
         user_id: user.id,
       });
     } catch (error: unknown) {

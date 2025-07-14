@@ -9,45 +9,55 @@ import {
   ResponseTokenError,
   ResponseTokenExpiredError,
 } from '@shared/model';
+import { getPrisma } from '../_prisma/get-prisma';
 
 type TDecoded = string | jwt.JwtPayload | undefined;
 
 export const checkAuthAccessToken = (handler: THandlerRequest, is_admin?: boolean) => {
   return async (request: NextRequest) => {
-    const authorization: string | null = request.headers.get('Authorization');
-
-    if (!authorization) {
-      throw new ResponseError('Request not authorized!', 401, 'REQUEST-NOT-AUTHORIZED');
-    }
-
-    const getDecoded = async () => {
-      return new Promise<TDecoded>((resolve, reject) => {
-        jwt.verify(authorization, getEnvVar('PRIVATE_KEY_JWT'), (error, decoded) => {
-          if (error) reject(error);
-          resolve(decoded);
-        });
-      });
-    };
-
-    let decoded: TDecoded = undefined;
-
+    const prisma = getPrisma();
     try {
-      decoded = await getDecoded();
-    } catch (error: unknown) {
-      if (error instanceof jwt.JsonWebTokenError) {
-        throw new ResponseTokenError();
-      } else if (error instanceof jwt.TokenExpiredError) {
-        throw new ResponseTokenExpiredError();
-      } else {
-        throw error;
+      const access_token: string | null = request.headers.get('Authorization');
+
+      if (!access_token) {
+        throw new ResponseError('Request not authorized!', 401, 'REQUEST-NOT-AUTHORIZED');
       }
-    }
-    if (decoded && typeof decoded === 'object') {
-      request.auth = decoded as IUser;
-      if (is_admin && !request.auth.is_admin) {
-        throw new ResponseNoRightAdministrationError();
+
+      const getDecoded = async () => {
+        return new Promise<TDecoded>((resolve, reject) => {
+          jwt.verify(access_token, getEnvVar('PRIVATE_KEY_JWT'), (error, decoded) => {
+            if (error) reject(error);
+            resolve(decoded);
+          });
+        });
+      };
+
+      let decoded: IUser | null = null;
+
+      try {
+        decoded = (await getDecoded()) as IUser | null;
+      } catch (error: unknown) {
+        if (error instanceof jwt.JsonWebTokenError) {
+          throw new ResponseTokenError();
+        } else if (error instanceof jwt.TokenExpiredError) {
+          throw new ResponseTokenExpiredError();
+        } else {
+          throw error;
+        }
       }
-      return await handler(request);
+
+      if (decoded) {
+        request.auth = decoded;
+
+        const profile = await prisma.profiles.findFirst({ where: { user_id: decoded.id } });
+
+        if (is_admin && !profile?.is_admin) {
+          throw new ResponseNoRightAdministrationError();
+        }
+        return await handler(request);
+      }
+    } finally {
+      await prisma.$disconnect();
     }
   };
 };

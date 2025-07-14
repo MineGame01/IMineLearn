@@ -1,23 +1,26 @@
 'use client';
 import { create } from 'zustand';
 import { ResponseError, ResponseUserNotFoundError } from '@shared/model';
-import { IAuthUser, TUserId } from '@entities/User';
-import { appApi } from '@app/api';
+import { TAuthUser, TProfile, TUserId } from '@entities/User';
+import { userEndpointsApi } from '@entities/User/user/api/user-api-endpoints';
 
 interface IAuthStoreState {
   access_token: string | null;
-  user: IAuthUser | null;
+  user: TAuthUser | null;
+  profile: TProfile | null;
 }
 
 interface IAuthStoreMethod {
   clearLoginCredentials: () => void;
   setLoginCredentials: (access_token: string, user_id: TUserId) => Promise<void>;
   setAuthUser: (user: Partial<NonNullable<IAuthStoreState['user']>>) => void;
+  setAuthUserProfile: (profile: Partial<NonNullable<IAuthStoreState['profile']>>) => void;
 }
 
 const initialState: IAuthStoreState = {
   access_token: null,
   user: null,
+  profile: null,
 };
 
 type TAuthStore = IAuthStoreMethod & IAuthStoreState;
@@ -25,14 +28,13 @@ type TAuthStore = IAuthStoreMethod & IAuthStoreState;
 const authStore = create<TAuthStore>((set, get) => ({
   ...initialState,
   clearLoginCredentials() {
-    set({ access_token: null, user: null });
+    set({ access_token: null, user: null, profile: null });
   },
   async setLoginCredentials(access_token, user_id) {
     try {
-      const user = await appApi
-        .get('user', { searchParams: { user_id } })
-        .then((res) => res.json<IAuthUser>());
-      set({ access_token, user });
+      const { profile, ...user } = await userEndpointsApi.getUserAndProfile({ user_id });
+
+      set({ access_token, user, profile });
     } catch (error: unknown) {
       if (error instanceof ResponseError) {
         if (error.code === new ResponseUserNotFoundError().code) {
@@ -41,6 +43,17 @@ const authStore = create<TAuthStore>((set, get) => ({
       } else {
         throw error;
       }
+    }
+  },
+  setAuthUserProfile(profile) {
+    const authUserProfile = get().profile;
+    if (authUserProfile) {
+      set({
+        profile: {
+          ...authUserProfile,
+          ...profile,
+        },
+      });
     }
   },
   setAuthUser(user) {
@@ -64,4 +77,8 @@ export const selectAuthUser = (state: TAuthStore) => {
 
 export const selectAccessToken = (state: TAuthStore) => {
   return state.access_token;
+};
+
+export const selectAuthUserProfile = (state: TAuthStore) => {
+  return state.profile;
 };

@@ -2,7 +2,7 @@
 import { FC, useState, useCallback } from 'react';
 import { Button } from '@shared/ui';
 import dynamic from 'next/dynamic';
-import { selectAuthUser, useAuthStore } from '@entities/auth';
+import { selectAuthUserProfile, useAuthStore } from '@entities/auth';
 
 const MemoCreateCategoryModal = dynamic(async () =>
   import('@widgets/CreateCategoryModal').then((file) => file.CreateCategoryModal)
@@ -10,7 +10,7 @@ const MemoCreateCategoryModal = dynamic(async () =>
 
 export const CategoriesToolbar: FC = () => {
   const [showCreateCategoryModal, setShowCreateCategoryModal] = useState(false);
-  const authUser = useAuthStore(selectAuthUser);
+  const authUserProfile = useAuthStore(selectAuthUserProfile);
 
   const closeCreateCategoryModal = useCallback(() => {
     setShowCreateCategoryModal(false);
@@ -18,7 +18,7 @@ export const CategoriesToolbar: FC = () => {
 
   return (
     <div>
-      {authUser?.is_admin && (
+      {authUserProfile?.is_admin && (
         <Button
           variant="contained"
           className="w-auto"
@@ -29,7 +29,7 @@ export const CategoriesToolbar: FC = () => {
           New Category
         </Button>
       )}
-      {authUser?.is_admin && (
+      {authUserProfile?.is_admin && (
         <MemoCreateCategoryModal open={showCreateCategoryModal} close={closeCreateCategoryModal} />
       )}
     </div>

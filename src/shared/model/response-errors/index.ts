@@ -9,3 +9,4 @@ export * from './response-no-right-administration-error.ts';
 export * from './response-validation-error.ts';
 export * from './response-token-error.ts';
 export * from './response-token-expired-error.ts';
+export * from './response-errors.ts';

@@ -5,3 +5,4 @@ export * from './query-hook.type';
 export * from './hookify.type';
 export * from './check-response-token-error';
 export * from './create-mutation-hook';
+export * from './create-query-hook';

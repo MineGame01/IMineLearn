@@ -60,13 +60,20 @@ model topics {
 
 /// This collection uses a JSON Schema defined in the database, which requires additional setup for migrations. Visit https://pris.ly/d/mongodb-json-schema for more info.
 model users {
-  id            String  @id @default(uuid()) @map("_id")
-  bio           String?
+  id            String @id @default(uuid()) @map("_id")
   created_at    Int?
-  updated_at    Int?
-  email         String  @unique
+  email         String @unique
   hash_password String
-  is_admin      Boolean @default(false)
   salt          String
-  username      String  @unique
+  username      String @unique
+}
+
+model profiles {
+  id         String  @id @default(uuid()) @map("_id")
+  user_id    String
+  is_admin   Boolean @default(false)
+  bio        String?
+  avatar     String?
+  created_at Int?
+  updated_at Int?
 }

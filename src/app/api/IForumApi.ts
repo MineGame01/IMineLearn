@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-invalid-void-type */
 import { IComment, TCommentId, TTopicContent, TTopicId } from '@entities/Topic';
 import { ICategory, TCategoryId } from '@entities/categories-list';
-import { IAuthUser, TUserBio, TUserEmail, TUserId, TUserUserName } from '@entities/User';
 import { IReport, TReportId } from '@entities/Report';
 import { IReaction } from '@entities/Reaction';
 
@@ -16,15 +15,8 @@ interface createEndpoint<R, B> {
   bodyRequest: B;
 }
 
-interface ILoginCredentials {
-  access_token: string;
-  refresh_token: string;
-  user_id: TUserId;
-}
-
 export interface IForumApi {
   endpoints: {
-    getUser: createEndpoint<IAuthUser, { user_id?: TUserId; username?: TUserUserName }>;
     addReaction: createEndpoint<null, Pick<IReaction, 'topic_id' | 'type_reaction'>>;
     getReactions: createEndpoint<IReaction[], { topic_id: TTopicId }>;
     getCommentsByTopicId: createEndpoint<
@@ -59,22 +51,9 @@ export interface IForumApi {
         return_ids_only?: boolean;
       } | void
     >;
-    login: createEndpoint<ILoginCredentials, { email: TUserEmail; password: string }>;
-    registration: createEndpoint<
-      ILoginCredentials,
-      { username: TUserUserName; email: TUserEmail; password: string }
-    >;
-    refreshAccessToken: createEndpoint<
-      Pick<ILoginCredentials, 'access_token' | 'user_id'>,
-      Pick<ILoginCredentials, 'refresh_token'>
-    >;
     getConsoleParam: createEndpoint<string | number | boolean, { field: string }>;
     createCategory: createEndpoint<null, Pick<ICategory, 'name'> & { image_base64: string | null }>;
     deleteCategory: createEndpoint<null, { category_id: TCategoryId }>;
     deleteComment: createEndpoint<null, TCommentId>;
-    updateUser: createEndpoint<
-      { username: TUserUserName; bio: TUserBio },
-      { username?: TUserUserName; bio?: TUserBio }
-    >;
   };
 }

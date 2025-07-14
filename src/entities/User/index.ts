@@ -1,2 +1,5 @@
-export * from "./model/user"
-export * from "./model/user-schema"
+// User
+export * from './user';
+
+// Profile
+export * from './profile';

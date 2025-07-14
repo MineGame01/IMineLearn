@@ -14,6 +14,8 @@ type TUseQueryOptions<TData = unknown> =
 
 export type TQueryHook<GEndpointFn extends TEndpointFn = TEndpointFn> = (
   payload: Parameters<GEndpointFn>[0],
-  options?: Omit<TUseQueryOptions<Awaited<ReturnType<GEndpointFn>>>, 'queryKey'>,
+  options?: Omit<TUseQueryOptions<Awaited<ReturnType<GEndpointFn>>>, 'queryKey'> & {
+    queryKey?: readonly unknown[];
+  },
   queryClient?: QueryClient
 ) => UseQueryResult<Awaited<ReturnType<GEndpointFn>>>;
