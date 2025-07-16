@@ -1,21 +1,22 @@
-import { FC, useState, useCallback, useRef, useMemo } from 'react';
+'use client';
+import { FC, useState, useRef, useMemo } from 'react';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { TDatePickerState } from '@features/TopicList/model/TDatePickerState.ts';
 import { TTypeSorted } from '@features/TopicList/model/TTypeSorted.ts';
 import { changeDatePickerStates } from '@features/TopicList/model/changeDatePickerStates.ts';
-import { TCategoryId } from '@entities/Category';
-import { useGetTopicsByCategoryQuery } from '@app/api';
+import { TCategoryId } from '@entities/categories-list/index.ts';
 import { List } from './list.tsx';
 import { ITopic } from '@entities/Topic';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
-import { TopicCreateModal } from '@widgets/TopicCreateModal';
-import { Button, Dropdown, DropdownItem, DropdownList, Input } from '@shared/ui';
+import { Button, Dropdown, DropdownItem, DropdownList, Input, Link } from '@shared/ui';
 import dayjs from 'dayjs';
 import dynamic from 'next/dynamic';
-import { getServerErrorMessage } from '@shared/model/get-server-error-message.ts';
-import { SkeletonTopicPreview } from './topic-preview/skeleton.tsx';
+import { removeUndefinedKey } from '@shared/model';
+import { TopicPreviewSkeleton } from './topic-preview/skeleton.tsx';
+import { useQuery } from '@tanstack/react-query';
+import { topicsApi } from '@entities/Topic/api/topics-api.ts';
 
 const MemoDatePickers = dynamic(async () =>
   import('./date-pickers.tsx').then((el) => el.DatePickers)
@@ -30,38 +31,29 @@ export const TopicsList: FC<{ categoryId: TCategoryId }> = ({ categoryId }) => {
   });
   const [searchContent, setSearchContent] = useState('');
   const [isOpenMoreOptions, setOpenMoreOptions] = useState(false);
-  const [isOpenTopicCreateModal, setOpenTopicCreateModal] = useState(false);
   const [showMenuTypeSorted, setShowMenuTypeSorted] = useState(false);
   const menuTypeSortedRef = useRef<HTMLButtonElement | null>(null);
   const [typeSorted, setTypeSorted] = useState<TTypeSorted>('latest');
 
   const { createdAtAfter, createdAtBefore } = datePickerState;
-  const {
-    data,
-    isLoading,
-    isError,
-    error: _error,
-  } = useGetTopicsByCategoryQuery({
-    ...(searchContent ? { search: searchContent } : {}),
-    ...(createdAtAfter && createdAtBefore
-      ? {
-          created_after: createdAtBefore === createdAtAfter ? undefined : String(createdAtAfter),
-          created_before: String(createdAtBefore),
-        }
-      : {}),
+
+  const topicsQueryParams = removeUndefinedKey({
+    created_after: createdAtBefore === createdAtAfter ? undefined : String(createdAtAfter),
+    created_before: createdAtBefore ? String(createdAtBefore) : undefined,
+    search: searchContent,
     category_id: categoryId,
   });
-  const MAX_SKELETON_COUNT = 10;
 
-  const skeletonTopicCount = useMemo(() => {
-    const counts: number[] = [];
-    for (let i = 1; i <= MAX_SKELETON_COUNT; i++) {
-      counts.push(i);
-    }
-    return counts;
-  }, [MAX_SKELETON_COUNT]);
+  const { data, isLoading, isError, error } = useQuery({
+    queryFn: () => topicsApi.getTopics(topicsQueryParams),
+    queryKey: ['topics', categoryId],
+  });
 
-  const errorMessage = getServerErrorMessage(_error);
+  const topicPreviewSkeletons = useMemo(() => {
+    return Array(10)
+      .fill(TopicPreviewSkeleton)
+      .map((TopicPreviewSkeleton, index) => <TopicPreviewSkeleton key={index} />);
+  }, []);
 
   const changeCheckedMoreOptions = (checked: boolean) => {
     if (checked) {
@@ -82,10 +74,6 @@ export const TopicsList: FC<{ categoryId: TCategoryId }> = ({ categoryId }) => {
     setOpenMoreOptions(checked);
   };
 
-  const handleCloseTopicCreateModal = useCallback(() => {
-    setOpenTopicCreateModal(false);
-  }, [setOpenTopicCreateModal]);
-
   const changeDatePickerState = changeDatePickerStates(setDatePickerState, datePickerState);
 
   return (
@@ -101,7 +89,7 @@ export const TopicsList: FC<{ categoryId: TCategoryId }> = ({ categoryId }) => {
           isError={isError}
           label={'Search...'}
           className="grow-1"
-          helperText={isError ? <span>{errorMessage}</span> : undefined}
+          helperText={isError ? <span>{error.message}</span> : undefined}
         />
         <Button
           ref={menuTypeSortedRef}
@@ -117,6 +105,7 @@ export const TopicsList: FC<{ categoryId: TCategoryId }> = ({ categoryId }) => {
           {typeSorted}
         </Button>
         <Dropdown
+          id="topic-list-menu-type-sorted"
           open={showMenuTypeSorted}
           anchorEl={menuTypeSortedRef}
           close={() => {
@@ -125,18 +114,22 @@ export const TopicsList: FC<{ categoryId: TCategoryId }> = ({ categoryId }) => {
         >
           <DropdownList>
             <DropdownItem
+              active={typeSorted === 'latest'}
               onClick={() => {
                 setTypeSorted('latest');
               }}
+              leftIcon={<KeyboardArrowUpIcon />}
             >
-              <KeyboardArrowUpIcon /> Latest
+              Latest
             </DropdownItem>
             <DropdownItem
+              active={typeSorted === 'old'}
               onClick={() => {
                 setTypeSorted('old');
               }}
+              leftIcon={<KeyboardArrowDownIcon />}
             >
-              <KeyboardArrowDownIcon /> Old
+              Old
             </DropdownItem>
           </DropdownList>
         </Dropdown>
@@ -156,23 +149,16 @@ export const TopicsList: FC<{ categoryId: TCategoryId }> = ({ categoryId }) => {
             />
           )}
         </LocalizationProvider>
-        <Button
+        <Link
+          href={`/topic/create/${categoryId}`}
           className="lg:w-auto mt-2 lg:mt-0 lg:ml-auto"
           variant="contained"
-          onClick={() => {
-            setOpenTopicCreateModal(true);
-          }}
         >
           Create Topic
-        </Button>
-        <TopicCreateModal
-          category_id={categoryId}
-          open={isOpenTopicCreateModal}
-          onClose={handleCloseTopicCreateModal}
-        />
+        </Link>
       </div>
       {data && <List topics={data as ITopic[]} />}
-      {isLoading && skeletonTopicCount.map((num) => <SkeletonTopicPreview key={num} />)}
+      {isLoading && topicPreviewSkeletons}
     </div>
   );
 };

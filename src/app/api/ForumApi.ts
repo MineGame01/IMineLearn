@@ -1,8 +1,7 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { IForumApi } from './IForumApi';
 import { getUrlParams } from '@shared/model';
-import { TState } from '@app/model';
-import { selectAuthAccessToken } from '@widgets/LoginModal';
+import { authStore } from '@entities/auth';
 
 export const ForumApi = createApi({
   reducerPath: 'api',
@@ -12,11 +11,12 @@ export const ForumApi = createApi({
     'refetch-reports',
     'refetch-reactions',
     'refetch-categories',
+    'refetch-user',
   ],
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.NEXT_PUBLIC_REST_API_URL,
-    prepareHeaders(headers, { getState }) {
-      const access_token = selectAuthAccessToken(getState() as TState);
+    prepareHeaders(headers) {
+      const { access_token } = authStore.getState();
 
       if (access_token) {
         headers.set('Authorization', access_token);
@@ -24,61 +24,6 @@ export const ForumApi = createApi({
     },
   }),
   endpoints: (builder) => ({
-    getTopicsByCategory: builder.query<
-      IForumApi['endpoints']['getTopicsByCategory']['dataResponse'],
-      IForumApi['endpoints']['getTopicsByCategory']['bodyRequest']
-    >({
-      query: (bodyRequest) => {
-        return `/topics?${getUrlParams(bodyRequest)}`;
-      },
-      providesTags: ['refetch-topics'],
-    }),
-    getTopicById: builder.query<
-      IForumApi['endpoints']['getTopicById']['dataResponse'],
-      IForumApi['endpoints']['getTopicById']['bodyRequest']
-    >({
-      query: (topicId) => `/topic?topic_id=${topicId}`,
-    }),
-    getCommentsByTopicId: builder.query<
-      IForumApi['endpoints']['getCommentsByTopicId']['dataResponse'],
-      IForumApi['endpoints']['getCommentsByTopicId']['bodyRequest']
-    >({
-      query: (bodyRequest) => `/comments?${getUrlParams(bodyRequest)}`,
-      providesTags: ['refetch-comment'],
-    }),
-    createComment: builder.mutation<
-      IForumApi['endpoints']['createComment']['dataResponse'],
-      IForumApi['endpoints']['createComment']['bodyRequest']
-    >({
-      query: (bodyRequest) => ({
-        url: '/comments',
-        method: 'POST',
-        body: bodyRequest,
-      }),
-      invalidatesTags: ['refetch-comment'],
-    }),
-    createTopic: builder.mutation<
-      IForumApi['endpoints']['createTopic']['dataResponse'],
-      IForumApi['endpoints']['createTopic']['bodyRequest']
-    >({
-      query: (bodyRequest) => ({
-        url: '/topic',
-        method: 'POST',
-        body: bodyRequest,
-      }),
-      invalidatesTags: ['refetch-topics'],
-    }),
-    deleteTopic: builder.mutation<
-      IForumApi['endpoints']['deleteTopic']['dataResponse'],
-      IForumApi['endpoints']['deleteTopic']['bodyRequest']
-    >({
-      query: (bodyRequest) => ({
-        url: '/topic',
-        method: 'DELETE',
-        body: bodyRequest,
-      }),
-      invalidatesTags: ['refetch-topics'],
-    }),
     addReaction: builder.mutation<
       IForumApi['endpoints']['addReaction']['dataResponse'],
       IForumApi['endpoints']['addReaction']['bodyRequest']
@@ -96,18 +41,6 @@ export const ForumApi = createApi({
     >({
       query: (bodyRequest) => `/reaction?${getUrlParams(bodyRequest)}`,
       providesTags: ['refetch-reactions'],
-    }),
-    getUser: builder.query<
-      IForumApi['endpoints']['getUser']['dataResponse'],
-      IForumApi['endpoints']['getUser']['bodyRequest']
-    >({
-      query: (bodyRequest) => `/user?${getUrlParams(bodyRequest)}`,
-    }),
-    getCommentById: builder.query<
-      IForumApi['endpoints']['getCommentById']['dataResponse'],
-      IForumApi['endpoints']['getCommentById']['bodyRequest']
-    >({
-      query: (comment_id) => `/comment?comment_id=${comment_id}`,
     }),
     sendReport: builder.mutation<
       IForumApi['endpoints']['sendReport']['dataResponse'],
@@ -137,111 +70,13 @@ export const ForumApi = createApi({
       }),
       invalidatesTags: ['refetch-reports'],
     }),
-    getCategories: builder.query<
-      IForumApi['endpoints']['getCategories']['dataResponse'],
-      IForumApi['endpoints']['getCategories']['bodyRequest']
-    >({
-      query: (bodyRequest) => `/categories?${bodyRequest ? getUrlParams(bodyRequest) : ''}`,
-      providesTags: ['refetch-categories'],
-    }),
-    getCategoryById: builder.query<
-      IForumApi['endpoints']['getCategoryById']['dataResponse'],
-      IForumApi['endpoints']['getCategoryById']['bodyRequest']
-    >({
-      query: (category_id) => `/category?category_id=${category_id}`,
-    }),
-    login: builder.mutation<
-      IForumApi['endpoints']['login']['dataResponse'],
-      IForumApi['endpoints']['login']['bodyRequest']
-    >({
-      query: (bodyRequest) => ({
-        url: '/auth/login',
-        method: 'POST',
-        body: bodyRequest,
-      }),
-    }),
-    registration: builder.mutation<
-      IForumApi['endpoints']['registration']['dataResponse'],
-      IForumApi['endpoints']['registration']['bodyRequest']
-    >({
-      query: (bodyRequest) => ({
-        url: '/auth/registration',
-        method: 'POST',
-        body: bodyRequest,
-      }),
-    }),
-    refreshAccessToken: builder.mutation<
-      IForumApi['endpoints']['refreshAccessToken']['dataResponse'],
-      IForumApi['endpoints']['refreshAccessToken']['bodyRequest']
-    >({
-      query: (bodyRequest) => ({
-        url: '/auth/refresh',
-        method: 'POST',
-        body: bodyRequest,
-      }),
-    }),
-    getConsoleParam: builder.mutation<
-      IForumApi['endpoints']['getConsoleParam']['dataResponse'],
-      IForumApi['endpoints']['getConsoleParam']['bodyRequest']
-    >({
-      query: (bodyRequest) => `/console?${getUrlParams(bodyRequest)}`,
-    }),
-    createCategory: builder.mutation<
-      IForumApi['endpoints']['createCategory']['dataResponse'],
-      IForumApi['endpoints']['createCategory']['bodyRequest']
-    >({
-      query: (bodyRequest) => ({
-        url: '/category',
-        method: 'POST',
-        body: bodyRequest,
-      }),
-      invalidatesTags: ['refetch-categories'],
-    }),
-    deleteCategory: builder.mutation<
-      IForumApi['endpoints']['deleteCategory']['dataResponse'],
-      IForumApi['endpoints']['deleteCategory']['bodyRequest']
-    >({
-      query: (bodyRequest) => ({
-        url: '/category',
-        method: 'DELETE',
-        body: bodyRequest,
-      }),
-      invalidatesTags: ['refetch-categories'],
-    }),
-    deleteComment: builder.mutation<
-      IForumApi['endpoints']['deleteComment']['dataResponse'],
-      IForumApi['endpoints']['deleteComment']['bodyRequest']
-    >({
-      query: (comment_id) => ({
-        url: '/comment',
-        method: 'DELETE',
-        body: { comment_id },
-      }),
-      invalidatesTags: ['refetch-comment'],
-    }),
   }),
 });
 
 export const {
-  useCreateCommentMutation,
-  useCreateTopicMutation,
-  useGetTopicByIdQuery,
-  useGetCommentsByTopicIdQuery,
   useSendReportMutation,
-  useLazyGetTopicByIdQuery,
-  useLazyGetCommentByIdQuery,
-  useGetTopicsByCategoryQuery,
-  useLazyGetCategoriesQuery,
-  useGetCategoriesQuery,
-  useDeleteTopicMutation,
-  useGetUserQuery,
-  useLazyGetUserQuery,
   useGetReportsQuery,
   useDeleteReportMutation,
   useAddReactionMutation,
   useGetReactionsQuery,
-  useCreateCategoryMutation,
-  useDeleteCategoryMutation,
-  useDeleteCommentMutation,
-  useGetCategoryByIdQuery,
 } = ForumApi;

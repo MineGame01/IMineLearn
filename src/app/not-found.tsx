@@ -1,6 +1,6 @@
 'use client';
 import { FC } from 'react';
-import * as m from 'motion/react-m';
+import * as m from 'motion/react-client';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Button } from '@shared/ui';

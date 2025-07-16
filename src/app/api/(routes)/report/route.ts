@@ -1,9 +1,14 @@
 import { checkAuthAccessToken } from '@app/api/_lib/check-auth-access-token';
-import { errorCatchingApiHandlerDecorator } from '@app/api/error-catching-api-handler-decorator';
+import { withErrorHandlerRequest } from '@app/api/with-error-handler-request';
 import { FiltersDataResponse, IFilterQueryParams } from '@app/api/_model/filters-data-response';
 import { IReport, TReportId } from '@entities/Report';
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@app/api/_prisma/get-prisma';
+import {
+  convertDatesToTimestamps,
+  ResponseNotFoundError,
+  ResponseParamIsRequiredError,
+} from '@shared/model';
 
 interface IRequestQuery extends IFilterQueryParams {
   report_id: TReportId | null;
@@ -18,17 +23,8 @@ const handlerGet = async (request: NextRequest) => {
       return;
     }
 
-    const { is_admin } = authUser;
-
-    if (!is_admin) {
-      return NextResponse.json(
-        { message: 'You have no right of administration!' },
-        { status: 403 }
-      );
-    }
-
     const searchParams = request.nextUrl.searchParams;
-    // eslint-disable-next-line @typescript-eslint/unbound-method
+
     const { getFilterQueryParams } = new FiltersDataResponse();
 
     const queryParams: IRequestQuery = {
@@ -40,7 +36,12 @@ const handlerGet = async (request: NextRequest) => {
       queryParams;
 
     const find = created_after
-      ? { created_at: { gte: +created_after, lt: +(created_before ?? new Date().getTime()) } }
+      ? {
+          created_at: {
+            gte: new Date(created_after),
+            lt: new Date(created_before ?? new Date().getTime()),
+          },
+        }
       : {};
 
     const find_options = {
@@ -60,21 +61,21 @@ const handlerGet = async (request: NextRequest) => {
       const report = await prisma.reports.findFirst({ where: { ...find, id: report_id } });
 
       if (!report) {
-        return NextResponse.json({ message: 'Report not found!' }, { status: 404 });
+        throw new ResponseNotFoundError('Report');
       } else {
-        return NextResponse.json<IReport>(report);
+        return NextResponse.json<IReport>(convertDatesToTimestamps([report])[0]);
       }
     }
 
-    return NextResponse.json<IReport[]>(
-      await prisma.reports.findMany({ where: find, ...find_options })
-    );
+    const reports = await prisma.reports.findMany({ where: find, ...find_options });
+
+    return NextResponse.json<IReport[]>(convertDatesToTimestamps(reports));
   } finally {
     await prisma.$disconnect();
   }
 };
 
-export const GET = errorCatchingApiHandlerDecorator(checkAuthAccessToken(handlerGet));
+export const GET = withErrorHandlerRequest(checkAuthAccessToken(handlerGet, true));
 
 type TDataRequestPost = Pick<IReport, 'target_id' | 'content' | 'reason' | 'target_type'>;
 
@@ -94,7 +95,7 @@ const handlerPost = async (request: NextRequest) => {
     const { target_id, content, reason, target_type } = body;
 
     if (!target_id) {
-      return NextResponse.json({ message: 'Query param target_id is required!' }, { status: 400 });
+      throw new ResponseParamIsRequiredError(false, 'target_id');
     }
 
     const report = await prisma.reports.findFirst({ where: { target_id, user_id: auth_user_id } });
@@ -116,7 +117,7 @@ const handlerPost = async (request: NextRequest) => {
   }
 };
 
-export const POST = errorCatchingApiHandlerDecorator(checkAuthAccessToken(handlerPost));
+export const POST = withErrorHandlerRequest(checkAuthAccessToken(handlerPost));
 
 interface IDataRequestDelete {
   report_id: TReportId | null;
@@ -133,17 +134,10 @@ const handlerDelete = async (request: NextRequest) => {
       return;
     }
 
-    if (!authUser.is_admin) {
-      return NextResponse.json(
-        { message: 'You have no right of administration!' },
-        { status: 403 }
-      );
-    }
-
     const { report_id } = data;
 
     if (!report_id) {
-      return NextResponse.json({ message: 'report_id is required!' }, { status: 400 });
+      throw new ResponseParamIsRequiredError(false, 'report_id');
     }
 
     await prisma.reports.delete({ where: { id: report_id } });
@@ -153,4 +147,4 @@ const handlerDelete = async (request: NextRequest) => {
   }
 };
 
-export const DELETE = errorCatchingApiHandlerDecorator(checkAuthAccessToken(handlerDelete));
+export const DELETE = withErrorHandlerRequest(checkAuthAccessToken(handlerDelete, true));

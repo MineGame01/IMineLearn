@@ -1,9 +1,10 @@
 import { checkAuthAccessToken } from '@app/api/_lib/check-auth-access-token';
-import { errorCatchingApiHandlerDecorator } from '@app/api/error-catching-api-handler-decorator';
+import { withErrorHandlerRequest } from '@app/api/with-error-handler-request';
 import { FiltersDataResponse, IFilterQueryParams } from '@app/api/_model/filters-data-response';
 import { IComment, TTopicId } from '@entities/Topic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@app/api/_prisma/get-prisma';
+import { convertDatesToTimestamps, ResponseParamIsRequiredError } from '@shared/model';
 
 interface IRequestQuery
   extends Pick<IFilterQueryParams, 'limit_count' | 'offset_count' | 'return_ids_only'> {
@@ -16,7 +17,6 @@ const handlerGet = async (request: NextRequest) => {
     await prisma.$connect();
     const searchParams = request.nextUrl.searchParams;
 
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     const { getFilterQueryParams } = new FiltersDataResponse();
 
     const queryParams: IRequestQuery = {
@@ -26,15 +26,9 @@ const handlerGet = async (request: NextRequest) => {
 
     const { topic_id, return_ids_only, limit_count, offset_count } = queryParams;
 
-    if (!topic_id) {
-      return NextResponse.json({ message: 'Query param topic_id is required!' }, { status: 400 });
-    }
+    if (!topic_id) throw new ResponseParamIsRequiredError(true, 'topic_id');
 
-    const topic = await prisma.topics.findFirst({ where: { id: topic_id } });
-
-    if (!topic) {
-      return NextResponse.json({ message: 'Topic not found!' }, { status: 404 });
-    }
+    await prisma.topics.findFirst({ where: { id: topic_id } });
 
     const find_options = {
       where: { topic_id },
@@ -48,13 +42,15 @@ const handlerGet = async (request: NextRequest) => {
       );
     }
 
-    return NextResponse.json<IComment[]>(await prisma.comments.findMany(find_options));
+    return NextResponse.json<IComment[]>(
+      convertDatesToTimestamps(await prisma.comments.findMany(find_options))
+    );
   } finally {
     await prisma.$disconnect();
   }
 };
 
-export const GET = errorCatchingApiHandlerDecorator(handlerGet);
+export const GET = withErrorHandlerRequest(handlerGet);
 
 interface IDataRequest {
   topic_id: TTopicId;
@@ -65,12 +61,11 @@ const handlerPost = checkAuthAccessToken(async (request: NextRequest) => {
   const prisma = getPrisma();
   try {
     await prisma.$connect();
+
     const body = (await request.json()) as IDataRequest;
     const authUser = request.auth;
 
-    if (!authUser) {
-      return;
-    }
+    if (!authUser) return;
 
     const { topic_id, content } = body;
     const { id: auth_user_id } = authUser;
@@ -82,4 +77,4 @@ const handlerPost = checkAuthAccessToken(async (request: NextRequest) => {
   }
 });
 
-export const POST = errorCatchingApiHandlerDecorator(handlerPost);
+export const POST = withErrorHandlerRequest(handlerPost);

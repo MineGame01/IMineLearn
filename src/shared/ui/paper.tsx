@@ -8,7 +8,12 @@ interface IProps {
 
 export const Paper: FC<IProps> = ({ children, className }) => {
   return (
-    <div className={twMerge(`bg-surface border-2 border-border rounded-border-default`, className)}>
+    <div
+      className={twMerge(
+        `bg-surface border-[1.5px] border-border rounded-default-radius`,
+        className
+      )}
+    >
       {children}
     </div>
   );

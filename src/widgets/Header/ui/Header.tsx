@@ -1,17 +1,15 @@
+'use client';
 import { useState, FC, useCallback, Fragment, useRef } from 'react';
-import {
-  authLogin,
-  LoginModal,
-  selectAuthIsLoading,
-  selectAuthUserInfo,
-} from '@widgets/LoginModal';
-import { AppLogo, Button, DropdownItem, DropdownList } from '@shared/ui';
+import { LoginModal } from '@widgets/LoginModal';
+import { AppLogo, Button, DropdownItemLink, DropdownList } from '@shared/ui';
 import Link from 'next/link';
-import { useAppDispatch, useAppSelector } from '@app/lib';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import PersonIcon from '@mui/icons-material/Person';
 import ReportGmailerrorredIcon from '@mui/icons-material/ReportGmailerrorred';
+import { authApiHooks } from '@entities/auth/api/auth-api-hooks';
+import { selectAuthUser, selectAuthUserProfile, useAuthStore } from '@entities/auth';
+import { useMutationState } from '@tanstack/react-query';
 
 const MemoDropdown = dynamic(async () => import('@shared/ui').then((el) => el.Dropdown));
 
@@ -19,29 +17,62 @@ export const Header: FC = () => {
   const [isOpenLoginModal, setIsOpenLoginModal] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const showUserMenuButton = useRef<HTMLButtonElement | null>(null);
-  const { access_token, username, is_admin } = useAppSelector(selectAuthUserInfo);
-  const isAuthLoading = useAppSelector(selectAuthIsLoading);
-  const dispatch = useAppDispatch();
+
+  const authUser = useAuthStore(selectAuthUser);
+  const authUserProflie = useAuthStore(selectAuthUserProfile);
+
+  const { isPending: isPendingLogout, mutate: logout } = authApiHooks.useLogoutMutation();
+
+  const loginStatus = useMutationState({
+    filters: { mutationKey: ['login'] },
+    select(mutate) {
+      return mutate.state;
+    },
+  }).at(-1)?.status;
+
+  const registrationStatus = useMutationState({
+    filters: { mutationKey: ['registration'] },
+    select(mutate) {
+      return mutate.state;
+    },
+  }).at(-1)?.status;
+
+  const refreshTokenStatus = useMutationState({
+    filters: { mutationKey: ['refreshToken'] },
+    select(mutate) {
+      return mutate.state;
+    },
+  }).at(-1)?.status;
+
+  const authorizationPending =
+    isPendingLogout ||
+    loginStatus === 'pending' ||
+    registrationStatus === 'pending' ||
+    refreshTokenStatus === 'pending';
 
   const handleCloseModal = useCallback(() => {
     setIsOpenLoginModal(false);
   }, []);
 
   const handleClickLogout = () => {
-    dispatch(authLogin(null, null, null, 'logout'));
+    logout();
   };
 
   return (
-    <div className="h-[50px] bg-surface">
+    <header className="h-[50px] bg-surface">
       <div className="px-[20px] h-full flex items-center justify-between">
         <Link href={'/'}>
           <AppLogo theme="dark" />
         </Link>
-        {isAuthLoading ? (
-          <div>Loading...</div>
-        ) : (
+        <div>
+          {loginStatus === 'pending' && 'Login...'}
+          {registrationStatus === 'pending' && 'Registration...'}
+          {refreshTokenStatus === 'pending' && 'Check auth...'}
+          {isPendingLogout && 'Logout...'}
+        </div>
+        {!authorizationPending && (
           <Fragment>
-            {!access_token && (
+            {!authUser && (
               <Fragment>
                 <Button
                   className="w-auto"
@@ -54,10 +85,10 @@ export const Header: FC = () => {
                 </Button>
               </Fragment>
             )}
-            {access_token && (
+            {authUser && (
               <div className="flex items-center">
                 <div className="rounded-full overflow-hidden">
-                  <Image src="/defaultUser.png" alt={username} width="42" height="42" />
+                  <Image src="/defaultUser.png" alt={authUser.username} width="42" height="42" />
                 </div>
                 <button
                   ref={showUserMenuButton}
@@ -66,7 +97,7 @@ export const Header: FC = () => {
                   }}
                   className="ml-2"
                 >
-                  {username}
+                  {authUser.username}
                 </button>
                 <MemoDropdown
                   open={showUserMenu}
@@ -76,15 +107,13 @@ export const Header: FC = () => {
                   }}
                 >
                   <DropdownList>
-                    <DropdownItem>
-                      <PersonIcon />
-                      <Link href={`/user/${username}`}>Profile</Link>
-                    </DropdownItem>
-                    {is_admin && (
-                      <DropdownItem>
-                        <ReportGmailerrorredIcon />
-                        <Link href="/moderation">Reports</Link>
-                      </DropdownItem>
+                    <DropdownItemLink href={`/user/${authUser.username}`} leftIcon={<PersonIcon />}>
+                      Profile
+                    </DropdownItemLink>
+                    {authUserProflie?.is_admin && (
+                      <DropdownItemLink href="/moderation" leftIcon={<ReportGmailerrorredIcon />}>
+                        Reports
+                      </DropdownItemLink>
                     )}
                   </DropdownList>
                 </MemoDropdown>
@@ -97,6 +126,6 @@ export const Header: FC = () => {
         )}
         <LoginModal isOpen={isOpenLoginModal} onClose={handleCloseModal} />
       </div>
-    </div>
+    </header>
   );
 };

@@ -1,44 +1,34 @@
 import { checkAuthAccessToken } from '@app/api/_lib/check-auth-access-token';
 import { getPrisma } from '@app/api/_prisma/get-prisma';
-import { errorCatchingApiHandlerDecorator } from '@app/api/error-catching-api-handler-decorator';
+import { withErrorHandlerRequest } from '@app/api/with-error-handler-request';
 import { IComment, TCommentId } from '@entities/Topic';
-import { IServerErrorResponse } from '@shared/model';
+import {
+  convertDatesToTimestamps,
+  IServerErrorResponse,
+  responseErrors,
+  ResponseParamIsRequiredError,
+} from '@shared/model';
 import { NextRequest, NextResponse } from 'next/server';
-
-interface IQueryParams {
-  comment_id: TCommentId | undefined;
-}
 
 const handlerGet = async (request: NextRequest) => {
   const prisma = getPrisma();
   try {
     await prisma.$connect();
 
-    const comment_id = request.nextUrl.searchParams.get('comment_id') as IQueryParams['comment_id'];
+    const comment_id = request.nextUrl.searchParams.get('comment_id');
 
-    if (!comment_id) {
-      return NextResponse.json<IServerErrorResponse>(
-        { message: "Query param 'comment_id' is required!" },
-        { status: 400 }
-      );
-    }
+    if (!comment_id) throw new ResponseParamIsRequiredError(true, 'comment_id');
 
     const comment = await prisma.comments.findFirst({ where: { id: comment_id } });
+    if (!comment) throw new responseErrors.ResponseCommentNotFoundError();
 
-    if (!comment) {
-      return NextResponse.json<IServerErrorResponse>(
-        { message: 'Comment not found!' },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json<IComment>(comment);
+    return NextResponse.json<IComment>(convertDatesToTimestamps([comment])[0]);
   } finally {
     await prisma.$disconnect();
   }
 };
 
-export const GET = errorCatchingApiHandlerDecorator(handlerGet);
+export const GET = withErrorHandlerRequest(handlerGet);
 
 interface IDataRequest {
   comment_id: TCommentId | null;
@@ -60,21 +50,10 @@ const handlerDelete = async (request: NextRequest) => {
 
     const { comment_id } = body;
 
-    if (!comment_id) {
-      return NextResponse.json<IServerErrorResponse>(
-        { message: "Param 'comment_id' is required!" },
-        { status: 400 }
-      );
-    }
+    if (!comment_id) throw new ResponseParamIsRequiredError(false, 'comment_id');
 
     const comment = await prisma.comments.findFirst({ where: { id: comment_id } });
-
-    if (!comment) {
-      return NextResponse.json<IServerErrorResponse>(
-        { message: 'Comment not found!' },
-        { status: 404 }
-      );
-    }
+    if (!comment) throw new responseErrors.ResponseCommentNotFoundError();
 
     if (comment.user_id === auth_user_id || is_admin) {
       await prisma.comments.delete({ where: { id: comment_id } });
@@ -91,4 +70,4 @@ const handlerDelete = async (request: NextRequest) => {
   }
 };
 
-export const DELETE = errorCatchingApiHandlerDecorator(checkAuthAccessToken(handlerDelete));
+export const DELETE = withErrorHandlerRequest(checkAuthAccessToken(handlerDelete));

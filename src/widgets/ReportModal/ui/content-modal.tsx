@@ -1,88 +1,62 @@
-import { FC, useCallback, useEffect } from 'react';
+'use client';
+import { FC } from 'react';
 import { ReportForm } from '@widgets/ReportModal/ui/report-form';
-import { IForumApi, useLazyGetCommentByIdQuery, useLazyGetTopicByIdQuery } from '@app/api';
 import { TReportTargetId, TReportTargetType } from '@entities/Report';
-import { getServerErrorMessage } from '@shared/model';
 import { Button } from '@shared/ui';
+import { useQuery } from '@tanstack/react-query';
+import { topicsApi } from '@entities/Topic/api/topics-api';
+import { commentsApiHooks } from '@entities/Topic/api/comments-api-hooks';
 
 export const ContentModal: FC<{
   target_type: TReportTargetType;
   target_id: TReportTargetId;
   close: () => void;
 }> = ({ target_type, target_id, close }) => {
-  const [
-    _getTopicById,
-    {
-      data: dataTopic,
-      error: errorGetTopic,
-      isError: isErrorGetTopic,
-      isFetching: isFetchingGetTopic,
-      isLoading: isLoadingGetTopic,
-    },
-  ] = useLazyGetTopicByIdQuery();
-  const [
-    _getCommentById,
-    {
-      data: dataComment,
-      error: errorGetComment,
-      isError: isErrorGetComment,
-      isFetching: isFetchingGetComment,
-      isLoading: isLoadingGetComment,
-    },
-  ] = useLazyGetCommentByIdQuery();
+  const {
+    data: topic,
+    isLoading: isLoadingTopic,
+    isError: isErrorTopic,
+    error: errorTopic,
+    isFetching: isFetchingTopic,
+    refetch: refetchTopic,
+  } = useQuery({
+    queryFn: () => topicsApi.getTopicById(target_id),
+    queryKey: ['topic', target_id],
+    enabled: target_type === 'topic',
+  });
 
-  const getCommentById = useCallback(
-    (comment_id?: IForumApi['endpoints']['getCommentById']['bodyRequest']) => {
-      return _getCommentById(comment_id ?? target_id);
-    },
-    [target_id]
-  );
+  const {
+    data: comment,
+    isLoading: isLoadingComment,
+    isError: isErrorComment,
+    error: errorComment,
+    isFetching: isFetchinsComment,
+    refetch: refetchComment,
+  } = commentsApiHooks.useGetCommentByIdQuery(target_id, { enabled: target_type === 'comment' });
 
-  const getTopicById = useCallback(
-    (topic_id?: IForumApi['endpoints']['getTopicById']['bodyRequest']) => {
-      return _getTopicById(topic_id ?? target_id);
-    },
-    [target_id]
-  );
+  const isFetching = isFetchingTopic || isFetchinsComment;
+  const isLoading = isLoadingComment || isLoadingTopic;
+  const isError = isErrorComment || isErrorTopic;
 
-  useEffect(() => {
-    switch (target_type) {
-      case 'comment': {
-        void getCommentById();
-        return;
-      }
-      case 'topic': {
-        void getTopicById();
-        return;
-      }
-    }
-  }, [getCommentById, getTopicById, target_id, target_type]);
-
-  const isFetching = isFetchingGetTopic || isFetchingGetComment;
-  const isLoading = isLoadingGetComment || isLoadingGetTopic;
-  const reportContent = dataTopic?.title ?? dataComment?.content;
-
-  const errorMessageGetTopic = getServerErrorMessage(errorGetTopic);
-  const errorMessageGetComment = getServerErrorMessage(errorGetComment);
-
-  const isError = isErrorGetComment || isErrorGetTopic;
+  const reportContent = topic?.title ?? comment?.content;
 
   const handleClickReload = () => {
     switch (target_type) {
       case 'comment': {
-        void getCommentById();
+        void refetchComment();
         return;
       }
       case 'topic': {
-        void getTopicById();
+        void refetchTopic();
         return;
       }
     }
   };
 
   const errorMessage = (
-    <div className="text-error-text">
-      {isErrorGetTopic ? errorMessageGetTopic : isErrorGetComment && errorMessageGetComment}
+    <div className="text-error">
+      {errorComment?.message}
+      {errorTopic?.message}
     </div>
   );
 

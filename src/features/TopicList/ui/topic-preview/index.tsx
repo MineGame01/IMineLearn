@@ -1,10 +1,10 @@
 import { FC, Fragment } from 'react';
 import { ITopic } from '@entities/Topic';
 import Image from 'next/image';
-import { useGetUserQuery } from '@app/api';
 import { getServerErrorMessage } from '@shared/model';
 import { Body } from './body';
 import { Skeleton } from '@shared/ui';
+import { userHooksApi } from '@entities/User';
 
 export const TopicPreview: FC<ITopic> = ({ id, user_id, title, views_count }) => {
   const {
@@ -12,7 +12,7 @@ export const TopicPreview: FC<ITopic> = ({ id, user_id, title, views_count }) =>
     isFetching: isFetchingUser,
     isError: isErrorUser,
     error: errorUser,
-  } = useGetUserQuery({ user_id });
+  } = userHooksApi.useGetUserQuery({ user_id });
 
   const errorMessageUser = getServerErrorMessage(errorUser);
 

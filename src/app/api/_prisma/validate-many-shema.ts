@@ -4,7 +4,7 @@ export const validateManySchema = async <ArrayItem = unknown>(
   data: ArrayItem | ArrayItem[],
   schema: Joi.ObjectSchema
 ) => {
-  let result: ArrayItem[] | ArrayItem | null = null;
+  let result: ArrayItem[] | ArrayItem;
   if (Array.isArray(data)) {
     result = [];
     for (let length = 1; length <= data.length; length++) {

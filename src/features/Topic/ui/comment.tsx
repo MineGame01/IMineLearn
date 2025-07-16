@@ -5,39 +5,50 @@ import { IComment } from '@entities/Topic';
 import { ReportModal } from '@widgets/ReportModal';
 import dayjs from 'dayjs';
 import relativeTimePlugin from 'dayjs/plugin/relativeTime';
-import { useDeleteCommentMutation, useGetUserQuery } from '@app/api';
 import { getServerErrorMessage } from '@shared/model';
 import { IconButton } from '@shared/ui';
-import { useAppSelector } from '@app/lib';
-import { selectAuthUserInfo } from '@widgets/LoginModal';
 import DeleteIcon from '@mui/icons-material/Delete';
+import Link from 'next/link';
+import { commentsApiHooks } from '@entities/Topic/api/comments-api-hooks';
+import { useQueryClient } from '@tanstack/react-query';
+import { selectAuthUser, selectAuthUserProfile, useAuthStore } from '@entities/auth';
+import { userHooksApi } from '@entities/User';
 
 dayjs.extend(relativeTimePlugin);
 
-export const Comment: FC<IComment> = ({ created_at, content, id, user_id }) => {
+export const Comment: FC<IComment> = ({ created_at, content, id, user_id, topic_id }) => {
   const [showReportModal, setShowReportModal] = useState(false);
+
+  const queryClient = useQueryClient();
+
   const {
     data: user,
     isFetching: isFetchingUser,
     isError: isErrorUser,
     error: errorUser,
-  } = useGetUserQuery({ user_id });
-  const [
-    deleteComment,
-    { isLoading: isLoadingDeleteComment, isError: isErrorDeleteComment, error: errorDeleteComment },
-  ] = useDeleteCommentMutation();
-  const { is_admin, id: auth_user_id } = useAppSelector(selectAuthUserInfo);
+  } = userHooksApi.useGetUserQuery({ user_id });
 
-  const errorMessageUser = getServerErrorMessage(errorUser),
-    errorMessageDeleteComment = getServerErrorMessage(errorDeleteComment);
+  const {
+    mutate: deleteComment,
+    isPending: isPendingDeleteComment,
+    isError: isErrorDeleteComment,
+    error: errorDeleteComment,
+  } = commentsApiHooks.useDeleteCommentMutation({
+    onSuccess() {
+      void queryClient.invalidateQueries({
+        queryKey: ['topic', 'topic-comments', topic_id],
+      });
+    },
+  });
+
+  const authUser = useAuthStore(selectAuthUser);
+  const authUserProfile = useAuthStore(selectAuthUserProfile);
+
+  const errorMessageUser = getServerErrorMessage(errorUser);
 
   const closeReportModal = useCallback(() => {
     setShowReportModal(false);
   }, []);
-
-  const handleClickDeleteComment = () => {
-    void deleteComment(id);
-  };
 
   return (
     <section>
@@ -50,7 +61,9 @@ export const Comment: FC<IComment> = ({ created_at, content, id, user_id }) => {
               <Image width={42} height={42} src="/defaultUser.png" alt={user.username} />
             </div>
             <div className="ml-3 flex items-center">
-              <div className="font-medium">{user.username}</div>
+              <Link href={`/user/${user.username}`} className="font-medium hover:underline">
+                {user.username}
+              </Link>
             </div>
           </Fragment>
         )}
@@ -72,17 +85,19 @@ export const Comment: FC<IComment> = ({ created_at, content, id, user_id }) => {
           open={showReportModal}
           close={closeReportModal}
         />
-        {(is_admin || auth_user_id === user_id) && (
+        {(Boolean(authUserProfile?.is_admin) || authUser?.id === user_id) && (
           <IconButton
             title="Delete comment"
-            onClick={handleClickDeleteComment}
-            isLoading={isLoadingDeleteComment}
+            onClick={() => {
+              deleteComment(id);
+            }}
+            isLoading={isPendingDeleteComment}
           >
             <DeleteIcon />
           </IconButton>
         )}
       </div>
-      {isErrorDeleteComment && <div>{errorMessageDeleteComment}</div>}
+      {isErrorDeleteComment && <div>{errorDeleteComment.message}</div>}
     </section>
   );
 };

@@ -1,0 +1,24 @@
+#topicEditor .tiptap:first-child {
+  margin-top: 0;
+}
+
+#topicEditor .tiptap {
+  min-height: 200px;
+  padding: 5px;
+  outline: none;
+  border-left: 2px solid var(--border);
+  border-right: 2px solid var(--border);
+  border-bottom: 2px solid var(--border);
+  border-bottom-left-radius: var(--default-radius);
+  border-bottom-right-radius: var(--default-radius);
+}
+
+#topicEditor .tiptap img {
+  max-width: 450px;
+  max-height: 350px;
+  height: auto;
+}
+
+#topicEditor .tiptap.ProseMirror .ProseMirror-selectednode {
+  outline: 3px solid black;
+}

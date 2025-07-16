@@ -1,8 +1,8 @@
 import { checkAuthAccessToken } from '@app/api/_lib/check-auth-access-token';
 import { getPrisma } from '@app/api/_prisma/get-prisma';
-import { errorCatchingApiHandlerDecorator } from '@app/api/error-catching-api-handler-decorator';
-import { ICategory, TCategoryId, TCategoryImageBase64 } from '@entities/Category';
-import { IServerErrorResponse } from '@shared/model';
+import { withErrorHandlerRequest } from '@app/api/with-error-handler-request';
+import { ICategory, TCategoryId, TCategoryImageBase64 } from '@entities/categories-list';
+import { responseErrors, ResponseParamIsRequiredError } from '@shared/model';
 import { NextRequest, NextResponse } from 'next/server';
 import sharp from 'sharp';
 
@@ -21,28 +21,26 @@ const handleGet = async (request: NextRequest) => {
     const { category_id } = queryParams;
 
     if (!category_id) {
-      return NextResponse.json<IServerErrorResponse>(
-        { message: 'Query param category_id is required!' },
-        { status: 400 }
-      );
+      throw new ResponseParamIsRequiredError(true, 'category_id');
     }
 
-    const category = await prisma.categories.findFirst({ where: { id: category_id } });
+    const category = await prisma.categories.findFirst({
+      where: { id: category_id },
+    });
+    if (!category) throw new responseErrors.ResponseCategoryNotFoundError();
 
-    if (!category) {
-      return NextResponse.json<IServerErrorResponse>(
-        { message: 'Category not found!' },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json<ICategory>(category);
+    return NextResponse.json<ICategory>({
+      ...category,
+      lastActivity: category.lastActivity
+        ? new Date(category.lastActivity).getTime()
+        : category.lastActivity,
+    });
   } finally {
     await prisma.$disconnect();
   }
 };
 
-export const GET = errorCatchingApiHandlerDecorator(handleGet);
+export const GET = withErrorHandlerRequest(handleGet);
 
 interface IDataRequest extends Pick<ICategory, 'name'> {
   image_base64: TCategoryImageBase64;
@@ -57,15 +55,6 @@ const handlePost = async (request: NextRequest) => {
 
     if (!authUser) {
       return;
-    }
-
-    const { is_admin } = authUser;
-
-    if (!is_admin) {
-      return NextResponse.json<IServerErrorResponse>(
-        { message: 'You have no right of administration!' },
-        { status: 401 }
-      );
     }
 
     const { image_base64: query_image_base64, name: query_name } = data;
@@ -111,7 +100,7 @@ const handlePost = async (request: NextRequest) => {
   }
 };
 
-export const POST = errorCatchingApiHandlerDecorator(checkAuthAccessToken(handlePost));
+export const POST = withErrorHandlerRequest(checkAuthAccessToken(handlePost, true));
 
 interface IDataRequest {
   category_id: TCategoryId | null;
@@ -128,29 +117,14 @@ const handleDelete = async (request: NextRequest) => {
       return;
     }
 
-    const { is_admin } = authUser;
-
-    if (!is_admin) {
-      return NextResponse.json<IServerErrorResponse>(
-        { message: 'You have no right of administration!' },
-        { status: 403 }
-      );
-    }
-
     const { category_id } = data;
 
     if (!category_id) {
-      return NextResponse.json<IServerErrorResponse>(
-        { message: "Param query 'category_id' is required!" },
-        { status: 400 }
-      );
+      throw new ResponseParamIsRequiredError(false, 'category_id');
     }
 
     const category = await prisma.categories.findFirst({ where: { id: category_id } });
-
-    if (!category) {
-      return NextResponse.json({ message: 'Category not found! ' }, { status: 404 });
-    }
+    if (!category) throw new responseErrors.ResponseCategoryNotFoundError();
 
     await prisma.categories.delete({ where: { id: category_id } });
 
@@ -160,4 +134,4 @@ const handleDelete = async (request: NextRequest) => {
   }
 };
 
-export const DELETE = errorCatchingApiHandlerDecorator(checkAuthAccessToken(handleDelete));
+export const DELETE = withErrorHandlerRequest(checkAuthAccessToken(handleDelete, true));

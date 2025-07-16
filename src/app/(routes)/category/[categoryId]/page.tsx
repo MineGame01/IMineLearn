@@ -3,51 +3,54 @@ import { FC } from 'react';
 import { TopicsList } from '@features/TopicList';
 import { useParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
-import { useAppSelector } from '@app/lib';
-import { selectAuthUserInfo } from '@widgets/LoginModal';
-import { useGetCategoryByIdQuery } from '@app/api';
-import { getServerErrorMessage } from '@shared/model';
-import { CategoryPhotoContainer } from '@features/Category';
+import { CategoryPhotoContainer } from '@features/categories-list';
+import { categoriesApi } from '@entities/categories-list/api/categories-api';
+import { useQuery } from '@tanstack/react-query';
+import { selectAuthUserProfile, useAuthStore } from '@entities/auth';
 
-const MemoModerationToolbar = dynamic(async () =>
-  import('./ui/moderation-toolbar').then((file) => file.ModerationToolbar)
+const MemoModerationToolbar = dynamic(
+  async () => import('./ui/moderation-toolbar').then((file) => file.ModerationToolbar),
+  {
+    loading: () => <div></div>,
+  }
 );
 
 const CategoryPage: FC = () => {
   const { categoryId: category_id_param } = useParams();
   const category_id = Array.isArray(category_id_param) ? category_id_param[0] : category_id_param;
-  const { is_admin } = useAppSelector(selectAuthUserInfo);
+
   const {
+    isPending,
     data: category,
-    isLoading,
     isError,
     error,
-    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-  } = useGetCategoryByIdQuery(category_id as string, { skip: !category_id });
+  } = useQuery({
+    queryFn: () => categoriesApi.getCategoryById(category_id ?? ''),
+    queryKey: ['category', category_id],
+    enabled: Boolean(category_id),
+  });
 
-  const errorMessage = getServerErrorMessage(error);
+  const authUserProfile = useAuthStore(selectAuthUserProfile);
 
   if (isError) {
-    return <div>{errorMessage}</div>;
+    return <div>{error.message}</div>;
   }
 
-  if (isLoading) {
+  if (isPending) {
     return <div>Loading...</div>;
   }
 
-  if (category) {
-    const { id, name, image_base64_1200x } = category;
+  const { id, name, image_base64_1200x } = category;
 
-    const image_src = image_base64_1200x ? `data:image/png;base64,${image_base64_1200x}` : null;
+  const image_src = image_base64_1200x ? `data:image/png;base64,${image_base64_1200x}` : null;
 
-    return (
-      <div className="container mx-auto">
-        <CategoryPhotoContainer className="m-5" categoryName={name} src={image_src} />
-        {is_admin && <MemoModerationToolbar category_id={id} />}
-        <TopicsList categoryId={id} />
-      </div>
-    );
-  }
+  return (
+    <div className="container mx-auto">
+      <CategoryPhotoContainer className="m-5" categoryName={name} src={image_src} />
+      {authUserProfile?.is_admin && <MemoModerationToolbar category_id={id} />}
+      <TopicsList categoryId={id} />
+    </div>
+  );
 };
 
 export default CategoryPage;

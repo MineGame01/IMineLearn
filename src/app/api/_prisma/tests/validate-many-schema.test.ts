@@ -2,7 +2,7 @@ import {
   CategorySchema,
   ICategory,
   MAX_CATEGORY_NAME_LENGTH,
-} from './../../../../entities/Category/index';
+} from '../../../../entities/categories-list/index';
 import { validateManySchema } from '../validate-many-shema';
 import Joi from 'joi';
 
