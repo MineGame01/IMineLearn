@@ -6,7 +6,7 @@ import { Prisma } from '@prisma/client';
 import { getPrisma } from '@app/api/_prisma/get-prisma';
 import { TCategoryId } from '@entities/categories-list';
 import { TUserId } from '@entities/User';
-import { ResponseParamIsRequiredError } from '@shared/model';
+import { convertDatesToTimestamps, ResponseParamIsRequiredError } from '@shared/model';
 
 interface IRequestQuery extends IFilterQueryParams {
   search: string | null;
@@ -20,7 +20,6 @@ const handlerGet = async (request: NextRequest) => {
     await prisma.$connect();
     const searchParams = request.nextUrl.searchParams;
 
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     const { getFilterQueryParams } = new FiltersDataResponse();
 
     const queryParams: IRequestQuery = {
@@ -41,9 +40,8 @@ const handlerGet = async (request: NextRequest) => {
       user_id,
     } = queryParams;
 
-    if (!user_id && !category_id) {
+    if (!user_id && !category_id)
       throw new ResponseParamIsRequiredError(true, 'user_id', 'category_id');
-    }
 
     const defaultFindOptions: Prisma.topicsFindManyArgs = {
       take: limit_count,
@@ -54,7 +52,7 @@ const handlerGet = async (request: NextRequest) => {
       where: {
         category_id: category_id ?? undefined,
         created_at: created_after
-          ? { gte: +created_after, lt: +(created_before ?? new Date().getTime()) }
+          ? { gte: new Date(created_after), lt: new Date(created_before ?? new Date().getTime()) }
           : undefined,
         title: search ? { startsWith: search } : undefined,
         user_id: user_id ?? undefined,
@@ -69,7 +67,9 @@ const handlerGet = async (request: NextRequest) => {
       );
     }
 
-    return NextResponse.json<ITopic[]>(await prisma.topics.findMany(defaultFindOptions));
+    const topics = await prisma.topics.findMany(defaultFindOptions);
+
+    return NextResponse.json<ITopic[]>(convertDatesToTimestamps(topics));
   } finally {
     await prisma.$disconnect();
   }

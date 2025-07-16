@@ -3,6 +3,7 @@ import { createAccessToken } from '@app/api/_lib/create-access-token';
 import { createRefreshToken } from '@app/api/_lib/create-refresh-token';
 import { withErrorHandlerRequest } from '@app/api/with-error-handler-request';
 import { getPrisma } from '@app/api/_prisma/get-prisma';
+import { setRefreshTokenCookie } from '@app/api/_lib/set-refresh-token-cookie';
 
 interface IDataRequest {
   email: string | null;
@@ -17,15 +18,12 @@ const handler = async (request: NextRequest) => {
     const user = await request.json().then((body) => prisma.users.login(body as IDataRequest));
     const user_id = user.id;
 
-    const profile = await prisma.profiles.findFirst({ where: { user_id } });
-    if (!profile) return;
-
     const response = NextResponse.json({
-      access_token: createAccessToken({ ...user, is_admin: profile.is_admin }),
+      access_token: createAccessToken({ ...user, is_admin: user.is_admin }),
       user_id,
     });
 
-    response.cookies.set('refresh_token', createRefreshToken(user_id));
+    setRefreshTokenCookie(response, createRefreshToken(user_id));
 
     return response;
   } finally {

@@ -5,11 +5,11 @@ import { CommentSchema, TopicSchema } from '@entities/Topic';
 import { updateCategoryToLatestTopic } from './update-category-to-latest-topic';
 import { updateAllCategoriesToLatestTopic } from './update-all-categories-to-latest-topic';
 import {
-  IUser,
   ProfileBioSchema,
   ProfileSchema,
-  TProfile,
   TProfileBio,
+  TProfileDate,
+  TUserDate,
   TUserEmail,
   TUserUserName,
   UserSchema,
@@ -21,8 +21,8 @@ import { ReactionSchema } from '@entities/Reaction';
 import { ReportSchema } from '@entities/Report';
 import { revalidateTag } from 'next/cache';
 import {
+  responseErrors,
   ResponseLoginCredentialsIncorrectError,
-  ResponseNotFoundError,
   ResponseParamIsRequiredError,
   ResponseUsernameAlreadyUsedError,
   ResponseUserNotFoundError,
@@ -56,23 +56,6 @@ export const getPrisma = () => {
             return result;
           });
         },
-        async findFirst({ query, args }) {
-          return query(args).then((result) => {
-            if (!result) {
-              throw new ResponseNotFoundError('Category');
-            }
-            return result;
-          });
-        },
-        // async deleteMany({ query, args }) {
-        //   return query(args)
-        //     .then(async (result) => {
-        //       const id = args.where?.id;
-        //       id && (await prisma.topics.deleteMany({ where: { category_id: id.toString() } }));
-        //       return result;
-        //     })
-        //     .catch((error) => error);
-        // },
       },
       topics: {
         async create({ query, args }) {
@@ -111,14 +94,6 @@ export const getPrisma = () => {
             return result;
           });
         },
-        async findFirst({ query, args }) {
-          return query(args).then((result) => {
-            if (!result) {
-              throw new ResponseNotFoundError('Topic');
-            }
-            return result;
-          });
-        },
       },
       profiles: {
         async create({ query, args }) {
@@ -130,9 +105,8 @@ export const getPrisma = () => {
           return query(args);
         },
         async update({ query, args }) {
-          args.data = await Joi.object<{ bio: TProfileBio; updated_at: TProfile['updated_at'] }>({
+          args.data = await Joi.object<{ bio: TProfileBio }>({
             bio: ProfileBioSchema.default(null),
-            updated_at: Joi.number().default(new Date().getTime()),
           }).validateAsync(args.data);
           return query(args);
         },
@@ -177,14 +151,6 @@ export const getPrisma = () => {
           }
           return query(args);
         },
-        async findFirst({ query, args }) {
-          return query(args).then((result) => {
-            if (!result) {
-              throw new ResponseNotFoundError('Comment');
-            }
-            return result;
-          });
-        },
       },
       reactions: {
         async create({ query, args }) {
@@ -227,7 +193,7 @@ export const getPrisma = () => {
           email: TUserEmail | null;
           username: TUserUserName | null;
           password: string | null;
-        }): Promise<[IUser, TProfile]> {
+        }): Promise<[TUserDate, TProfileDate]> {
           if (!username) throw new ResponseParamIsRequiredError(false, 'Username');
           const login_credentials = (await AuthSchema.validateAsync({ email, password })) as {
             email: string;
@@ -258,10 +224,10 @@ export const getPrisma = () => {
             data: { username, email: login_credentials.email, hash_password, salt },
           });
 
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          const profile = (await prisma.profiles.findFirst({
+          const profile = await prisma.profiles.findFirst({
             where: { user_id: user.id },
-          }))! as TProfile & { created_at: number };
+          });
+          if (!profile) throw new responseErrors.ResponseUserProfileNotFoundError();
 
           return [user, profile];
         },
@@ -273,41 +239,40 @@ export const getPrisma = () => {
           password: string | null;
         }): Promise<IAccessToken> {
           const login_credentials = await AuthSchema.validateAsync({ email, password });
+
           const user = await prisma.users.findFirst({ where: { email: login_credentials.email } });
+          if (!user) throw new ResponseUserNotFoundError();
 
-          if (user) {
-            const profile = await prisma.profiles.findFirst({ where: { user_id: user.id } });
+          const profile = await prisma.profiles.findFirst({ where: { user_id: user.id } });
+          if (!profile) throw new responseErrors.ResponseUserProfileNotFoundError();
 
-            const getDerivedKey = async () => {
-              return await new Promise<Buffer>((resolve, reject) => {
-                crypto.pbkdf2(
-                  login_credentials.password,
-                  user.salt,
-                  1000,
-                  64,
-                  'sha512',
-                  (error, derivedKey) => {
-                    if (error) reject(error);
-                    else resolve(derivedKey);
-                  }
-                );
-              });
-            };
+          const getDerivedKey = async () => {
+            return await new Promise<Buffer>((resolve, reject) => {
+              crypto.pbkdf2(
+                login_credentials.password,
+                user.salt,
+                1000,
+                64,
+                'sha512',
+                (error, derivedKey) => {
+                  if (error) reject(error);
+                  else resolve(derivedKey);
+                }
+              );
+            });
+          };
 
-            const derivedKey = await getDerivedKey();
+          const derivedKey = await getDerivedKey();
 
-            if (
-              !crypto.timingSafeEqual(
-                Buffer.from(user.hash_password),
-                Buffer.from(derivedKey.toString('hex'))
-              )
-            ) {
-              throw new ResponseLoginCredentialsIncorrectError();
-            } else {
-              return { ...user, is_admin: Boolean(profile?.is_admin) };
-            }
+          if (
+            !crypto.timingSafeEqual(
+              Buffer.from(user.hash_password),
+              Buffer.from(derivedKey.toString('hex'))
+            )
+          ) {
+            throw new ResponseLoginCredentialsIncorrectError();
           } else {
-            throw new ResponseUserNotFoundError();
+            return { ...user, is_admin: Boolean(profile.is_admin) };
           }
         },
       },

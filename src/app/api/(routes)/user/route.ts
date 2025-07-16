@@ -1,6 +1,6 @@
 import { getPrisma } from '@app/api/_prisma/get-prisma';
 import { withErrorHandlerRequest } from '@app/api/with-error-handler-request';
-import { TUserId, TUserUserName } from '@entities/User';
+import { IUser, TUserId, TUserUserName } from '@entities/User';
 import {
   removeUndefinedKey,
   ResponseParamIsRequiredError,
@@ -26,25 +26,20 @@ const handlerGet = async (request: NextRequest) => {
 
     const { user_id, username } = queryParams;
 
-    if (!user_id && !username) {
-      return new ResponseParamIsRequiredError(true, 'user_id', 'username');
-    }
+    if (!user_id && !username) throw new ResponseParamIsRequiredError(true, 'user_id', 'username');
 
     const user = await prisma.users.findFirst({
       where: { id: user_id ?? undefined, username: username ?? undefined },
     });
+    if (!user) throw new ResponseUserNotFoundError(username);
 
-    if (user) {
-      return NextResponse.json(
-        removeUndefinedKey({
-          ...user,
-          hash_password: undefined,
-          salt: undefined,
-        })
-      );
-    } else {
-      throw new ResponseUserNotFoundError(username);
-    }
+    return NextResponse.json<Omit<IUser, 'hash_password' | 'salt'>>(
+      removeUndefinedKey({
+        ...user,
+        hash_password: undefined,
+        salt: undefined,
+      }) as Omit<IUser, 'hash_password' | 'salt'>
+    );
   } finally {
     await prisma.$disconnect();
   }

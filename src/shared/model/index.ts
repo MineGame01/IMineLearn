@@ -6,3 +6,5 @@ export * from './page-error.ts';
 export * from './get-response-error.ts';
 export * from './response-errors';
 export * from './get-word-with-capital-letter.ts';
+export * from './convert-dates-to-timestamps.ts';
+export * from './get-time-type.type.ts';

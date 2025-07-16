@@ -9,8 +9,8 @@
   border-left: 2px solid var(--border);
   border-right: 2px solid var(--border);
   border-bottom: 2px solid var(--border);
-  border-bottom-left-radius: var(--border-default);
-  border-bottom-right-radius: var(--border-default);
+  border-bottom-left-radius: var(--default-radius);
+  border-bottom-right-radius: var(--default-radius);
 }
 
 #topicEditor .tiptap img {

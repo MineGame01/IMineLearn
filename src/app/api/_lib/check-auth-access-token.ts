@@ -1,6 +1,5 @@
 import { NextRequest } from 'next/server';
 import jwt from 'jsonwebtoken';
-import { IUser } from '@entities/User';
 import { getEnvVar } from '@shared/lib';
 import { THandlerRequest } from '../_model/handler-request.type';
 import {
@@ -10,6 +9,7 @@ import {
   ResponseTokenExpiredError,
 } from '@shared/model';
 import { getPrisma } from '../_prisma/get-prisma';
+import { IAccessToken } from '../_model/access-token.type';
 
 type TDecoded = string | jwt.JwtPayload | undefined;
 
@@ -32,10 +32,10 @@ export const checkAuthAccessToken = (handler: THandlerRequest, is_admin?: boolea
         });
       };
 
-      let decoded: IUser | null = null;
+      let decoded: IAccessToken | null = null;
 
       try {
-        decoded = (await getDecoded()) as IUser | null;
+        decoded = (await getDecoded()) as IAccessToken | null;
       } catch (error: unknown) {
         if (error instanceof jwt.JsonWebTokenError) {
           throw new ResponseTokenError();

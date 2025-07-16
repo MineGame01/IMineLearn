@@ -4,8 +4,12 @@ import { FiltersDataResponse, IFilterQueryParams } from '@app/api/_model/filters
 import { TTopicId } from '@entities/Topic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@app/api/_prisma/get-prisma';
-import { TReactionType } from '@entities/Reaction';
-import { ResponseParamIsRequiredError } from '@shared/model';
+import { IReaction, TReactionType } from '@entities/Reaction';
+import {
+  convertDatesToTimestamps,
+  responseErrors,
+  ResponseParamIsRequiredError,
+} from '@shared/model';
 
 interface IRequestQuery extends Pick<IFilterQueryParams, 'limit_count' | 'offset_count'> {
   topic_id: TTopicId | null;
@@ -17,7 +21,6 @@ const handlerGet = async (request: NextRequest) => {
     await prisma.$connect();
     const searchParams = request.nextUrl.searchParams;
 
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     const { getFilterQueryParams } = new FiltersDataResponse();
 
     const queryParams: IRequestQuery = {
@@ -27,20 +30,19 @@ const handlerGet = async (request: NextRequest) => {
 
     const { topic_id, limit_count, offset_count } = queryParams;
 
-    if (!topic_id) {
-      throw new ResponseParamIsRequiredError(true, 'topic_id');
-    }
+    if (!topic_id) throw new ResponseParamIsRequiredError(true, 'topic_id');
 
-    await prisma.topics.findFirst({ where: { id: topic_id } });
+    const topic = await prisma.topics.findFirst({ where: { id: topic_id } });
+    if (!topic) throw new responseErrors.ResponseTopicNotFoundError();
 
     const find_options = {
       take: limit_count,
       skip: offset_count,
     };
 
-    return NextResponse.json(
-      await prisma.reactions.findMany({ where: { topic_id }, ...find_options })
-    );
+    const reactions = await prisma.reactions.findMany({ where: { topic_id }, ...find_options });
+
+    return NextResponse.json<IReaction[]>(convertDatesToTimestamps(reactions));
   } finally {
     await prisma.$disconnect();
   }
@@ -60,20 +62,16 @@ const handlerPost = async (request: NextRequest) => {
     const data = (await request.json()) as IDataRequestPost;
     const authUser = request.auth;
 
-    if (!authUser) {
-      return;
-    }
+    if (!authUser) return;
 
     const { topic_id, type_reaction } = data;
     const { id: user_id } = authUser;
 
-    if (!topic_id || !type_reaction) {
+    if (!topic_id || !type_reaction)
       throw new ResponseParamIsRequiredError(true, 'topic_id', 'type_reaction');
-    }
 
-    if (type_reaction !== 'like') {
+    if (type_reaction !== 'like')
       return NextResponse.json({ message: "Accessible reaction 'like'" });
-    }
 
     const reaction = await prisma.reactions.findFirst({
       where: { topic_id, type_reaction, user_id },

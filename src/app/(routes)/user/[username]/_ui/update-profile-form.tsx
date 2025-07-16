@@ -1,10 +1,5 @@
 import { useAuthStore } from '@entities/auth';
-import {
-  UserUsernameSchema,
-  TUserUserName,
-  ProfileBioSchema,
-  TProfileBio,
-} from '@entities/User';
+import { UserUsernameSchema, TUserUserName, ProfileBioSchema, TProfileBio } from '@entities/User';
 import { profileHooksApi } from '@entities/User/profile/api/profile-api-hooks';
 import { joiResolver } from '@hookform/resolvers/joi';
 import { Input, Button, Textarea } from '@shared/ui';
@@ -45,8 +40,6 @@ export const UpdateProfileForm: FC<IProps> = ({ setIsUpdateProfile, bio, usernam
         setError('root', { message: error.message });
       },
       async onSuccess(updatedProfile) {
-        console.log(updatedProfile);
-
         setAuthUser({ username: updatedProfile.username });
         setAuthUserProfile({ bio: updatedProfile.bio });
         setIsUpdateProfile(false);

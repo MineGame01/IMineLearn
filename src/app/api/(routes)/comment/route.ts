@@ -2,7 +2,12 @@ import { checkAuthAccessToken } from '@app/api/_lib/check-auth-access-token';
 import { getPrisma } from '@app/api/_prisma/get-prisma';
 import { withErrorHandlerRequest } from '@app/api/with-error-handler-request';
 import { IComment, TCommentId } from '@entities/Topic';
-import { IServerErrorResponse, ResponseParamIsRequiredError } from '@shared/model';
+import {
+  convertDatesToTimestamps,
+  IServerErrorResponse,
+  responseErrors,
+  ResponseParamIsRequiredError,
+} from '@shared/model';
 import { NextRequest, NextResponse } from 'next/server';
 
 const handlerGet = async (request: NextRequest) => {
@@ -12,13 +17,12 @@ const handlerGet = async (request: NextRequest) => {
 
     const comment_id = request.nextUrl.searchParams.get('comment_id');
 
-    if (!comment_id) {
-      throw new ResponseParamIsRequiredError(true, 'comment_id');
-    }
+    if (!comment_id) throw new ResponseParamIsRequiredError(true, 'comment_id');
 
-    const comment = (await prisma.comments.findFirst({ where: { id: comment_id } })) as IComment;
+    const comment = await prisma.comments.findFirst({ where: { id: comment_id } });
+    if (!comment) throw new responseErrors.ResponseCommentNotFoundError();
 
-    return NextResponse.json<IComment>(comment);
+    return NextResponse.json<IComment>(convertDatesToTimestamps([comment])[0]);
   } finally {
     await prisma.$disconnect();
   }
@@ -46,11 +50,10 @@ const handlerDelete = async (request: NextRequest) => {
 
     const { comment_id } = body;
 
-    if (!comment_id) {
-      throw new ResponseParamIsRequiredError(false, 'comment_id');
-    }
+    if (!comment_id) throw new ResponseParamIsRequiredError(false, 'comment_id');
 
-    const comment = (await prisma.comments.findFirst({ where: { id: comment_id } })) as IComment;
+    const comment = await prisma.comments.findFirst({ where: { id: comment_id } });
+    if (!comment) throw new responseErrors.ResponseCommentNotFoundError();
 
     if (comment.user_id === auth_user_id || is_admin) {
       await prisma.comments.delete({ where: { id: comment_id } });

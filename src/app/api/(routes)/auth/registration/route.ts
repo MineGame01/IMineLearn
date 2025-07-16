@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAccessToken } from '@app/api/_lib/create-access-token';
-import { createRefreshToken } from '@app/api/_lib/create-refresh-token';
 import { withErrorHandlerRequest } from '@app/api/with-error-handler-request';
 import { getPrisma } from '@app/api/_prisma/get-prisma';
+import { setRefreshTokenCookie } from '@app/api/_lib/set-refresh-token-cookie';
+import { createRefreshToken } from '@app/api/_lib/create-refresh-token';
 
 interface IDataRequest {
   email: string | null;
@@ -25,7 +26,7 @@ const handler = async (request: NextRequest) => {
       user_id,
     });
 
-    response.cookies.set('refresh_token', createRefreshToken(user_id));
+    setRefreshTokenCookie(response, createRefreshToken(user_id));
 
     return response;
   } finally {

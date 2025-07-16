@@ -2,6 +2,7 @@ import { withErrorHandlerRequest } from '@app/api/with-error-handler-request';
 import { FiltersDataResponse, IFilterQueryParams } from '@app/api/_model/filters-data-response';
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@app/api/_prisma/get-prisma';
+import { ICategory } from '@entities/categories-list';
 
 type TRequestQuery = Pick<IFilterQueryParams, 'limit_count' | 'offset_count' | 'return_ids_only'>;
 
@@ -11,7 +12,6 @@ const handleGet = async (request: NextRequest) => {
     await prisma.$connect();
     const searchParams = request.nextUrl.searchParams;
 
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     const { getFilterQueryParams, defaultOptions } = new FiltersDataResponse();
 
     const queryParams: TRequestQuery = {
@@ -37,7 +37,15 @@ const handleGet = async (request: NextRequest) => {
     }
 
     const categories = await prisma.categories.findMany({ ...defaultFindOptions });
-    return NextResponse.json(categories);
+
+    return NextResponse.json<ICategory[]>(
+      categories.map((category) => ({
+        ...category,
+        lastActivity: category.lastActivity
+          ? new Date(category.lastActivity).getTime()
+          : category.lastActivity,
+      }))
+    );
   } finally {
     await prisma.$disconnect();
   }

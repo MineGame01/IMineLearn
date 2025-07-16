@@ -4,7 +4,7 @@ import { FiltersDataResponse, IFilterQueryParams } from '@app/api/_model/filters
 import { IComment, TTopicId } from '@entities/Topic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@app/api/_prisma/get-prisma';
-import { ResponseParamIsRequiredError } from '@shared/model';
+import { convertDatesToTimestamps, ResponseParamIsRequiredError } from '@shared/model';
 
 interface IRequestQuery
   extends Pick<IFilterQueryParams, 'limit_count' | 'offset_count' | 'return_ids_only'> {
@@ -17,7 +17,6 @@ const handlerGet = async (request: NextRequest) => {
     await prisma.$connect();
     const searchParams = request.nextUrl.searchParams;
 
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     const { getFilterQueryParams } = new FiltersDataResponse();
 
     const queryParams: IRequestQuery = {
@@ -27,9 +26,7 @@ const handlerGet = async (request: NextRequest) => {
 
     const { topic_id, return_ids_only, limit_count, offset_count } = queryParams;
 
-    if (!topic_id) {
-      throw new ResponseParamIsRequiredError(true, 'topic_id');
-    }
+    if (!topic_id) throw new ResponseParamIsRequiredError(true, 'topic_id');
 
     await prisma.topics.findFirst({ where: { id: topic_id } });
 
@@ -45,7 +42,9 @@ const handlerGet = async (request: NextRequest) => {
       );
     }
 
-    return NextResponse.json<IComment[]>(await prisma.comments.findMany(find_options));
+    return NextResponse.json<IComment[]>(
+      convertDatesToTimestamps(await prisma.comments.findMany(find_options))
+    );
   } finally {
     await prisma.$disconnect();
   }
@@ -62,12 +61,11 @@ const handlerPost = checkAuthAccessToken(async (request: NextRequest) => {
   const prisma = getPrisma();
   try {
     await prisma.$connect();
+
     const body = (await request.json()) as IDataRequest;
     const authUser = request.auth;
 
-    if (!authUser) {
-      return;
-    }
+    if (!authUser) return;
 
     const { topic_id, content } = body;
     const { id: auth_user_id } = authUser;

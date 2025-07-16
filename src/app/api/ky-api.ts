@@ -2,6 +2,8 @@ import { authStore } from '@entities/auth';
 import { getEnvVar } from '@shared/lib';
 import { ResponseError } from '@shared/model';
 import ky from 'ky';
+import { authApiEndpoints } from '@entities/auth/api/auth-api-endpoints';
+import { checkResponseTokenError } from '@shared/api';
 
 const is_server_environment = (() => {
   try {
@@ -30,6 +32,31 @@ export const appApi = ky.create({
             ) {
               const { message, statusCode, code } = response;
               error.cause = new ResponseError(message, statusCode, code, error);
+
+              if (error.cause instanceof ResponseError) {
+                if (error.cause.statusCode === 401) {
+                  if (checkResponseTokenError(error.cause)) {
+                    authApiEndpoints
+                      .refreshToken()
+                      .then(({ access_token, user_id }) => {
+                        void authStore.getState().setLoginCredentials(access_token, user_id);
+                      })
+                      .catch((error: unknown) => {
+                        if (error instanceof Error) {
+                          if (error.cause instanceof ResponseError) {
+                            if (checkResponseTokenError(error.cause, 'refresh'))
+                              authStore.getState().clearLoginCredentials();
+                          } else {
+                            throw error;
+                          }
+                        }
+                      });
+                  } else if (checkResponseTokenError(error.cause, 'refresh')) {
+                    authStore.getState().clearLoginCredentials();
+                  }
+                }
+              }
+
               return error;
             }
           }

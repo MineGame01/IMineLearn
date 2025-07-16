@@ -2,7 +2,7 @@ import { checkAuthAccessToken } from '@app/api/_lib/check-auth-access-token';
 import { getPrisma } from '@app/api/_prisma/get-prisma';
 import { withErrorHandlerRequest } from '@app/api/with-error-handler-request';
 import { ICategory, TCategoryId, TCategoryImageBase64 } from '@entities/categories-list';
-import { ResponseParamIsRequiredError } from '@shared/model';
+import { responseErrors, ResponseParamIsRequiredError } from '@shared/model';
 import { NextRequest, NextResponse } from 'next/server';
 import sharp from 'sharp';
 
@@ -24,11 +24,17 @@ const handleGet = async (request: NextRequest) => {
       throw new ResponseParamIsRequiredError(true, 'category_id');
     }
 
-    const category = (await prisma.categories.findFirst({
+    const category = await prisma.categories.findFirst({
       where: { id: category_id },
-    })) as ICategory;
+    });
+    if (!category) throw new responseErrors.ResponseCategoryNotFoundError();
 
-    return NextResponse.json<ICategory>(category);
+    return NextResponse.json<ICategory>({
+      ...category,
+      lastActivity: category.lastActivity
+        ? new Date(category.lastActivity).getTime()
+        : category.lastActivity,
+    });
   } finally {
     await prisma.$disconnect();
   }
@@ -117,7 +123,8 @@ const handleDelete = async (request: NextRequest) => {
       throw new ResponseParamIsRequiredError(false, 'category_id');
     }
 
-    await prisma.categories.findFirst({ where: { id: category_id } });
+    const category = await prisma.categories.findFirst({ where: { id: category_id } });
+    if (!category) throw new responseErrors.ResponseCategoryNotFoundError();
 
     await prisma.categories.delete({ where: { id: category_id } });
 

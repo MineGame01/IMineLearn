@@ -11,10 +11,6 @@ import { getDatabase, ref, onValue } from 'firebase/database';
 import { twMerge } from 'tailwind-merge';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { authApiHooks } from '@entities/auth/api/auth-api-hooks';
-import { authStore } from '@entities/auth';
-import { authApiEndpoints } from '@entities/auth/api/auth-api-endpoints';
-import { ResponseError } from '@shared/model';
-import { checkResponseTokenError } from '@shared/api';
 
 const InterFont = Inter({
   display: 'swap',
@@ -33,28 +29,10 @@ const RootLayout: FC<{ children: ReactNode }> = ({ children }) => {
     defaultOptions: {
       queries: {
         retry: 1,
+        staleTime: 1000 * 60,
       },
       mutations: {
         retry: 1,
-        onError(error) {
-          if (error instanceof ResponseError) {
-            if (error.statusCode === 401) {
-              if (checkResponseTokenError(error)) {
-                authApiEndpoints
-                  .refreshToken()
-                  .then(({ access_token, user_id }) => {
-                    void authStore.getState().setLoginCredentials(access_token, user_id);
-                  })
-                  .catch((error: unknown) => {
-                    if (checkResponseTokenError(error, 'refresh'))
-                      authStore.getState().clearLoginCredentials();
-                  });
-              } else if (checkResponseTokenError(error, 'refresh')) {
-                authStore.getState().clearLoginCredentials();
-              }
-            }
-          }
-        },
       },
     },
   });
@@ -85,7 +63,7 @@ const RootLayout: FC<{ children: ReactNode }> = ({ children }) => {
   }, [refreshTokenMutate]);
 
   return (
-    <html lang="en" className={(twMerge(InterFont.className), 'text-[0.9rem] lg:text-[1rem]')}>
+    <html lang="en" className={twMerge(InterFont.className, 'text-[0.9rem]')}>
       <head>
         <title>IMineLearn</title>
       </head>

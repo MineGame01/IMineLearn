@@ -7,11 +7,13 @@ export const updateCategoryToLatestTopic = async (
   prisma: TPrismaClientExtends | PrismaClient,
   category_id: TCategoryId
 ) => {
-  const topic_count = await prisma.topics.count({ where: { category_id } });
-  const topics = await prisma.topics.findMany({
-    where: { category_id },
-    orderBy: { created_at: 'desc' },
-  });
+  const [topic_count, topics] = await Promise.all([
+    prisma.topics.count({ where: { category_id } }),
+    prisma.topics.findMany({
+      where: { category_id },
+      orderBy: { created_at: 'desc' },
+    }),
+  ]);
 
   const latest_topic = topics.length > 0 ? topics[0] : null;
 
@@ -23,5 +25,6 @@ export const updateCategoryToLatestTopic = async (
       topicsCount: topic_count,
     },
   });
+
   revalidateTag(`categoryid-${category_id}`);
 };

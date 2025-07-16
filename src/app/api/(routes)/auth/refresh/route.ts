@@ -11,6 +11,7 @@ import {
 } from '@shared/model';
 import { RefreshTokenVerify } from '@app/api/_lib/refresh-token-verify';
 import jwt from 'jsonwebtoken';
+import { RefreshToken } from '@app/api/_model/refresh-token.ts';
 
 const handler = async (request: NextRequest) => {
   const prisma = getPrisma();
@@ -23,23 +24,10 @@ const handler = async (request: NextRequest) => {
       throw new ResponseParamIsRequiredError(false, 'refresh_token');
     }
 
+    let verify_refresh_token: RefreshToken | null;
+
     try {
-      const verify_refresh_token = await RefreshTokenVerify(refresh_token);
-
-      if (!verify_refresh_token) {
-        throw new ResponseTokenError('refresh');
-      }
-
-      const user = await prisma.users.findFirst({ where: { id: verify_refresh_token.user_id } });
-      if (!user) throw new ResponseUserNotFoundError();
-
-      const profile = await prisma.profiles.findFirst({ where: { user_id: user.id } });
-      if (!profile) throw new responseErrors.ResponseUserProfileNotFoundError();
-
-      return NextResponse.json({
-        access_token: createAccessToken({ ...user, is_admin: profile.is_admin }),
-        user_id: user.id,
-      });
+      verify_refresh_token = await RefreshTokenVerify(refresh_token);
     } catch (error: unknown) {
       if (error instanceof jwt.JsonWebTokenError) {
         throw new ResponseTokenError('refresh');
@@ -49,6 +37,19 @@ const handler = async (request: NextRequest) => {
         throw error;
       }
     }
+
+    if (!verify_refresh_token) throw new ResponseTokenError('refresh');
+
+    const user = await prisma.users.findFirst({ where: { id: verify_refresh_token.user_id } });
+    if (!user) throw new ResponseUserNotFoundError();
+
+    const profile = await prisma.profiles.findFirst({ where: { user_id: user.id } });
+    if (!profile) throw new responseErrors.ResponseUserProfileNotFoundError();
+
+    return NextResponse.json({
+      access_token: createAccessToken({ ...user, is_admin: profile.is_admin }),
+      user_id: user.id,
+    });
   } finally {
     await prisma.$disconnect();
   }

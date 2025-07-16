@@ -4,7 +4,11 @@ import { FiltersDataResponse, IFilterQueryParams } from '@app/api/_model/filters
 import { IReport, TReportId } from '@entities/Report';
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@app/api/_prisma/get-prisma';
-import { ResponseNotFoundError, ResponseParamIsRequiredError } from '@shared/model';
+import {
+  convertDatesToTimestamps,
+  ResponseNotFoundError,
+  ResponseParamIsRequiredError,
+} from '@shared/model';
 
 interface IRequestQuery extends IFilterQueryParams {
   report_id: TReportId | null;
@@ -20,7 +24,7 @@ const handlerGet = async (request: NextRequest) => {
     }
 
     const searchParams = request.nextUrl.searchParams;
-    // eslint-disable-next-line @typescript-eslint/unbound-method
+
     const { getFilterQueryParams } = new FiltersDataResponse();
 
     const queryParams: IRequestQuery = {
@@ -32,7 +36,12 @@ const handlerGet = async (request: NextRequest) => {
       queryParams;
 
     const find = created_after
-      ? { created_at: { gte: +created_after, lt: +(created_before ?? new Date().getTime()) } }
+      ? {
+          created_at: {
+            gte: new Date(created_after),
+            lt: new Date(created_before ?? new Date().getTime()),
+          },
+        }
       : {};
 
     const find_options = {
@@ -54,13 +63,13 @@ const handlerGet = async (request: NextRequest) => {
       if (!report) {
         throw new ResponseNotFoundError('Report');
       } else {
-        return NextResponse.json<IReport>(report);
+        return NextResponse.json<IReport>(convertDatesToTimestamps([report])[0]);
       }
     }
 
-    return NextResponse.json<IReport[]>(
-      await prisma.reports.findMany({ where: find, ...find_options })
-    );
+    const reports = await prisma.reports.findMany({ where: find, ...find_options });
+
+    return NextResponse.json<IReport[]>(convertDatesToTimestamps(reports));
   } finally {
     await prisma.$disconnect();
   }

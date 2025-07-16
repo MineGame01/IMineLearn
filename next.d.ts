@@ -1,8 +1,8 @@
 import 'next/server';
-import { IUser } from '@entities/User';
+import { IAccessToken } from '@app/api/_model/access-token.type';
 
 declare global {
   interface Request {
-    auth: IUser | null;
+    auth: IAccessToken | null;
   }
 }

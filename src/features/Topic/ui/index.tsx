@@ -83,8 +83,7 @@ export const Topic: FC<IProps> = ({ topic_id }) => {
 
     const topicEditorContent = ((): JSONContent[] => {
       try {
-        const JSONContent = JSON.parse(topic.content) as JSONContent[];
-        return JSONContent;
+        return JSON.parse(topic.content) as JSONContent[];
       } catch {
         return [
           {

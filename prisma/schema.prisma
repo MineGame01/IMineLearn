@@ -9,28 +9,28 @@ datasource db {
 
 /// This collection uses a JSON Schema defined in the database, which requires additional setup for migrations. Visit https://pris.ly/d/mongodb-json-schema for more info.
 model categories {
-  id                 String  @id @default(uuid()) @map("_id")
+  id                 String    @id @default(uuid()) @map("_id")
   image_base64_1200x String?
   image_base64_415x  String?
-  lastActivity       Int?
+  lastActivity       DateTime?
   lastTopicId        String?
-  name               String  @unique
-  topicsCount        Int     @default(0)
+  name               String    @unique
+  topicsCount        Int       @default(0)
 }
 
 /// This collection uses a JSON Schema defined in the database, which requires additional setup for migrations. Visit https://pris.ly/d/mongodb-json-schema for more info.
 model comments {
-  id         String @id @default(uuid()) @map("_id")
+  id         String   @id @default(uuid()) @map("_id")
   content    String
-  created_at Int?
+  created_at DateTime @default(now())
   topic_id   String
   user_id    String
 }
 
 /// This collection uses a JSON Schema defined in the database, which requires additional setup for migrations. Visit https://pris.ly/d/mongodb-json-schema for more info.
 model reactions {
-  id            String @id @default(uuid()) @map("_id")
-  created_at    Int?
+  id            String   @id @default(uuid()) @map("_id")
+  created_at    DateTime @default(now())
   topic_id      String
   type_reaction String
   user_id       String
@@ -38,9 +38,9 @@ model reactions {
 
 /// This collection uses a JSON Schema defined in the database, which requires additional setup for migrations. Visit https://pris.ly/d/mongodb-json-schema for more info.
 model reports {
-  id          String @id @default(uuid()) @map("_id")
+  id          String   @id @default(uuid()) @map("_id")
   content     String
-  created_at  Int?
+  created_at  DateTime @default(now())
   reason      String
   target_id   String
   target_type String
@@ -49,31 +49,31 @@ model reports {
 
 /// This collection uses a JSON Schema defined in the database, which requires additional setup for migrations. Visit https://pris.ly/d/mongodb-json-schema for more info.
 model topics {
-  id          String @id @default(uuid()) @map("_id")
+  id          String   @id @default(uuid()) @map("_id")
   category_id String
   content     String
-  created_at  Int?
+  created_at  DateTime @default(now())
   title       String
   user_id     String
-  views_count Int    @default(0)
+  views_count Int      @default(0)
 }
 
 /// This collection uses a JSON Schema defined in the database, which requires additional setup for migrations. Visit https://pris.ly/d/mongodb-json-schema for more info.
 model users {
-  id            String @id @default(uuid()) @map("_id")
-  created_at    Int?
-  email         String @unique
+  id            String   @id @default(uuid()) @map("_id")
+  created_at    DateTime @default(now())
+  email         String   @unique
   hash_password String
   salt          String
-  username      String @unique
+  username      String   @unique
 }
 
 model profiles {
-  id         String  @id @default(uuid()) @map("_id")
+  id         String    @id @default(uuid()) @map("_id")
   user_id    String
-  is_admin   Boolean @default(false)
+  is_admin   Boolean   @default(false)
   bio        String?
   avatar     String?
-  created_at Int?
-  updated_at Int?
+  created_at DateTime  @default(now())
+  updated_at DateTime? @updatedAt
 }

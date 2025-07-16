@@ -16,7 +16,7 @@ import ReportGmailerrorredIcon from '@mui/icons-material/ReportGmailerrorred';
 import ThumbUpOffAltIcon from '@mui/icons-material/ThumbUpOffAlt';
 import ThumbUpAltIcon from '@mui/icons-material/ThumbUpAlt';
 import { TCategoryId } from '@entities/categories-list';
-import { selectAuthUser, useAuthStore } from '@entities/auth';
+import { selectAuthUser, selectAuthUserProfile, useAuthStore } from '@entities/auth';
 
 interface IProps {
   category_id: TCategoryId;
@@ -66,6 +66,7 @@ export const ActionBar: FC<IProps> = ({
   const [showReportModal, setShowReportModal] = useState(false);
 
   const authUser = useAuthStore(selectAuthUser);
+  const authUserProfile = useAuthStore(selectAuthUserProfile);
 
   const errorMessageAddReaction = getServerErrorMessage(errorAddReaction),
     errorMessageReactions = getServerErrorMessage(errorReactions);
@@ -133,7 +134,7 @@ export const ActionBar: FC<IProps> = ({
         open={showReportModal}
         close={closeReportModal}
       />
-      {(Boolean(authUser?.is_admin) || user_id_topic === authUser?.id) && (
+      {(Boolean(authUserProfile?.is_admin) || user_id_topic === authUser?.id) && (
         <IconButton
           title="Delete topic"
           aria-label="Delete topic"
