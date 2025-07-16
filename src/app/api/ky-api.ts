@@ -1,18 +1,10 @@
 import { authStore } from '@entities/auth';
-import { getEnvVar } from '@shared/lib';
 import { ResponseError } from '@shared/model';
 import ky from 'ky';
 import { authApiEndpoints } from '@entities/auth/api/auth-api-endpoints';
 import { checkResponseTokenError } from '@shared/api';
 
-const is_server_environment = (() => {
-  try {
-    getEnvVar('IS_SERVER_ENVIRONMENT', 'SERVER_ENVIRONMENT');
-    return true;
-  } catch {
-    return false;
-  }
-})();
+const is_server_environment = process.env.IS_SERVER_ENVIRONMENT;
 
 export const appApi = ky.create({
   prefixUrl: process.env.NEXT_PUBLIC_REST_API_URL,
