@@ -1,7 +1,5 @@
 import { FC } from 'react';
 import { ICategory } from '@entities/categories-list';
-import dayjs from 'dayjs';
-import relativeTimePlugin from 'dayjs/plugin/relativeTime';
 import { Body } from './body';
 import { Container } from './container';
 import { CategoryPhotoContainer } from './category-photo-container';
@@ -10,8 +8,7 @@ import { ResponseError } from '@shared/model';
 import { TitleSecondary } from './title-secondary';
 import dynamic from 'next/dynamic';
 import { categoriesApi } from '@entities/categories-list/api/categories-api';
-
-dayjs.extend(relativeTimePlugin);
+import { LastActivity } from './last-activity';
 
 const ServerLastTopic = dynamic(async () => import('./last-topic').then((file) => file.LastTopic), {
   loading: () => {
@@ -36,10 +33,7 @@ export const Category: FC<Pick<ICategory, 'id'>> = async ({ id }) => {
               <TitleSecondary>Topics</TitleSecondary>
               <div className="font-[700] text-[1.5rem]">{topicsCount}</div>
             </div>
-            <div>
-              <TitleSecondary>Last activity</TitleSecondary>
-              <div className="font-[700] text-[1.5rem]">{dayjs(lastActivity).toNow()}</div>
-            </div>
+            <LastActivity timestamp={lastActivity} />
           </ContentContainer>
           <TitleSecondary className="w-full">Last Topic</TitleSecondary>
           {lastTopicId && <ServerLastTopic topic_id={lastTopicId} />}

@@ -1,3 +1,4 @@
+'use client';
 import { FC, HTMLAttributes } from 'react';
 import { twMerge } from 'tailwind-merge';
 import Image from 'next/image';
