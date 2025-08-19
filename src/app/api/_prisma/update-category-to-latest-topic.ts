@@ -26,5 +26,5 @@ export const updateCategoryToLatestTopic = async (
     },
   });
 
-  revalidateTag(`categoryid-${category_id}`);
+  revalidateTag(`category-${category_id}`);
 };

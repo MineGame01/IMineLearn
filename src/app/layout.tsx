@@ -11,6 +11,7 @@ import { getDatabase, ref, onValue } from 'firebase/database';
 import { twMerge } from 'tailwind-merge';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { authApiHooks } from '@entities/auth/api/auth-api-hooks';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
 const InterFont = Inter({
   display: 'swap',
@@ -63,18 +64,19 @@ const RootLayout: FC<{ children: ReactNode }> = ({ children }) => {
   }, [refreshTokenMutate]);
 
   return (
-    <html lang="en" className={twMerge(InterFont.className, 'text-[0.9rem]')}>
+    <html lang="en" className={twMerge(InterFont.className, 'text-[0.9rem] h-full')}>
       <head>
         <title>IMineLearn</title>
       </head>
-      <body className="h-full">
+      <body className="flex flex-col h-full">
         <Analytics />
         <StrictMode>
           {isTechWork === false && (
             <Provider store={storeRef.current}>
               <QueryClientProvider client={queryClientRef.current}>
                 <Header />
-                <main>{children}</main>
+                {children}
+                <ReactQueryDevtools initialIsOpen={false} />
               </QueryClientProvider>
             </Provider>
           )}

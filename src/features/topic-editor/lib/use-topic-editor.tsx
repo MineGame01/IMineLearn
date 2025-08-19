@@ -13,16 +13,12 @@ import { Bold, Code, Italic, Strike } from '@shared/ui';
 import { useEditor, ReactNodeViewRenderer, Editor, UseEditorOptions } from '@tiptap/react';
 import { common, createLowlight } from 'lowlight';
 import css from 'highlight.js/lib/languages/css';
-import js from 'highlight.js/lib/languages/javascript';
-import ts from 'highlight.js/lib/languages/typescript';
 import html from 'highlight.js/lib/languages/xml';
 import { FC } from 'react';
 
 const lowlight = createLowlight(common);
 
 lowlight.register('css', css);
-lowlight.register('js', js);
-lowlight.register('ts', ts);
 lowlight.register('html', html);
 
 interface IToolEditor {

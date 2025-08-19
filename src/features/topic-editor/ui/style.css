@@ -13,7 +13,8 @@
   border-bottom-right-radius: var(--default-radius);
 }
 
-#topicEditor .tiptap img {
+#topicEditor .tiptap img,
+#topicEditorContent .tiptap img {
   max-width: 450px;
   max-height: 350px;
   height: auto;

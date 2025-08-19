@@ -3,8 +3,11 @@ import { Modal } from '@shared/ui';
 import dynamic from 'next/dynamic';
 import { TReportTargetId, TReportTargetType } from '@entities/Report/index.ts';
 
-const LazyContentModal = dynamic(async () =>
-  import('./content-modal.tsx').then((el) => el.ContentModal)
+const LazyContentModal = dynamic(
+  async () => import('./content-modal.tsx').then((el) => el.ContentModal),
+  {
+    loading: () => <div></div>,
+  }
 );
 
 export const ReportModal = memo<{

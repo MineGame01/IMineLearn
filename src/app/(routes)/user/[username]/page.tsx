@@ -9,10 +9,10 @@ import { Fragment, useMemo } from 'react';
 import { AboutProfile } from './_ui/about-profile';
 import { UserNotFoundError } from './_model/user-not-found-error';
 import { FailedLoadingUserTopicsError } from './_model/failed-loading-user-topics-error';
-import { useMutationState, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { topicsApi } from '@entities/Topic/api/topics-api';
-import { selectAuthUser, selectAuthUserProfile, useAuthStore } from '@entities/auth';
-import { userHooksApi } from '@entities/User';
+import { selectAuthUser, useAuthStore } from '@entities/auth';
+import { useGetUserAndProfileQuery } from './_api/use-get-user-and-profile-query';
 
 const UserPage = () => {
   const { username: username_param } = useParams();
@@ -20,40 +20,15 @@ const UserPage = () => {
   const username = username_param?.toString();
 
   const authUser = useAuthStore(selectAuthUser);
-  const authUserProfile = useAuthStore(selectAuthUserProfile);
 
   const isAuthUser = username === authUser?.username;
-
-  const refreshTokenStatus = useMutationState({
-    filters: { mutationKey: ['refreshToken'] },
-    select(mutate) {
-      return mutate.state;
-    },
-  }).at(-1)?.status;
 
   const {
     data: user,
     isLoading: isLoadingUser,
     isError: isErrorUser,
     error: errorUser,
-  } = userHooksApi.useGetUserAndProfileQuery(
-    {
-      username,
-    },
-    {
-      enabled: refreshTokenStatus !== 'pending' || !isAuthUser,
-      initialData:
-        authUser && authUserProfile && isAuthUser
-          ? {
-              id: authUser.id,
-              username: authUser.username,
-              email: authUser.email,
-              created_at: authUser.created_at,
-              profile: authUserProfile,
-            }
-          : undefined,
-    }
-  );
+  } = useGetUserAndProfileQuery(username);
 
   const {
     data: userTopics,
@@ -83,13 +58,13 @@ const UserPage = () => {
   }
 
   return (
-    <div className="container mx-auto flex flex-wrap gap-5 m-5 px-1 lg:px-0">
-      <Paper className="grow-1 p-2 max-w-full h-auto lg:max-w-[200px]">
+    <main className="container mx-auto flex flex-wrap gap-5 p-2 bg-surface">
+      <Paper className="grow-1 p-2 h-auto lg:max-w-[200px]">
         <div className="flex lg:block gap-x-2">
           {isLoadingUser && (
             <Fragment>
               <Skeleton className="bg-background lg:w-full w-[180px] h-[200px]" />
-              <div className="flex flex-col grow-1">
+              <div className="flex flex-col">
                 <Skeleton className="bg-background mt-2 w-[80px]" />
                 <Skeleton className="bg-background mt-2 w-full lg:w-[170px] h-[100px]" />
               </div>
@@ -128,7 +103,7 @@ const UserPage = () => {
             })}
         </div>
       </div>
-    </div>
+    </main>
   );
 };
 

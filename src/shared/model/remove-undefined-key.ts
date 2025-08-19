@@ -4,7 +4,9 @@
  * @param object An object from which you need to remove keys that have the value undefined
  * @returns Object without keys with value undefined
  */
-export const removeUndefinedKey = (object: Record<string, unknown>) => {
+export const removeUndefinedKey = <GObject extends Record<string, unknown>>(
+  object: GObject
+): GObject => {
   const res = {};
   for (const key of Object.keys(object)) {
     const value = object[key];
@@ -12,5 +14,5 @@ export const removeUndefinedKey = (object: Record<string, unknown>) => {
       res[key] = value;
     }
   }
-  return res;
+  return res as GObject;
 };

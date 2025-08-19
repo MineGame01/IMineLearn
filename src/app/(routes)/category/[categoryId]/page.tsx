@@ -63,11 +63,11 @@ const CategoryPage: FC<IProps> = async ({ params }) => {
     const image_src = image_base64_1200x ? `data:image/png;base64,${image_base64_1200x}` : null;
 
     return (
-      <div className="container mx-auto">
+      <main className="container mx-auto bg-surface p-2 grow-1">
         <CategoryPhotoContainer className="m-5" categoryName={name} src={image_src} />
         <ModerationToolbar category_id={id} />
         <TopicsList categoryId={id} />
-      </div>
+      </main>
     );
   } finally {
     await prisma.$disconnect();
