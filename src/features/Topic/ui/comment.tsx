@@ -6,7 +6,7 @@ import { ReportModal } from '@widgets/ReportModal';
 import dayjs from 'dayjs';
 import relativeTimePlugin from 'dayjs/plugin/relativeTime';
 import { getServerErrorMessage } from '@shared/model';
-import { IconButton } from '@shared/ui';
+import { IconButton, Skeleton } from '@shared/ui';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Link from 'next/link';
 import { commentsApiHooks } from '@entities/Topic/api/comments-api-hooks';
@@ -23,7 +23,7 @@ export const Comment: FC<IComment> = ({ created_at, content, id, user_id, topic_
 
   const {
     data: user,
-    isFetching: isFetchingUser,
+    isLoading: isLoadingUser,
     isError: isErrorUser,
     error: errorUser,
   } = userHooksApi.useGetUserQuery({ user_id });
@@ -34,8 +34,8 @@ export const Comment: FC<IComment> = ({ created_at, content, id, user_id, topic_
     isError: isErrorDeleteComment,
     error: errorDeleteComment,
   } = commentsApiHooks.useDeleteCommentMutation({
-    onSuccess() {
-      void queryClient.invalidateQueries({
+    async onSuccess() {
+      await queryClient.invalidateQueries({
         queryKey: ['topic', 'topic-comments', topic_id],
       });
     },
@@ -54,8 +54,13 @@ export const Comment: FC<IComment> = ({ created_at, content, id, user_id, topic_
     <section>
       <div className="flex">
         {isErrorUser && <div>{errorMessageUser}</div>}
-        {isFetchingUser && <div>Loading...</div>}
-        {user && !isFetchingUser && (
+        {isLoadingUser && (
+          <div className="flex gap-2 items-center">
+            <Skeleton className="bg-background rounded-full w-[42px] h-[42px]" />
+            <Skeleton className="bg-background" />
+          </div>
+        )}
+        {user && (
           <Fragment>
             <div className="inline-block rounded-full overflow-hidden w-[42px] h-[42px]">
               <Image width={42} height={42} src="/defaultUser.png" alt={user.username} />

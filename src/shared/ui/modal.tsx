@@ -76,7 +76,7 @@ export const Modal: FC<IProps> = ({
           exit="hidden"
           ref={modalBackdrop}
           className={twMerge(
-            'absolute top-0 left-0 w-full h-screen bg-modal-backdrop z-1000 flex justify-center items-center',
+            'fixed top-0 left-0 w-full h-full bg-modal-backdrop z-1000 flex justify-center items-center',
             classNameBackdrop
           )}
         >

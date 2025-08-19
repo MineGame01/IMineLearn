@@ -6,10 +6,8 @@ import { useParams } from 'next/navigation';
 const TopicPage: FC = () => {
   const { topicId } = useParams();
   return (
-    <main>
-      <div className="container mx-auto px-2">
-        {typeof topicId === 'string' && <Topic topic_id={topicId} />}
-      </div>
+    <main className="grow-1 container mx-auto bg-surface p-2">
+      {typeof topicId === 'string' && <Topic topic_id={topicId} />}
     </main>
   );
 };

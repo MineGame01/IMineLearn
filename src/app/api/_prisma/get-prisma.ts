@@ -52,7 +52,7 @@ export const getPrisma = () => {
           return query(args).then(async (result) => {
             if (result.id) await prisma.topics.deleteMany({ where: { category_id: result.id } });
             revalidateTag('categories-list');
-            if (result.id) revalidateTag(`categoryid-${result.id}`);
+            if (result.id) revalidateTag(`category-${result.id}`);
             return result;
           });
         },

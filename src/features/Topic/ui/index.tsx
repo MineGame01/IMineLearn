@@ -4,8 +4,6 @@ import { TTopicId } from '@entities/Topic';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { Button, Input, Skeleton } from '@shared/ui';
-import dayjs from 'dayjs';
-import relativeTimePlugin from 'dayjs/plugin/relativeTime';
 import { getServerErrorMessage } from '@shared/model';
 import { ActionBar } from './action-bar';
 import { SkeletonTopic } from './skeleton-topic';
@@ -18,11 +16,13 @@ import { TopicEditorContent } from '@features/topic-editor';
 import { JSONContent } from '@tiptap/react';
 import { commentsApiHooks } from '@entities/Topic/api/comments-api-hooks';
 import { userHooksApi } from '@entities/User';
-
-dayjs.extend(relativeTimePlugin);
+import { TopicPreviewSkeleton } from '@features/TopicList';
 
 const MemoComment = dynamic(
-  async () => await import('@features/Topic/ui/comment').then((el) => el.Comment)
+  async () => await import('@features/Topic/ui/comment').then((el) => el.Comment),
+  {
+    loading: () => <TopicPreviewSkeleton />,
+  }
 );
 
 interface IProps {
@@ -58,8 +58,8 @@ export const Topic: FC<IProps> = ({ topic_id }) => {
     isError: isErrorCreateComment,
     error: errorCreateComment,
   } = commentsApiHooks.useCreateCommentMutation({
-    onSuccess() {
-      void queryClient.invalidateQueries({
+    async onSuccess() {
+      await queryClient.invalidateQueries({
         queryKey: ['topic', 'topic-comments', topic_id],
       });
     },
@@ -118,7 +118,13 @@ export const Topic: FC<IProps> = ({ topic_id }) => {
               </Fragment>
             )}
             {isErrorUser && <div>{errorMessageUser}</div>}
-            <div className="ml-auto text-muted">{dayjs(created_at).toNow()}</div>
+            <div className="ml-auto text-muted">
+              {new Date(created_at).toLocaleTimeString('en', {
+                year: '2-digit',
+                month: '2-digit',
+                day: '2-digit',
+              })}
+            </div>
           </section>
           <section className="mt-1">
             {content && (

@@ -14,7 +14,6 @@ const Loading: FC = () => {
     queryFn: () => categoriesApi.getCategoryById(category_id ?? ''),
     queryKey: ['category', category_id],
     enabled: Boolean(category_id),
-    staleTime: 20000,
   });
 
   return <div></div>;

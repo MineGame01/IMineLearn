@@ -17,9 +17,13 @@ import { removeUndefinedKey } from '@shared/model';
 import { TopicPreviewSkeleton } from './topic-preview/skeleton.tsx';
 import { useQuery } from '@tanstack/react-query';
 import { topicsApi } from '@entities/Topic/api/topics-api.ts';
+import { throttle } from '@shared/lib';
 
-const MemoDatePickers = dynamic(async () =>
-  import('./date-pickers.tsx').then((el) => el.DatePickers)
+const MemoDatePickers = dynamic(
+  async () => import('./date-pickers.tsx').then((el) => el.DatePickers),
+  {
+    loading: () => <div>Loading...</div>,
+  }
 );
 
 export const TopicsList: FC<{ categoryId: TCategoryId }> = ({ categoryId }) => {
@@ -34,19 +38,31 @@ export const TopicsList: FC<{ categoryId: TCategoryId }> = ({ categoryId }) => {
   const [showMenuTypeSorted, setShowMenuTypeSorted] = useState(false);
   const menuTypeSortedRef = useRef<HTMLButtonElement | null>(null);
   const [typeSorted, setTypeSorted] = useState<TTypeSorted>('latest');
+  const throttleSetSearchContentRef = useRef<typeof setSearchContent>(throttle(setSearchContent));
 
   const { createdAtAfter, createdAtBefore } = datePickerState;
 
-  const topicsQueryParams = removeUndefinedKey({
-    created_after: createdAtBefore === createdAtAfter ? undefined : String(createdAtAfter),
-    created_before: createdAtBefore ? String(createdAtBefore) : undefined,
-    search: searchContent,
-    category_id: categoryId,
-  });
+  const topicsQueryParams = useMemo(
+    () =>
+      removeUndefinedKey({
+        created_after: createdAtBefore === createdAtAfter ? undefined : String(createdAtAfter),
+        created_before: createdAtBefore ? String(createdAtBefore) : undefined,
+        search: searchContent,
+        category_id: categoryId,
+      }),
+    [categoryId, createdAtAfter, createdAtBefore, searchContent]
+  );
 
-  const { data, isLoading, isError, error } = useQuery({
+  const { data, isLoading, isError, error, isFetching } = useQuery({
     queryFn: () => topicsApi.getTopics(topicsQueryParams),
-    queryKey: ['topics', categoryId],
+    queryKey: [
+      'topics',
+      categoryId,
+      topicsQueryParams.search,
+      topicsQueryParams.created_after,
+      topicsQueryParams.created_before,
+    ],
+    staleTime: 0,
   });
 
   const topicPreviewSkeletons = useMemo(() => {
@@ -81,9 +97,8 @@ export const TopicsList: FC<{ categoryId: TCategoryId }> = ({ categoryId }) => {
       <div className="my-2 flex px-1 lg:px-0 items-center flex-wrap">
         <Input
           inputAttr={{
-            value: searchContent,
             onChange: (event) => {
-              setSearchContent(event.target.value);
+              throttleSetSearchContentRef.current(event.target.value);
             },
           }}
           isError={isError}
@@ -157,8 +172,8 @@ export const TopicsList: FC<{ categoryId: TCategoryId }> = ({ categoryId }) => {
           Create Topic
         </Link>
       </div>
-      {data && <List topics={data as ITopic[]} />}
-      {isLoading && topicPreviewSkeletons}
+      {!isLoading && <List topics={data as ITopic[]} />}
+      {isLoading && !isFetching && topicPreviewSkeletons}
     </div>
   );
 };

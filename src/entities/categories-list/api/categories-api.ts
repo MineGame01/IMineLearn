@@ -22,7 +22,7 @@ export const categoriesApi: ICategoriesEndpointsApi = {
     try {
       const response = await appApi.get('category', {
         searchParams: { category_id },
-        next: { tags: [`categoryid-${category_id}`] },
+        next: { tags: [`category-${category_id}`] },
       });
       return await response.json();
     } catch (error: unknown) {

@@ -163,8 +163,7 @@ const TopicCreatePage: FC = () => {
           <Button
             type="submit"
             form={FORM_CREATE_TOPIC_ID}
-            loading={isPendingCreateTopic}
-            disabled={topicEditor?.isEmpty}
+            disabled={topicEditor?.isEmpty && isPendingCreateTopic}
             variant="contained"
           >
             Create topic

@@ -1,3 +1,4 @@
+'use client';
 import { FC, HTMLAttributes } from 'react';
 import { twMerge } from 'tailwind-merge';
 import Image from 'next/image';
@@ -23,7 +24,7 @@ export const CategoryPhotoContainer: FC<IProps> = ({
     <div
       {...props}
       className={twMerge(
-        'flex items-center h-[80px] justify-center grow-1 overflow-hidden rounded-default-radius',
+        'flex items-center h-[80px] grow-1 justify-start overflow-hidden',
         className
       )}
     >
@@ -32,8 +33,9 @@ export const CategoryPhotoContainer: FC<IProps> = ({
         alt={categoryName}
         width={1000}
         height={200}
+        priority
         className={twMerge(
-          'object-contain basis-[25%] max-w-[250px] object-center h-full',
+          'object-contain w-auto max-w-[250px] object-center h-full rounded-default-radius',
           classNameImage
         )}
       />

@@ -52,7 +52,10 @@ const handlerGet = async (request: NextRequest) => {
       where: {
         category_id: category_id ?? undefined,
         created_at: created_after
-          ? { gte: new Date(created_after), lt: new Date(created_before ?? new Date().getTime()) }
+          ? {
+              gte: new Date(+created_after),
+              lt: new Date(!created_before ? new Date().getTime() : +created_before),
+            }
           : undefined,
         title: search ? { startsWith: search } : undefined,
         user_id: user_id ?? undefined,

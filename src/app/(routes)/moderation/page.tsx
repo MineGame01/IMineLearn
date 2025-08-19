@@ -21,7 +21,7 @@ const ModerationPage: FC = () => {
     }
   }, [authUserProfile, refreshTokenStatus, access_token]);
 
-  return <div>{authUserProfile?.is_admin && <ReportsList />}</div>;
+  return <main>{authUserProfile?.is_admin && <ReportsList />}</main>;
 };
 
 export default ModerationPage;
