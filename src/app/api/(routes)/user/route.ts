@@ -2,6 +2,7 @@ import { getPrisma } from '@app/api/_prisma/get-prisma';
 import { withErrorHandlerRequest } from '@app/api/with-error-handler-request';
 import { IUser, TUserId, TUserUserName } from '@entities/User';
 import {
+  convertDatesToTimestamps,
   removeUndefinedKey,
   ResponseParamIsRequiredError,
   ResponseUserNotFoundError,
@@ -34,11 +35,13 @@ const handlerGet = async (request: NextRequest) => {
     if (!user) throw new ResponseUserNotFoundError(username);
 
     return NextResponse.json<Omit<IUser, 'hash_password' | 'salt'>>(
-      removeUndefinedKey({
-        ...user,
-        hash_password: undefined,
-        salt: undefined,
-      }) as Omit<IUser, 'hash_password' | 'salt'>
+      convertDatesToTimestamps([
+        removeUndefinedKey({
+          ...user,
+          hash_password: undefined,
+          salt: undefined,
+        }),
+      ])[0]
     );
   } finally {
     await prisma.$disconnect();

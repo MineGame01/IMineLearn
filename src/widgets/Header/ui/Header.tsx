@@ -11,7 +11,9 @@ import { authApiHooks } from '@entities/auth/api/auth-api-hooks';
 import { selectAuthUser, selectAuthUserProfile, useAuthStore } from '@entities/auth';
 import { useMutationState } from '@tanstack/react-query';
 
-const MemoDropdown = dynamic(async () => import('@shared/ui').then((el) => el.Dropdown));
+const DropdownMemo = dynamic(async () => import('@shared/ui').then((el) => el.Dropdown), {
+  ssr: false,
+});
 
 export const Header: FC = () => {
   const [isOpenLoginModal, setIsOpenLoginModal] = useState(false);
@@ -99,7 +101,7 @@ export const Header: FC = () => {
                 >
                   {authUser.username}
                 </button>
-                <MemoDropdown
+                <DropdownMemo
                   open={showUserMenu}
                   anchorEl={showUserMenuButton}
                   close={() => {
@@ -116,7 +118,7 @@ export const Header: FC = () => {
                       </DropdownItemLink>
                     )}
                   </DropdownList>
-                </MemoDropdown>
+                </DropdownMemo>
                 <Button onClick={handleClickLogout} variant="contained" className="ml-2 w-auto">
                   Logout
                 </Button>
