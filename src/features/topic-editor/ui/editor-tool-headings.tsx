@@ -1,9 +1,14 @@
-import { Dropdown, DropdownItem, DropdownList, Heading } from '@shared/ui';
+import { DropdownItem, DropdownList, Heading } from '@shared/ui';
 import { Editor } from '@tiptap/react';
 import { FC, Fragment, useId, useRef, useState } from 'react';
 import { ButtonToolEditor } from './button-tool-editor';
+import dynamic from 'next/dynamic';
 
-type Level = 1 | 2 | 3 | 4 | 5 | 6;
+type THeadingLevel = 1 | 2 | 3 | 4 | 5 | 6;
+
+const DropdownMemo = dynamic(async () => import('@shared/ui').then((file) => file.Dropdown), {
+  ssr: false,
+});
 
 export const EditorToolHeadings: FC<{ editor: Editor | null }> = ({ editor }) => {
   const [showDropdown, setShowDropdown] = useState(false);
@@ -24,7 +29,7 @@ export const EditorToolHeadings: FC<{ editor: Editor | null }> = ({ editor }) =>
       >
         <Heading />
       </ButtonToolEditor>
-      <Dropdown
+      <DropdownMemo
         id={DROPDOWN_HEADINGS_ID}
         anchorEl={buttonRef}
         open={showDropdown}
@@ -42,7 +47,7 @@ export const EditorToolHeadings: FC<{ editor: Editor | null }> = ({ editor }) =>
                 editor
                   ?.chain()
                   .focus()
-                  .toggleHeading({ level: heading_level as Level })
+                  .toggleHeading({ level: heading_level as THeadingLevel })
                   .run();
               };
 
@@ -58,7 +63,7 @@ export const EditorToolHeadings: FC<{ editor: Editor | null }> = ({ editor }) =>
               );
             })}
         </DropdownList>
-      </Dropdown>
+      </DropdownMemo>
     </Fragment>
   );
 };

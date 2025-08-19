@@ -10,7 +10,7 @@ import { List } from './list.tsx';
 import { ITopic } from '@entities/Topic';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
-import { Button, Dropdown, DropdownItem, DropdownList, Input, Link } from '@shared/ui';
+import { Button, DropdownItem, DropdownList, Input, Link } from '@shared/ui';
 import dayjs from 'dayjs';
 import dynamic from 'next/dynamic';
 import { removeUndefinedKey } from '@shared/model';
@@ -19,12 +19,16 @@ import { useQuery } from '@tanstack/react-query';
 import { topicsApi } from '@entities/Topic/api/topics-api.ts';
 import { throttle } from '@shared/lib';
 
-const MemoDatePickers = dynamic(
+const DatePickersMemo = dynamic(
   async () => import('./date-pickers.tsx').then((el) => el.DatePickers),
   {
     loading: () => <div>Loading...</div>,
   }
 );
+
+const DropdownMemo = dynamic(async () => import('@shared/ui').then((file) => file.Dropdown), {
+  ssr: false,
+});
 
 export const TopicsList: FC<{ categoryId: TCategoryId }> = ({ categoryId }) => {
   const [datePickerState, setDatePickerState] = useState<TDatePickerState>({
@@ -119,7 +123,7 @@ export const TopicsList: FC<{ categoryId: TCategoryId }> = ({ categoryId }) => {
         >
           {typeSorted}
         </Button>
-        <Dropdown
+        <DropdownMemo
           id="topic-list-menu-type-sorted"
           open={showMenuTypeSorted}
           anchorEl={menuTypeSortedRef}
@@ -147,7 +151,7 @@ export const TopicsList: FC<{ categoryId: TCategoryId }> = ({ categoryId }) => {
               Old
             </DropdownItem>
           </DropdownList>
-        </Dropdown>
+        </DropdownMemo>
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <input
             type="checkbox"
@@ -157,7 +161,7 @@ export const TopicsList: FC<{ categoryId: TCategoryId }> = ({ categoryId }) => {
             }}
           />
           {isOpenMoreOptions && (
-            <MemoDatePickers
+            <DatePickersMemo
               datePickerState={datePickerState}
               setDatePickerState={setDatePickerState}
               changeDatePickerState={changeDatePickerState}
